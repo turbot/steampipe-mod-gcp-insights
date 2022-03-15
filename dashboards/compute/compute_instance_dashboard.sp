@@ -47,16 +47,16 @@ dashboard "gcp_compute_instance_dashboard" {
     title = "Assessments"
 
     chart {
-      title = "Public IP Address Status"
+      title = "Public/Private"
       sql   = query.gcp_compute_instance_by_public_ip.sql
       type  = "donut"
       width = 3
 
       series "count" {
-        point "without public IP address" {
+        point "private" {
           color = "ok"
         }
-        point "with public IP address" {
+        point "public" {
           color = "alert"
         }
       }
@@ -79,7 +79,7 @@ dashboard "gcp_compute_instance_dashboard" {
     }
 
     chart {
-      title = "Confidential VM Service Status"
+      title = "Confidential VM Status"
       sql   = query.gcp_compute_instance_confidential_vm_service_status.sql
       type  = "donut"
       width = 3
@@ -186,7 +186,7 @@ dashboard "gcp_compute_instance_dashboard" {
 
 query "gcp_compute_instance_count" {
   sql = <<-EOQ
-    select count(*) as "Instances" from gcp_compute_instance
+    select count(*) as "Instances" from gcp_compute_instance;
   EOQ
 }
 
@@ -213,7 +213,7 @@ query "gcp_compute_instance_with_public_ip_address_count" {
     )
     select
       count(*) as value,
-      'With Public IP Address' as label,
+      'Publicly Accessible' as label,
       case count(*) when 0 then 'ok' else 'alert' end as "type"
     from
       instance_with_access_config;
@@ -237,7 +237,7 @@ query "gcp_compute_instance_confidential_vm_service_disabled_count" {
   sql = <<-EOQ
     select
       count(*) as value,
-      'Confidential VM Service Disabled' as label,
+      'Confidential VM Disabled' as label,
       case count(*) when 0 then 'ok' else 'alert' end as "type"
     from
       gcp_compute_instance
@@ -266,8 +266,8 @@ query "gcp_compute_instance_by_public_ip" {
     with instance_with_access_config as (
     select
       case
-        when d ->> 'natIP' is not null then 'with public IP address'
-        else 'without public IP address'
+        when d ->> 'natIP' is not null then 'public'
+        else 'private'
       end as ip_address
     from
       gcp_compute_instance,
