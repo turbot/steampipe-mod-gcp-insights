@@ -10,32 +10,32 @@ dashboard "gcp_kubernetes_cluster_dashboard" {
   container {
 
     card {
-      sql   = query.gcp_kubernetes_cluster_count.sql
+      query = query.gcp_kubernetes_cluster_count
       width = 2
     }
 
     card {
-      sql   = query.gcp_kubernetes_cluster_node_count.sql
+      query = query.gcp_kubernetes_cluster_node_count
       width = 2
     }
 
     card {
-      sql   = query.gcp_kubernetes_cluster_database_encryption_count.sql
+      query = query.gcp_kubernetes_cluster_database_encryption_count
       width = 2
     }
 
     card {
-      sql   = query.gcp_kubernetes_cluster_degraded_count.sql
+      query = query.gcp_kubernetes_cluster_degraded_count
       width = 2
     }
 
     card {
-      sql   = query.gcp_kubernetes_cluster_shielded_nodes_disabled_count.sql
+      query = query.gcp_kubernetes_cluster_shielded_nodes_disabled_count
       width = 2
     }
 
     card {
-      sql   = query.gcp_kubernetes_cluster_auto_repair_disabled_count.sql
+      query = query.gcp_kubernetes_cluster_auto_repair_disabled_count
       width = 2
     }
 
@@ -47,7 +47,7 @@ dashboard "gcp_kubernetes_cluster_dashboard" {
 
     chart {
       title = "Cluster Status"
-      sql   = query.gcp_kubernetes_cluster_status.sql
+      query = query.gcp_kubernetes_cluster_status
       type  = "donut"
       width = 3
 
@@ -63,7 +63,7 @@ dashboard "gcp_kubernetes_cluster_dashboard" {
 
     chart {
       title = "Database Encryption Status"
-      sql   = query.gcp_kubernetes_cluster_encryption_status.sql
+      query = query.gcp_kubernetes_cluster_encryption_status
       type  = "donut"
       width = 3
 
@@ -79,7 +79,7 @@ dashboard "gcp_kubernetes_cluster_dashboard" {
 
     chart {
       title = "Shielded Nodes Status"
-      sql   = query.gcp_kubernetes_cluster_shielded_nodes_status.sql
+      query = query.gcp_kubernetes_cluster_shielded_nodes_status
       type  = "donut"
       width = 3
 
@@ -95,7 +95,7 @@ dashboard "gcp_kubernetes_cluster_dashboard" {
 
     chart {
       title = "Node Auto Repair Status"
-      sql   = query.gcp_kubernetes_cluster_auto_repair_status.sql
+      query = query.gcp_kubernetes_cluster_auto_repair_status
       type  = "donut"
       width = 3
 
@@ -117,28 +117,28 @@ dashboard "gcp_kubernetes_cluster_dashboard" {
 
     chart {
       title = "Clusters by Project"
-      sql   = query.gcp_kubernetes_cluster_by_project.sql
+      query = query.gcp_kubernetes_cluster_by_project
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Clusters by Location"
-      sql   = query.gcp_kubernetes_cluster_by_location.sql
+      query = query.gcp_kubernetes_cluster_by_location
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Clusters by State"
-      sql   = query.gcp_kubernetes_cluster_by_state.sql
+      query = query.gcp_kubernetes_cluster_by_state
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Clusters by Age"
-      sql   = query.gcp_kubernetes_cluster_by_creation_month.sql
+      query = query.gcp_kubernetes_cluster_by_creation_month
       type  = "column"
       width = 3
     }

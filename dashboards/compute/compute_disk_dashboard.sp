@@ -11,23 +11,23 @@ dashboard "gcp_compute_disk_dashboard" {
 
     # Analysis
     card {
-      sql   = query.gcp_compute_disk_count.sql
+      query = query.gcp_compute_disk_count
       width = 2
     }
 
     card {
-      sql   = query.gcp_compute_disk_storage_total.sql
+      query = query.gcp_compute_disk_storage_total
       width = 2
     }
 
     # Assessments
     card {
-      sql   = query.gcp_compute_disk_unattached_count.sql
+      query = query.gcp_compute_disk_unattached_count
       width = 2
     }
 
     card {
-      sql   = query.gcp_compute_disk_public_image_count.sql
+      query = query.gcp_compute_disk_public_image_count
       width = 2
     }
   }
@@ -38,7 +38,7 @@ dashboard "gcp_compute_disk_dashboard" {
 
     chart {
       title = "Attachment Status"
-      sql   = query.gcp_compute_disk_unattached.sql
+      query = query.gcp_compute_disk_unattached
       type  = "donut"
       width = 3
 
@@ -54,7 +54,7 @@ dashboard "gcp_compute_disk_dashboard" {
 
     chart {
       title = "Public Disk Image Status"
-      sql   = query.gcp_compute_disk_public_image.sql
+      query = query.gcp_compute_disk_public_image
       type  = "donut"
       width = 3
 
@@ -76,42 +76,42 @@ dashboard "gcp_compute_disk_dashboard" {
 
     chart {
       title = "Disks by Project"
-      sql   = query.gcp_compute_disk_by_project.sql
+      query = query.gcp_compute_disk_by_project
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Disks by Location"
-      sql   = query.gcp_compute_disk_by_location.sql
+      query = query.gcp_compute_disk_by_location
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Disks by State"
-      sql   = query.gcp_compute_disk_by_state.sql
+      query = query.gcp_compute_disk_by_state
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Disks by Age"
-      sql   = query.gcp_compute_disk_by_creation_month.sql
+      query = query.gcp_compute_disk_by_creation_month
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Disks by Encryption Type"
-      sql   = query.gcp_compute_disk_by_encryption_type.sql
+      query = query.gcp_compute_disk_by_encryption_type
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Disks by Type"
-      sql   = query.gcp_compute_disk_by_type.sql
+      query = query.gcp_compute_disk_by_type
       type  = "column"
       width = 3
     }
@@ -124,14 +124,14 @@ dashboard "gcp_compute_disk_dashboard" {
 
     chart {
       title = "Top 10 Average Read IOPS - Last 7 days"
-      sql   = query.gcp_compute_disk_top_10_read_ops_avg.sql
+      query = query.gcp_compute_disk_top_10_read_ops_avg
       type  = "line"
       width = 6
     }
 
     chart {
       title = "Top 10 Average Write IOPS - Last 7 days"
-      sql   = query.gcp_compute_disk_top_10_write_ops_avg.sql
+      query = query.gcp_compute_disk_top_10_write_ops_avg
       type  = "line"
       width = 6
     }

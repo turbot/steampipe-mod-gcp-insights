@@ -10,12 +10,12 @@ dashboard "gcp_kms_key_dashboard" {
   container {
 
     card {
-      sql   = query.gcp_kms_key_count.sql
+      query = query.gcp_kms_key_count
       width = 2
     }
 
     card {
-      sql   = query.gcp_kms_rotation_disabled_count.sql
+      query = query.gcp_kms_rotation_disabled_count
       width = 2
     }
 
@@ -28,7 +28,7 @@ dashboard "gcp_kms_key_dashboard" {
 
     chart {
       title = "Rotation Status"
-      sql   = query.gcp_kms_key_rotation_status.sql
+      query = query.gcp_kms_key_rotation_status
       type  = "donut"
       width = 4
 
@@ -50,21 +50,21 @@ dashboard "gcp_kms_key_dashboard" {
 
     chart {
       title = "Keys by Project"
-      sql   = query.gcp_kms_key_by_project.sql
+      query = query.gcp_kms_key_by_project
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Keys by Location"
-      sql   = query.gcp_kms_key_by_location.sql
+      query = query.gcp_kms_key_by_location
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Keys by Age"
-      sql   = query.gcp_kms_key_by_creation_month.sql
+      query = query.gcp_kms_key_by_creation_month
       type  = "column"
       width = 3
     }

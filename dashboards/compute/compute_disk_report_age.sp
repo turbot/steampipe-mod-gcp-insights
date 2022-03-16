@@ -11,58 +11,58 @@ dashboard "gcp_compute_disk_age_report" {
   container {
 
     card {
-      sql   = query.gcp_compute_disk_count.sql
+      query = query.gcp_compute_disk_count
       width = 2
     }
 
     card {
       type  = "info"
       width = 2
-      sql   = query.gcp_compute_disk_24_hours_count.sql
+      query = query.gcp_compute_disk_24_hours_count
     }
 
     card {
       type  = "info"
       width = 2
-      sql   = query.gcp_compute_disk_30_days_count.sql
+      query = query.gcp_compute_disk_30_days_count
     }
 
     card {
       type  = "info"
       width = 2
-      sql   = query.gcp_compute_disk_30_90_days_count.sql
+      query = query.gcp_compute_disk_30_90_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      sql   = query.gcp_compute_disk_90_365_days_count.sql
+      query = query.gcp_compute_disk_90_365_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      sql   = query.gcp_compute_disk_1_year_count.sql
+      query = query.gcp_compute_disk_1_year_count
     }
 
   }
 
   table {
-    column "Project Number" {
+    column "Project ID" {
       display = "none"
     }
 
-    # column "Self Link" {
-    #   display = "none"
-    # }
+    column "Self-Link" {
+      display = "none"
+    }
 
-    sql = query.gcp_compute_disk_age_table.sql
+    query = query.gcp_compute_disk_age_table
   }
 
 }
 
 query "gcp_compute_disk_24_hours_count" {
-  sql   = <<-EOQ
+  sql = <<-EOQ
     select
       count(*) as value,
       '< 24 hours' as label
@@ -74,7 +74,7 @@ query "gcp_compute_disk_24_hours_count" {
 }
 
 query "gcp_compute_disk_30_days_count" {
-  sql   = <<-EOQ
+  sql = <<-EOQ
     select
       count(*) as value,
       '1-30 Days' as label
@@ -86,7 +86,7 @@ query "gcp_compute_disk_30_days_count" {
 }
 
 query "gcp_compute_disk_30_90_days_count" {
-  sql   = <<-EOQ
+  sql = <<-EOQ
     select
       count(*) as value,
       '30-90 Days' as label
@@ -98,7 +98,7 @@ query "gcp_compute_disk_30_90_days_count" {
 }
 
 query "gcp_compute_disk_90_365_days_count" {
-  sql   = <<-EOQ
+  sql = <<-EOQ
     select
       count(*) as value,
       '90-365 Days' as label
@@ -110,7 +110,7 @@ query "gcp_compute_disk_90_365_days_count" {
 }
 
 query "gcp_compute_disk_1_year_count" {
-  sql   = <<-EOQ
+  sql = <<-EOQ
     select
       count(*) as value,
       '> 1 Year' as label
@@ -128,9 +128,10 @@ query "gcp_compute_disk_age_table" {
       now()::date - d.creation_timestamp::date as "Age in Days",
       d.creation_timestamp as "Create Time",
       d.status as "Status",
-      p.project_id as "Project",
+      p.name as "Project",
+      p.project_id as "Project ID",
       d.location as "Location",
-      d.self_link as "Self Link"
+      d.self_link as "Self-Link"
     from
       gcp_compute_disk as d,
       gcp_project as p
