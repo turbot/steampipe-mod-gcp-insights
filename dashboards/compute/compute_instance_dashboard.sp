@@ -120,42 +120,42 @@ dashboard "gcp_compute_instance_dashboard" {
       title = "Instances by Project"
       query = query.gcp_compute_instance_by_project
       type  = "column"
-      width = 3
+      width = 4
     }
 
     chart {
       title = "Instances by Location"
       query = query.gcp_compute_instance_by_location
       type  = "column"
-      width = 3
+      width = 4
     }
 
     chart {
       title = "Instances by State"
       query = query.gcp_compute_instance_by_state
       type  = "column"
-      width = 3
+      width = 4
     }
 
     chart {
       title = "Instances by Age"
       query = query.gcp_compute_instance_by_creation_month
       type  = "column"
-      width = 3
+      width = 4
     }
 
     chart {
       title = "Instances by Type"
       query = query.gcp_compute_instance_by_type
       type  = "column"
-      width = 3
+      width = 4
     }
 
     chart {
       title = "Instances by CPU Platform"
       query = query.gcp_compute_instance_by_cpu_platform
       type  = "column"
-      width = 3
+      width = 4
     }
 
   }
