@@ -11,52 +11,52 @@ dashboard "gcp_kms_key_age_report" {
   container {
 
     card {
-      sql   = query.gcp_kms_key_count.sql
+      query = query.gcp_kms_key_count
       width = 2
     }
 
     card {
       type  = "info"
       width = 2
-      sql   = query.gcp_kms_key_24_hours_count.sql
+      query = query.gcp_kms_key_24_hours_count
     }
 
     card {
       type  = "info"
       width = 2
-      sql   = query.gcp_kms_key_30_days_count.sql
+      query = query.gcp_kms_key_30_days_count
     }
 
     card {
       type  = "info"
       width = 2
-      sql   = query.gcp_kms_key_30_90_days_count.sql
+      query = query.gcp_kms_key_30_90_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      sql   = query.gcp_kms_key_90_365_days_count.sql
+      query = query.gcp_kms_key_90_365_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      sql   = query.gcp_kms_key_1_year_count.sql
+      query = query.gcp_kms_key_1_year_count
     }
 
   }
 
   table {
-    column "Project Number" {
+    column "Project ID" {
       display = "none"
     }
 
-    column "Self Link" {
+    column "Self-Link" {
       display = "none"
     }
 
-    sql = query.gcp_kms_key_age_table.sql
+    query = query.gcp_kms_key_age_table
   }
 
 }
@@ -128,10 +128,10 @@ query "gcp_kms_key_age_table" {
       k.key_ring_name as "Key Ring Name",
       now()::date - k.create_time::date as "Age in Days",
       k.create_time as "Create Time",
-      p.project_id as "Project",
-      p.project_number as "Project Number",
+      p.name as "Project",
+      p.project_id as "Project ID",
       k.location as "Location",
-      k.self_link as "Self Link"
+      k.self_link as "Self-Link"
     from
       gcp_kms_key as k,
       gcp_project as p

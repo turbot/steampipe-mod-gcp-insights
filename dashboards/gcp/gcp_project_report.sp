@@ -11,14 +11,14 @@ dashboard "gcp_project_report" {
   container {
 
     card {
-      sql   = query.gcp_project_count.sql
+      query = query.gcp_project_count
       width = 2
     }
 
   }
 
   table {
-    sql = query.gcp_project_table.sql
+    query = query.gcp_project_table
   }
 
 }

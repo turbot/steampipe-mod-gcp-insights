@@ -11,29 +11,36 @@ dashboard "gcp_compute_disk_encryption_report" {
   container {
 
     card {
-      sql   = query.gcp_compute_disk_count.sql
+      query = query.gcp_compute_disk_count
       width = 2
     }
 
     card {
-      sql   = query.gcp_compute_disk_google_managed_encryption.sql
+      query = query.gcp_compute_disk_google_managed_encryption
       width = 2
     }
 
     card {
-      sql   = query.gcp_compute_disk_customer_managed_encryption.sql
+      query = query.gcp_compute_disk_customer_managed_encryption
       width = 2
     }
 
     card {
-      sql   = query.gcp_compute_disk_customer_supplied_encryption.sql
+      query = query.gcp_compute_disk_customer_supplied_encryption
       width = 2
     }
 
   }
 
   table {
-    sql = query.gcp_compute_disk_encryption_table.sql
+    column "Project ID" {
+      display = "none"
+    }
+
+    column "Self-Link" {
+      display = "none"
+    }
+    query = query.gcp_compute_disk_encryption_table
   }
 
 }
@@ -84,9 +91,10 @@ query "gcp_compute_disk_encryption_table" {
         else 'Customer Supplied'
       end as "Type",
       d.disk_encryption_key ->> 'kmsKeyName' as "Key",
-      p.project_id as "Project",
+      p.name as "Project",
+      p.project_id as "Project ID",
       d.location as "Location",
-      d.self_link as "Self Link"
+      d.self_link as "Self-Link"
     from
       gcp_compute_disk as d,
       gcp_project as p

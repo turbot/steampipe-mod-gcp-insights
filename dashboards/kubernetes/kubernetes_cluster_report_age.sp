@@ -11,52 +11,52 @@ dashboard "gcp_kubernetes_cluster_age_report" {
   container {
 
     card {
-      sql   = query.gcp_kubernetes_cluster_count.sql
+      query = query.gcp_kubernetes_cluster_count
       width = 2
     }
 
     card {
       type  = "info"
       width = 2
-      sql   = query.gcp_kubernetes_cluster_24_hours_count.sql
+      query = query.gcp_kubernetes_cluster_24_hours_count
     }
 
     card {
       type  = "info"
       width = 2
-      sql   = query.gcp_kubernetes_cluster_30_days_count.sql
+      query = query.gcp_kubernetes_cluster_30_days_count
     }
 
     card {
       type  = "info"
       width = 2
-      sql   = query.gcp_kubernetes_cluster_30_90_days_count.sql
+      query = query.gcp_kubernetes_cluster_30_90_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      sql   = query.gcp_kubernetes_cluster_90_365_days_count.sql
+      query = query.gcp_kubernetes_cluster_90_365_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      sql   = query.gcp_kubernetes_cluster_1_year_count.sql
+      query = query.gcp_kubernetes_cluster_1_year_count
     }
 
   }
 
   table {
-    column "Project Number" {
+    column "Project ID" {
       display = "none"
     }
 
-    column "Self Link" {
+    column "Self-Link" {
       display = "none"
     }
 
-    sql = query.gcp_kubernetes_cluster_age_table.sql
+    query = query.gcp_kubernetes_cluster_age_table
   }
 
 }
@@ -128,10 +128,10 @@ query "gcp_kubernetes_cluster_age_table" {
       now()::date - c.create_time::date as "Age in Days",
       c.create_time as "Create Time",
       c.status as "Status",
-      p.project_id as "Project",
-      p.project_number as "Project Number",
+      p.name as "Project",
+      p.project_id as "Project ID",
       c.location as "Location",
-      c.self_link as "Self Link"
+      c.self_link as "Self-Link"
     from
       gcp_kubernetes_cluster as c,
       gcp_project as p

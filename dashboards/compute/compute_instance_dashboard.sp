@@ -11,33 +11,33 @@ dashboard "gcp_compute_instance_dashboard" {
 
     # Analysis
     card {
-      sql   = query.gcp_compute_instance_count.sql
+      query = query.gcp_compute_instance_count
       width = 2
     }
 
     card {
-      sql   = query.gcp_compute_instance_total_disks.sql
+      query = query.gcp_compute_instance_total_disks
       width = 2
     }
 
     # Assessments
     card {
-      sql   = query.gcp_compute_instance_with_public_ip_address_count.sql
+      query = query.gcp_compute_instance_with_public_ip_address_count
       width = 2
     }
 
     card {
-      sql   = query.gcp_compute_instance_deletion_protection_disabled_count.sql
+      query = query.gcp_compute_instance_deletion_protection_disabled_count
       width = 2
     }
 
     card {
-      sql   = query.gcp_compute_instance_confidential_vm_service_disabled_count.sql
+      query = query.gcp_compute_instance_confidential_vm_service_disabled_count
       width = 2
     }
 
     card {
-      sql   = query.gcp_compute_shielded_vm_disabled_count.sql
+      query = query.gcp_compute_shielded_vm_disabled_count
       width = 2
     }
   }
@@ -48,7 +48,7 @@ dashboard "gcp_compute_instance_dashboard" {
 
     chart {
       title = "Public/Private"
-      sql   = query.gcp_compute_instance_by_public_ip.sql
+      query = query.gcp_compute_instance_by_public_ip
       type  = "donut"
       width = 3
 
@@ -64,7 +64,7 @@ dashboard "gcp_compute_instance_dashboard" {
 
     chart {
       title = "Deletion Protection Status"
-      sql   = query.gcp_compute_instance_deletion_protection_status.sql
+      query = query.gcp_compute_instance_deletion_protection_status
       type  = "donut"
       width = 3
 
@@ -80,7 +80,7 @@ dashboard "gcp_compute_instance_dashboard" {
 
     chart {
       title = "Confidential VM Status"
-      sql   = query.gcp_compute_instance_confidential_vm_service_status.sql
+      query = query.gcp_compute_instance_confidential_vm_service_status
       type  = "donut"
       width = 3
 
@@ -96,7 +96,7 @@ dashboard "gcp_compute_instance_dashboard" {
 
     chart {
       title = "Shielded VM Status"
-      sql   = query.gcp_compute_instance_shielded_vm_status.sql
+      query = query.gcp_compute_instance_shielded_vm_status
       type  = "donut"
       width = 3
 
@@ -118,42 +118,42 @@ dashboard "gcp_compute_instance_dashboard" {
 
     chart {
       title = "Instances by Project"
-      sql   = query.gcp_compute_instance_by_project.sql
+      query = query.gcp_compute_instance_by_project
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Instances by Location"
-      sql   = query.gcp_compute_instance_by_location.sql
+      query = query.gcp_compute_instance_by_location
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Instances by State"
-      sql   = query.gcp_compute_instance_by_state.sql
+      query = query.gcp_compute_instance_by_state
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Instances by Age"
-      sql   = query.gcp_compute_instance_by_creation_month.sql
+      query = query.gcp_compute_instance_by_creation_month
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Instances by Type"
-      sql   = query.gcp_compute_instance_by_type.sql
+      query = query.gcp_compute_instance_by_type
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Instances by CPU Platform"
-      sql   = query.gcp_compute_instance_by_cpu_platform.sql
+      query = query.gcp_compute_instance_by_cpu_platform
       type  = "column"
       width = 3
     }
@@ -166,14 +166,14 @@ dashboard "gcp_compute_instance_dashboard" {
 
     chart {
       title = "Top 10 CPU - Last 7 days"
-      sql   = query.gcp_compute_top10_cpu_past_week.sql
+      query = query.gcp_compute_top10_cpu_past_week
       type  = "line"
       width = 6
     }
 
     chart {
       title = "Average Max Daily CPU - Last 30 days"
-      sql   = query.gcp_compute_instance_by_cpu_utilization_category.sql
+      query = query.gcp_compute_instance_by_cpu_utilization_category
       type  = "column"
       width = 6
     }
