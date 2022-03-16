@@ -26,10 +26,6 @@ dashboard "gcp_compute_disk_dashboard" {
       width = 2
     }
 
-    card {
-      query = query.gcp_compute_disk_public_image_count
-      width = 2
-    }
   }
 
   container {
@@ -47,22 +43,6 @@ dashboard "gcp_compute_disk_dashboard" {
           color = "ok"
         }
         point "available" {
-          color = "alert"
-        }
-      }
-    }
-
-    chart {
-      title = "Public Disk Image Status"
-      query = query.gcp_compute_disk_public_image
-      type  = "donut"
-      width = 3
-
-      series "count" {
-        point "private image" {
-          color = "ok"
-        }
-        point "public image" {
           color = "alert"
         }
       }
@@ -240,27 +220,6 @@ query "gcp_compute_disk_unattached_count" {
   EOQ
 }
 
-query "gcp_compute_disk_public_image_count" {
-  sql = <<-EOQ
-    with public_disk_images as (
-      select
-        distinct source_disk_id
-      from
-        gcp_compute_image
-      where
-        iam_policy ->> 'bindings' like any (array ['%allAuthenticatedUsers%','%allUsers%'])
-    )
-    select
-      count(*) as value,
-      'Public Disk Image' as label,
-      case count(*) when 0 then 'ok' else 'alert' end as "type" 
-    from
-      gcp_compute_disk as d
-    where
-      id::text in (select source_disk_id from public_disk_images);
-  EOQ
-}
-
 # Assessment Queries
 
 query "gcp_compute_disk_unattached" {
@@ -281,35 +240,6 @@ query "gcp_compute_disk_unattached" {
       disks
     group by
       attachment_status;
-  EOQ
-}
-
-query "gcp_compute_disk_public_image" {
-  sql = <<-EOQ
-    with public_disk_images as (
-      select
-        distinct source_disk_id as disk_name
-      from
-        gcp_compute_image
-      where
-        iam_policy ->> 'bindings' like any (array ['%allAuthenticatedUsers%','%allUsers%'])
-    ),
-    disk_image_status as (
-      select
-        case
-          when d.name is not null then 'private image'
-          else 'public image' end as disk_image_status
-      from
-        gcp_compute_disk as d
-        left join public_disk_images as i on i.disk_name = d.name
-    )
-    select
-      disk_image_status,
-      count(*)
-    from
-      disk_image_status
-    group by
-      disk_image_status;
   EOQ
 }
 
