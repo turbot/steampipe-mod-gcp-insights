@@ -36,9 +36,9 @@ query "gcp_project_table" {
   sql = <<-EOQ
     select
       name as "Name",
+      lifecycle_state as "Lifecycle State",
       project_id as "Project ID",
-      project_number as "Project Number",
-      lifecycle_state as "Lifecycle State"
+      project_number as "Project Number"
     from
       gcp_project;
   EOQ
