@@ -94,7 +94,7 @@ dashboard "gcp_kubernetes_cluster_dashboard" {
     }
 
     chart {
-      title = "Node Auto Repair Status"
+      title = "Node Auto-Repair Status"
       query = query.gcp_kubernetes_cluster_auto_repair_status
       type  = "donut"
       width = 3
@@ -207,7 +207,7 @@ query "gcp_kubernetes_cluster_auto_repair_disabled_count" {
   sql = <<-EOQ
     select
       count(*) as value,
-      'Node Auto Repair Disabled' as label,
+      'Node Auto-Repair Disabled' as label,
       case count(*) when 0 then 'ok' else 'alert' end as "type"
     from
       gcp_kubernetes_cluster,

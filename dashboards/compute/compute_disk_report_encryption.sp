@@ -49,7 +49,7 @@ query "gcp_compute_disk_google_managed_encryption" {
   sql = <<-EOQ
     select
       count(*) as value,
-      'Google-Managed Encryption' as label
+      'Google Managed Encryption' as label
     from
       gcp_compute_disk
     where
@@ -61,7 +61,7 @@ query "gcp_compute_disk_customer_managed_encryption" {
   sql = <<-EOQ
     select
       count(*) as value,
-      'Customer-Managed Encryption' as label
+      'Customer Managed Encryption' as label
     from
       gcp_compute_disk
     where
@@ -73,7 +73,7 @@ query "gcp_compute_disk_customer_supplied_encryption" {
   sql = <<-EOQ
     select
       count(*) as value,
-      'Customer-Supplied Encryption' as label
+      'Customer Supplied Encryption' as label
     from
       gcp_compute_disk
     where

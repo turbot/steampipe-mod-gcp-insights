@@ -15,11 +15,6 @@ dashboard "gcp_compute_instance_dashboard" {
       width = 2
     }
 
-    card {
-      query = query.gcp_compute_instance_total_disks
-      width = 2
-    }
-
     # Assessments
     card {
       query = query.gcp_compute_instance_with_public_ip_address_count
@@ -187,15 +182,6 @@ dashboard "gcp_compute_instance_dashboard" {
 query "gcp_compute_instance_count" {
   sql = <<-EOQ
     select count(*) as "Instances" from gcp_compute_instance;
-  EOQ
-}
-
-query "gcp_compute_instance_total_disks" {
-  sql = <<-EOQ
-    select
-      count (jsonb_array_length(disks)) as "Total Disks"
-    from
-      gcp_compute_instance;
   EOQ
 }
 

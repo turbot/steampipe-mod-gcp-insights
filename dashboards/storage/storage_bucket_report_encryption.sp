@@ -43,7 +43,7 @@ query "gcp_storage_bucket_google_managed_encryption" {
   sql = <<-EOQ
     select
       count(*) as value,
-      'Google-Managed Encryption' as label
+      'Google Managed Encryption' as label
     from
       gcp_storage_bucket
     where
@@ -55,7 +55,7 @@ query "gcp_storage_bucket_customer_managed_encryption" {
   sql = <<-EOQ
     select
       count(*) as value,
-      'Customer-Managed Encryption' as label
+      'Customer Managed Encryption' as label
     from
       gcp_storage_bucket
     where
