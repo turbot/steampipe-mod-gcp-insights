@@ -89,7 +89,8 @@ query "gcp_iam_role_by_project" {
       p.project_id = r.project
     group by
       p.title
-    order by count(r.*) desc;
+    order by 
+      count(r.*) desc;
   EOQ
 }
 
@@ -108,7 +109,7 @@ query "gcp_iam_role_by_stage" {
 query "gcp_iam_role_by_type" {
   sql = <<-EOQ
     select
-      case when is_gcp_managed then 'gcp_managed' else 'customer_managed' end as type,
+      case when is_gcp_managed then 'GCP managed' else 'customer managed' end as type,
       count(r.*) as total
     from
       gcp_iam_role as r
