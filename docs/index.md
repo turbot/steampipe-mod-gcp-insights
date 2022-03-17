@@ -17,9 +17,8 @@ Dashboards can help answer questions like:
 - Are there any publicly accessible resources?
 - Is encryption enabled and what keys are used for encryption?
 - Is versioning enabled?
-- What are the relationships between closely connected resources like IAM users, groups, and policies?
 
-<!-- Dashboards are available for 15+ services, including CloudTrail, EC2, IAM, RDS, S3, VPC, and more! -->
+Dashboards are available for Compute, IAM, KMS, Kubernetes and Storage services
 
 ## References
 
