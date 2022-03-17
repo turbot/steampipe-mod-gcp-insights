@@ -2,7 +2,7 @@ mod "gcp_insights" {
   # hub metadata
   title         = "GCP Insights"
   description   = "Create dashboards and reports for your GCP resources using Steampipe."
-  color         = "#FF9900"
+  color         = "#EA4335"
   documentation = file("./docs/index.md")
   icon          = "/images/mods/turbot/gcp-insights.svg"
   categories    = ["gcp", "dashboard", "public cloud"]
@@ -13,9 +13,9 @@ mod "gcp_insights" {
     image       = "/images/mods/turbot/gcp-insights-social-graphic.png"
   }
 
-  requires {
+  require {
     plugin "gcp" {
-      version = "0.20.0"
+      version = "0.21.0"
     }
   }
 }

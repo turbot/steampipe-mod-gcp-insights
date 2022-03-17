@@ -14,7 +14,7 @@ Dashboards can help answer questions like:
 - Is encryption enabled and what keys are used for encryption?
 - Is versioning enabled?
 
-Dashboards are available for Compute, IAM, KMS, Kubernetes and Storage services
+Dashboards are available for Compute, IAM, KMS, Kubernetes and Storage services.
 
 ## Getting started
 
