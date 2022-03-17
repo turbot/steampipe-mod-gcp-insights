@@ -51,7 +51,7 @@ dashboard "gcp_storage_bucket_dashboard" {
       title = "Public/Private"
       query = query.gcp_storage_bucket_by_public_access
       type  = "donut"
-      width = 3
+      width = 4
 
       series "count" {
         point "private" {
@@ -67,7 +67,7 @@ dashboard "gcp_storage_bucket_dashboard" {
       title = "Versioning Status"
       query = query.gcp_storage_bucket_versioning_status
       type  = "donut"
-      width = 3
+      width = 4
 
       series "count" {
         point "enabled" {
@@ -83,7 +83,7 @@ dashboard "gcp_storage_bucket_dashboard" {
       title = "Retention Policy Status"
       query = query.gcp_storage_bucket_retention_policy_status
       type  = "donut"
-      width = 3
+      width = 4
 
       series "count" {
         point "enabled" {
@@ -99,7 +99,7 @@ dashboard "gcp_storage_bucket_dashboard" {
       title = "Logging Status"
       query = query.gcp_storage_bucket_logging_status
       type  = "donut"
-      width = 3
+      width = 4
 
       series "count" {
         point "enabled" {
@@ -115,7 +115,7 @@ dashboard "gcp_storage_bucket_dashboard" {
       title = "Uniform Bucket Level Access"
       query = query.gcp_storage_bucket_uniform_bucket_level_access_status
       type  = "donut"
-      width = 3
+      width = 4
 
       series "count" {
         point "enabled" {
@@ -183,7 +183,7 @@ query "gcp_storage_bucket_public_access_count" {
   sql = <<-EOQ
     select
       count(*) as value,
-      'Public Access Not Blocked' as label,
+      'Publicly Accessible' as label,
       case count(*) when 0 then 'ok' else 'alert' end as "type"
     from
       gcp_storage_bucket

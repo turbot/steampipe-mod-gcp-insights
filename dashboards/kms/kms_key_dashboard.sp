@@ -52,21 +52,21 @@ dashboard "gcp_kms_key_dashboard" {
       title = "Keys by Project"
       query = query.gcp_kms_key_by_project
       type  = "column"
-      width = 3
+      width = 4
     }
 
     chart {
       title = "Keys by Location"
       query = query.gcp_kms_key_by_location
       type  = "column"
-      width = 3
+      width = 4
     }
 
     chart {
       title = "Keys by Age"
       query = query.gcp_kms_key_by_creation_month
       type  = "column"
-      width = 3
+      width = 4
     }
 
   }

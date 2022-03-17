@@ -1,6 +1,6 @@
 dashboard "gcp_service_account_key_age_report" {
 
-  title = "GCP Service Account Key Age Report"
+  title = "GCP IAM Service Account Key Age Report"
   documentation = file("./dashboards/iam/docs/iam_service_account_key_report_age.md")
 
   tags = merge(local.iam_common_tags, {
