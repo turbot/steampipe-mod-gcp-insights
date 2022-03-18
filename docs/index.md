@@ -6,7 +6,9 @@ repository: "https://github.com/turbot/steampipe-mod-gcp-insights"
 
 Create dashboards and reports for your GCP resources using Steampipe.
 
-<!-- TODO - Add links for images -->
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/main/docs/images/gcp_compute_instance_dashboard.png" width="50%" type="thumbnail"/>
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/main/docs/images/gcp_kms_key_age.png" width="50%" type="thumbnail"/>
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/main/docs/images/gcp_storage_bucket_encryption.png" width="50%" type="thumbnail"/>
 
 ## Overview
 

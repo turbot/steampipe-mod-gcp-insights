@@ -2,7 +2,7 @@
 
 An GCP dashboarding tool that can be used to view dashboards and reports across all of your GCP projects.
 
-<!-- ![image](https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/main/docs/images/gcp_compute_instance_dashboard.png) -->
+![image](https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/main/docs/images/gcp_compute_instance_dashboard.png)
 
 ## Overview
 
