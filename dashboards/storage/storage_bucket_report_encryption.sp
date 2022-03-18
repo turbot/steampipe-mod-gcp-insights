@@ -67,11 +67,11 @@ query "gcp_storage_bucket_encryption_table" {
   sql = <<-EOQ
     select
       b.name as "Name",
-      case 
+      case
         when default_kms_key_name is null then 'Google Managed'
         else 'Customer Managed'
-      end as "Type",
-      b.default_kms_key_name as "Key",
+      end as "Encryption Type",
+      b.default_kms_key_name as "KMS Key",
       p.name as "Project",
       p.project_id as "Project ID",
       b.location as "Location",

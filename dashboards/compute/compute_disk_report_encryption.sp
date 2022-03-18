@@ -89,8 +89,8 @@ query "gcp_compute_disk_encryption_table" {
         when disk_encryption_key_type = 'Google managed' then 'Google Managed'
         when disk_encryption_key_type = 'Customer managed' then 'Customer Managed'
         else 'Customer Supplied'
-      end as "Type",
-      d.disk_encryption_key ->> 'kmsKeyName' as "Key",
+      end as "Encryption Type",
+      d.disk_encryption_key ->> 'kmsKeyName' as "KMS Key",
       p.name as "Project",
       p.project_id as "Project ID",
       d.location as "Location",
