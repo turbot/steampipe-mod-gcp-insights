@@ -87,7 +87,7 @@ query "gcp_iam_role_customer_managed_count" {
 query "gcp_iam_role_owner_count" {
   sql = <<-EOQ
     select 
-      count(entity) as "Members with Owner roles"
+      count(entity) as "Members with Owner role"
     from 
       gcp_iam_policy,
       jsonb_array_elements(bindings) as p,
@@ -119,7 +119,7 @@ query "gcp_iam_user_service_account_user_role_count" {
     )
     select
       count(b.entity) as value,
-      'Users With Service Account User Role' as label,
+      'Principals With Service Account User Role' as label,
       case count(b.entity) when 0 then 'ok' else 'alert' end as "type"
     from
       gcp_iam_policy as p
@@ -143,7 +143,7 @@ query "gcp_iam_user_service_account_token_creator_role_count" {
     )
     select
       count(b.entity) as value,
-      'Users With Service Account Token Creator Role' as label,
+      'Principals With Service Account Token Creator Role' as label,
       case count(b.entity) when 0 then 'ok' else 'alert' end as "type"
     from
       gcp_iam_policy as p
