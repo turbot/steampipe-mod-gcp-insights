@@ -25,11 +25,6 @@ dashboard "gcp_vpc_network_dashboard" {
     }
 
     card {
-      query = query.gcp_vpc_network_legacy_count
-      width = 2
-    }
-
-    card {
       query = query.gcp_vpc_network_no_subnet_count
       width = 2
     }
@@ -47,26 +42,10 @@ dashboard "gcp_vpc_network_dashboard" {
       query = query.gcp_vpc_network_default_status
 
       series "count" {
-        point "non-default" {
+        point "non default" {
           color = "ok"
         }
         point "default" {
-          color = "alert"
-        }
-      }
-    }
-
-    chart {
-      title = "Legacy VPC Networks"
-      type  = "donut"
-      width = 4
-      query = query.gcp_vpc_network_legacy_status
-
-      series "count" {
-        point "non-legacy" {
-          color = "ok"
-        }
-        point "legacy" {
           color = "alert"
         }
       }
@@ -79,7 +58,7 @@ dashboard "gcp_vpc_network_dashboard" {
       query = query.gcp_vpc_network_subnet_status
 
       series "count" {
-        point "non-empty" {
+        point "non empty" {
           color = "ok"
         }
         point "empty" {
@@ -146,19 +125,6 @@ query "gcp_vpc_network_default_count" {
   EOQ
 }
 
-query "gcp_vpc_network_legacy_count" {
-  sql = <<-EOQ
-    select
-      count(*) as value,
-      'Legacy VPC Networks' as label,
-      case count(*) when 0 then 'ok' else 'alert' end as type
-    from
-      gcp_compute_network
-    where
-      ipv4_range is not null;
-  EOQ
-}
-
 query "gcp_vpc_network_no_subnet_count" {
   sql = <<-EOQ
     select
@@ -180,7 +146,7 @@ query "gcp_vpc_network_default_status" {
     select
       case
         when name = 'default' then 'default'
-        else 'non-default'
+        else 'non default'
       end as default_status,
       count(*)
     from
@@ -190,25 +156,10 @@ query "gcp_vpc_network_default_status" {
   EOQ
 }
 
-query "gcp_vpc_network_legacy_status" {
-  sql = <<-EOQ
-    select
-      case
-        when ipv4_range is not null then 'legacy'
-        else 'non-legacy'
-      end as legacy_status,
-      count(*)
-    from
-      gcp_compute_network
-    group by
-      legacy_status;
-  EOQ
-}
-
 query "gcp_vpc_network_subnet_status" {
   sql = <<-EOQ
     select
-      case when s.id is null then 'empty' else 'non-empty' end as status,
+      case when s.id is null then 'empty' else 'non empty' end as status,
       count(distinct n.id)
     from
        gcp_compute_network n
