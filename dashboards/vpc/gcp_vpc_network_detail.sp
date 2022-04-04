@@ -45,10 +45,9 @@ dashboard "gcp_vpc_network_detail" {
 
     container {
 
-      width = 6
-
       table {
         title = "Overview"
+        width = 4
         type  = "line"
         query = query.gcp_vpc_network_overview
         args = {
@@ -58,6 +57,7 @@ dashboard "gcp_vpc_network_detail" {
 
       table {
         title = "Peering Details"
+        width = 8
         query = query.gcp_vpc_network_peering
         args = {
           name = self.input.vpc_name.value
@@ -88,7 +88,6 @@ query "gcp_vpc_network_input" {
       name as label,
       name as value,
       json_build_object(
-        'location', location,
         'project', project,
         'id', id
       ) as tags
@@ -102,7 +101,7 @@ query "gcp_vpc_network_input" {
 query "gcp_vpc_network_mtu" {
   sql = <<-EOQ
     select
-      'MTU' as label,
+      'MTU (Bytes)' as label,
       mtu as value
     from
       gcp_compute_network
@@ -167,7 +166,6 @@ query "gcp_vpc_network_peering" {
     select
       p ->> 'name' as "Name",
       p ->> 'state' as "State",
-      p ->> 'network' as "Network",
       p ->> 'stateDetails' as "State Details",
       p ->> 'autoCreateRoutes' as "Auto Create Routes",
       p ->> 'exchangeSubnetRoutes' as "Exchange Subnet Routes",
