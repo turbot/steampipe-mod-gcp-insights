@@ -87,21 +87,21 @@ dashboard "gcp_compute_disk_detail" {
 
       width = 6
 
-    #   table {
-    #     title = "Attached To"
-    #     query = query.gcp_compute_disk_attached_instances
-    #     args  = {
-    #       id = self.input.disk_id.value
-    #     }
+      table {
+        title = "Attached To"
+        query = query.gcp_compute_disk_attached_instances
+        args  = {
+          id = self.input.disk_id.value
+        }
 
-    #     column "Instance ARN" {
-    #       display = "none"
-    #     }
+        # column "Instance ARN" {
+        #   display = "none"
+        # }
 
-    #     column "Instance ID" {
-    #       href = "${dashboard.aws_ec2_instance_detail.url_path}?input.instance_id={{.'Instance ARN' | @uri}}"
-    #     }
-    #   }
+        # column "Instance ID" {
+        #   href = "${dashboard.aws_ec2_instance_detail.url_path}?input.instance_id={{.'Instance ARN' | @uri}}"
+        # }
+      }
 
       table {
         title = "Encryption Details"
@@ -254,22 +254,21 @@ query "gcp_compute_disk_encryption" {
 
 query "gcp_compute_disk_attached_instances" {
   sql = <<-EOQ
-    select
-      i.instance_id as "Instance ID",
-      i.Tags ->> 'Name' as "Name",
-      i.id as "Instance ARN",
-      i.instance_state as "Instance State",
-      attachment ->> 'AttachTime' as "Attachment Time",
-      (attachment ->> 'DeleteOnTermination')::boolean as "Delete on Termination"
+    with disks as (
+      select 
+        instance_selflink
+      from 
+        gcp_compute_disk, jsonb_array_elements_text(users) as instance_selflink
+      where 
+        id =$1
+    )
+    select 
+      i.name as "Name",
+      i.id as "Instance ID",
+      i.status as "Instance State"
     from
-      gcp_compute_disk as v,
-      jsonb_array_elements(attachments) as attachment,
-      aws_ec2_instance as i
-    where
-      i.instance_id = attachment ->> 'InstanceId'
-      and v.id = $1
-    order by
-      i.instance_id;
+      disks as d
+      left join gcp_compute_instance as i on i.self_link = d.instance_selflink;
   EOQ
 
   param "id" {}
