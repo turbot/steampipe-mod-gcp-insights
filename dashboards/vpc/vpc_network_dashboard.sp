@@ -42,7 +42,7 @@ dashboard "gcp_vpc_network_dashboard" {
       query = query.gcp_vpc_network_default_status
 
       series "count" {
-        point "non default" {
+        point "non-default" {
           color = "ok"
         }
         point "default" {
@@ -58,7 +58,7 @@ dashboard "gcp_vpc_network_dashboard" {
       query = query.gcp_vpc_network_subnet_status
 
       series "count" {
-        point "non empty" {
+        point "non-empty" {
           color = "ok"
         }
         point "empty" {
@@ -146,7 +146,7 @@ query "gcp_vpc_network_default_status" {
     select
       case
         when name = 'default' then 'default'
-        else 'non default'
+        else 'non-default'
       end as default_status,
       count(*)
     from
@@ -159,7 +159,7 @@ query "gcp_vpc_network_default_status" {
 query "gcp_vpc_network_subnet_status" {
   sql = <<-EOQ
     select
-      case when s.id is null then 'empty' else 'non empty' end as status,
+      case when s.id is null then 'empty' else 'non-empty' end as status,
       count(distinct n.id)
     from
        gcp_compute_network n
