@@ -93,21 +93,10 @@ dashboard "gcp_compute_disk_detail" {
         args  = {
           id = self.input.disk_id.value
         }
-
-        # column "Instance ARN" {
-        #   display = "none"
-        # }
-
-        # column "Instance ID" {
-        #   href = "${dashboard.aws_ec2_instance_detail.url_path}?input.instance_id={{.'Instance ARN' | @uri}}"
-        # }
       }
 
       table {
         title = "Encryption Details"
-        # column "KMS Key ID" {
-        #   href = "${dashboard.aws_kms_key_detail.url_path}?input.key_id={{.'KMS Key ID' | @uri}}"
-        # }
         query = query.gcp_compute_disk_encryption_status
         args  = {
           id = self.input.disk_id.value
