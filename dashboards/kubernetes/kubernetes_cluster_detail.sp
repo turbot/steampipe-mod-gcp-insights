@@ -134,8 +134,8 @@ dashboard "gcp_kubernetes_cluster_detail" {
   container {
 
     table {
-      title = "Addons Configuration"
-      query = query.gcp_kubernetes_cluster_addons_config
+      title = "Node Configuration"
+      query = query.gcp_kubernetes_cluster_node_detail
       args = {
         name = self.input.cluster_name.value
       }
@@ -150,8 +150,8 @@ dashboard "gcp_kubernetes_cluster_detail" {
     }
 
     table {
-      title = "Node Configuration"
-      query = query.gcp_kubernetes_cluster_node_detail
+      title = "Add-ons Configuration"
+      query = query.gcp_kubernetes_cluster_addons_config
       args = {
         name = self.input.cluster_name.value
       }
@@ -237,7 +237,7 @@ query "gcp_kubernetes_cluster_shielded_nodes_disabled" {
   sql = <<-EOQ
     select
       case when shielded_nodes_enabled then 'Enabled' else 'Disabled' end as value,
-      'Shielded Nodes Status' as label,
+      'Shielded Nodes' as label,
       case when shielded_nodes_enabled then 'ok' else 'alert' end as type
     from
       gcp_kubernetes_cluster
@@ -252,7 +252,7 @@ query "gcp_kubernetes_cluster_auto_repair_disabled" {
   sql = <<-EOQ
     select
       case when np -> 'management' -> 'autoRepair' = 'true' then 'Enabled' else 'Disabled' end as value,
-      'Node Auto-Repair Status' as label,
+      'Node Auto-Repair' as label,
       case when np -> 'management' -> 'autoRepair' = 'true' then 'ok' else 'alert' end as type
     from
       gcp_kubernetes_cluster,
@@ -344,7 +344,7 @@ query "gcp_kubernetes_cluster_network_config" {
   sql = <<-EOQ
     select
       network_config ->> 'network' as "Network",
-      network_config ->> 'subnetwork' as "Sub Network",
+      network_config ->> 'subnetwork' as "Subnetwork",
       network_config -> 'defaultSnatStatus' as "Default SNAT Status",
       network_config ->> 'enableIntraNodeVisibility' as "Enable Intra Node Visibility"
     from
@@ -359,8 +359,8 @@ query "gcp_kubernetes_cluster_network_config" {
 query "gcp_kubernetes_cluster_lm" {
   sql = <<-EOQ
     select
-      logging_service as "Logging Service",
-      monitoring_service as "Monitoring Service"
+      case when logging_service = 'none' then 'Disabled' else 'Enabled' end as "Logging Service",
+      case when monitoring_service = 'none' then 'Disabled' else 'Enabled' end as "Monitoring Service"
     from
       gcp_kubernetes_cluster
     where
