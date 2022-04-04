@@ -103,16 +103,16 @@ dashboard "gcp_compute_disk_detail" {
     #     }
     #   }
 
-    #   table {
-    #     title = "Encryption Details"
-    #     column "KMS Key ID" {
-    #       href = "${dashboard.aws_kms_key_detail.url_path}?input.key_id={{.'KMS Key ID' | @uri}}"
-    #     }
-    #     query = query.gcp_compute_disk_encryption_status
-    #     args  = {
-    #       id = self.input.disk_id.value
-    #     }
-    #   }
+      table {
+        title = "Encryption Details"
+        # column "KMS Key ID" {
+        #   href = "${dashboard.aws_kms_key_detail.url_path}?input.key_id={{.'KMS Key ID' | @uri}}"
+        # }
+        query = query.gcp_compute_disk_encryption_status
+        args  = {
+          id = self.input.disk_id.value
+        }
+      }
     }
   }
 
@@ -278,8 +278,12 @@ query "gcp_compute_disk_attached_instances" {
 query "gcp_compute_disk_encryption_status" {
   sql = <<-EOQ
     select
-      case when encrypted then 'Enabled' else 'Disabled' end as "Encryption",
-      kms_key_id as "KMS Key ID"
+      case
+        when disk_encryption_key_type = 'Google managed' then 'Google Managed'
+        when disk_encryption_key_type = 'Customer managed' then 'Customer Managed'
+        else 'Customer Supplied'
+      end as "Encryption Type",
+      disk_encryption_key ->> 'kmsKeyName' as "KMS Key"
     from
       gcp_compute_disk
     where
@@ -339,7 +343,7 @@ query "gcp_compute_disk_read_throughput" {
       gcp_compute_disk_metric_read_ops_hourly
     where
       timestamp >= current_date - interval '7 day'
-      and id = reverse(split_part(reverse($1), '/', 1))
+      and name in (select name from gcp_compute_disk where id = $1)
     order by 
       timestamp;
   EOQ
@@ -356,8 +360,8 @@ query "gcp_compute_disk_write_throughput" {
       gcp_compute_disk_metric_write_ops
     where
       timestamp >= current_date - interval '7 day'
-      and id = reverse(split_part(reverse($1), '/', 1))
-    order by 
+      and name in (select name from gcp_compute_disk where id = $1)
+    order by  
       timestamp;
   EOQ
 
