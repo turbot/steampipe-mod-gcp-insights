@@ -129,7 +129,7 @@ query "gcp_compute_disk_age_table" {
   sql = <<-EOQ
     select
       d.name as "Name",
-      d.id as "ID",
+      d.id::text as "ID",
       now()::date - d.creation_timestamp::date as "Age in Days",
       d.creation_timestamp as "Create Time",
       d.status as "Status",
