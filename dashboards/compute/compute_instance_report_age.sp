@@ -56,6 +56,10 @@ dashboard "gcp_compute_instance_age_report" {
       display = "none"
     }
 
+    column "Name" {
+      href = "${dashboard.gcp_compute_instance_detail.url_path}?input.instance_id={{.ID | @uri}}"
+    }
+
     query = query.gcp_compute_instance_age_table
   }
 
@@ -125,6 +129,7 @@ query "gcp_compute_instance_age_table" {
   sql = <<-EOQ
     select
       i.name as "Name",
+      i.id::text as "ID",
       now()::date - i.creation_timestamp::date as "Age in Days",
       i.creation_timestamp as "Create Time",
       i.status as "Status",

@@ -9,7 +9,7 @@ dashboard "gcp_compute_instance_detail" {
 
   input "instance_id" {
     title = "Select an instance:"
-    sql   = query.gcp_compute_instance_input.sql
+    query = query.gcp_compute_instance_input
     width = 4
   }
 
@@ -130,7 +130,8 @@ query "gcp_compute_instance_input" {
       id::text as value,
       json_build_object(
         'location', location,
-        'project', project
+        'project', project,
+        'id', id
       ) as tags
     from
       gcp_compute_instance
@@ -143,7 +144,7 @@ query "gcp_compute_instance_status" {
   sql = <<-EOQ
     select
       'Status' as label,
-      status as value
+      initcap(status) as value
     from
       gcp_compute_instance
     where
@@ -226,7 +227,7 @@ query "gcp_compute_instance_overview" {
     select
       name as "Name",
       id as "ID",
-      creation_timestamp as "Creation Time",
+      creation_timestamp as "Create Time",
       title as "Title",
       location as "Location",
       project as "Project"
@@ -284,9 +285,9 @@ query "gcp_compute_instance_attached_disks" {
 query "gcp_compute_instance_shielded_vm" {
   sql = <<-EOQ
     select
-      shielded_instance_config ->> 'enableIntegrityMonitoring' as "Integrity Monitoring",
-      shielded_instance_config ->> 'enableVtpm' as "vTPM",
-      shielded_instance_config ->> 'enableSecureBoot' as "Secure Boot"
+      case when (shielded_instance_config -> 'enableIntegrityMonitoring')::bool then 'Enabled' else 'Disabled' end as "Integrity Monitoring",
+      case when (shielded_instance_config -> 'enableVtpm')::bool then 'Enabled' else 'Disabled' end "vTPM",
+      case when (shielded_instance_config -> 'enableSecureBoot')::bool then 'Enabled' else 'Disabled' end "Secure Boot"
     from
       gcp_compute_instance
     where
@@ -295,7 +296,6 @@ query "gcp_compute_instance_shielded_vm" {
 
   param "id" {}
 }
-
 
 query "gcp_compute_instance_network_interfaces" {
   sql = <<-EOQ

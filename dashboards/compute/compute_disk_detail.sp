@@ -9,7 +9,7 @@ dashboard "gcp_compute_disk_detail" {
 
   input "disk_id" {
     title = "Select a disk:"
-    sql   = query.gcp_compute_disk_input.sql
+    query = query.gcp_compute_disk_input
     width = 4
   }
 
@@ -92,6 +92,10 @@ dashboard "gcp_compute_disk_detail" {
         query = query.gcp_compute_disk_attached_instances
         args  = {
           id = self.input.disk_id.value
+        }
+
+        column "Name" {
+          href = "${dashboard.gcp_compute_instance_detail.url_path}?input.instance_id={{.'Instance ID' | @uri}}"
         }
       }
 
@@ -239,7 +243,7 @@ query "gcp_compute_disk_attached_instances" {
     )
     select 
       i.name as "Name",
-      i.id as "Instance ID",
+      i.id::text as "Instance ID",
       i.status as "Instance State"
     from
       disks as d
