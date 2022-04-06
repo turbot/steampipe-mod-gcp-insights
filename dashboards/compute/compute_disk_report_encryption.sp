@@ -40,6 +40,11 @@ dashboard "gcp_compute_disk_encryption_report" {
     column "Self-Link" {
       display = "none"
     }
+
+    column "Name" {
+      href = "${dashboard.gcp_compute_disk_detail.url_path}?input.disk_id={{.ID | @uri}}"
+    }
+
     query = query.gcp_compute_disk_encryption_table
   }
 
@@ -85,6 +90,7 @@ query "gcp_compute_disk_encryption_table" {
   sql = <<-EOQ
     select
       d.name as "Name",
+      d.id::text as "ID",
       case
         when disk_encryption_key_type = 'Google managed' then 'Google Managed'
         when disk_encryption_key_type = 'Customer managed' then 'Customer Managed'

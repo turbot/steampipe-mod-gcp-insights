@@ -56,6 +56,10 @@ dashboard "gcp_compute_disk_age_report" {
       display = "none"
     }
 
+    column "Name" {
+      href = "${dashboard.gcp_compute_disk_detail.url_path}?input.disk_id={{.ID | @uri}}"
+    }
+
     query = query.gcp_compute_disk_age_table
   }
 
@@ -125,6 +129,7 @@ query "gcp_compute_disk_age_table" {
   sql = <<-EOQ
     select
       d.name as "Name",
+      d.id::text as "ID",
       now()::date - d.creation_timestamp::date as "Age in Days",
       d.creation_timestamp as "Create Time",
       d.status as "Status",
