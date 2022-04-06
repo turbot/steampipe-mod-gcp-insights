@@ -168,7 +168,7 @@ query "gcp_compute_disk_status" {
   sql = <<-EOQ
     select
       'Status' as label,
-      status as value
+      initcap(status) as value
     from
       gcp_compute_disk
     where
@@ -286,7 +286,7 @@ query "gcp_compute_disk_overview" {
     select
       name as "Name",
       id as "ID",
-      creation_timestamp as "Creation Timestamp",
+      creation_timestamp as "Create Time",
       title as "Title",
       location as "Location",
       project as "Project ID"
