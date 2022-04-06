@@ -90,7 +90,7 @@ query "gcp_compute_disk_encryption_table" {
   sql = <<-EOQ
     select
       d.name as "Name",
-      d.id as "ID",
+      d.id::text as "ID",
       case
         when disk_encryption_key_type = 'Google managed' then 'Google Managed'
         when disk_encryption_key_type = 'Customer managed' then 'Customer Managed'

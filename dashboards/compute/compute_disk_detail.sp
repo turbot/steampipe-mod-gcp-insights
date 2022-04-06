@@ -192,20 +192,6 @@ query "gcp_compute_disk_type" {
   param "id" {}
 }
 
-query "gcp_compute_disk_state" {
-  sql = <<-EOQ
-    select
-      'State' as label,
-      state as value
-    from
-      gcp_compute_disk
-    where
-      id = $1;
-  EOQ
-
-  param "id" {}
-}
-
 query "gcp_compute_disk_attached_instances_count" {
   sql = <<-EOQ
     select
