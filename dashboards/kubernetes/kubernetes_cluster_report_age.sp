@@ -56,6 +56,10 @@ dashboard "gcp_kubernetes_cluster_age_report" {
       display = "none"
     }
 
+    column "Name" {
+      href = "${dashboard.gcp_kubernetes_cluster_detail.url_path}?input.cluster_name={{.Name | @uri}}"
+    }
+
     query = query.gcp_kubernetes_cluster_age_table
   }
 
