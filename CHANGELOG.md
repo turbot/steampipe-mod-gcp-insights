@@ -3,11 +3,11 @@
 _What's new?_
 
 - New dashboards added:
-  - [Compute Disk Detail](https://hub.steampipe.io/mods/turbot/gcp_insights/dashboards/dashboard.gcp_compute_disk_detail)
-  - [Compute Instance Detail](https://hub.steampipe.io/mods/turbot/gcp_insights/dashboards/dashboard.gcp_compute_instance_detail)
-  - [Kubernetes Cluster Detail](https://hub.steampipe.io/mods/turbot/gcp_insights/dashboards/dashboard.gcp_kubernetes_cluster_detail)
-  - [VPC Network Dashboard](https://hub.steampipe.io/mods/turbot/gcp_insights/dashboards/dashboard.gcp_vpc_network_dashboard)
-  - [VPC Network Detail](https://hub.steampipe.io/mods/turbot/gcp_insights/dashboards/dashboard.gcp_vpc_network_detail)
+  - [Compute Disk Detail](https://hub.steampipe.io/mods/turbot/gcp_insights/dashboards/dashboard.gcp_compute_disk_detail) ([#24](https://github.com/turbot/steampipe-mod-gcp-insights/pull/24))
+  - [Compute Instance Detail](https://hub.steampipe.io/mods/turbot/gcp_insights/dashboards/dashboard.gcp_compute_instance_detail) ([#23](https://github.com/turbot/steampipe-mod-gcp-insights/pull/23))
+  - [Kubernetes Cluster Detail](https://hub.steampipe.io/mods/turbot/gcp_insights/dashboards/dashboard.gcp_kubernetes_cluster_detail) ([#25](https://github.com/turbot/steampipe-mod-gcp-insights/pull/25))
+  - [VPC Network Dashboard](https://hub.steampipe.io/mods/turbot/gcp_insights/dashboards/dashboard.gcp_vpc_network_dashboard) ([#26](https://github.com/turbot/steampipe-mod-gcp-insights/pull/26))
+  - [VPC Network Detail](https://hub.steampipe.io/mods/turbot/gcp_insights/dashboards/dashboard.gcp_vpc_network_detail) ([#27](https://github.com/turbot/steampipe-mod-gcp-insights/pull/27))
 
 ## v0.1 [2022-03-21]
 
