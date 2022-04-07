@@ -185,14 +185,13 @@ query "gcp_vpc_network_subnet" {
     select
       name as "Name",
       id as "ID",
-      state as "State",
       creation_timestamp as "Creation Time",
       enable_flow_logs as "Enable Flow Logs",
-      log_config_enable as "Log Config Enable",
+      log_config_enable as "Log Config Enabled",
       gateway_address as "Gateway Address",
-      ip_cidr_range as "IP CIDR Range",
+      ip_cidr_range as "IPv4 CIDR Range",
       ipv6_cidr_range as "IPv6 CIDR Range",
-      private_ip_google_access as "Private IP Google Access",
+      private_ip_google_access as "Private IPv4 Google Access",
       private_ipv6_google_access as "Private IPv6 Google Access"
     from
       gcp_compute_subnetwork
