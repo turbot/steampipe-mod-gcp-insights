@@ -1,15 +1,15 @@
-dashboard "gcp_vpc_network_detail" {
+dashboard "gcp_compute_vpc_network_detail" {
 
-  title         = "GCP VPC Network Detail"
-  documentation = file("./dashboards/vpc/docs/vpc_network_detail.md")
+  title         = "GCP Compute VPC Network Detail"
+  documentation = file("./dashboards/compute/docs/compute_vpc_network_detail.md")
 
-  tags = merge(local.vpc_common_tags, {
+  tags = merge(local.compute_common_tags, {
     type = "Detail"
   })
 
   input "vpc_name" {
     title = "Select a VPC Network:"
-    query = query.gcp_vpc_network_input
+    query = query.gcp_compute_vpc_network_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "gcp_vpc_network_detail" {
 
     card {
       width = 2
-      query = query.gcp_vpc_network_mtu
+      query = query.gcp_compute_vpc_network_mtu
       args = {
         name = self.input.vpc_name.value
       }
@@ -25,7 +25,7 @@ dashboard "gcp_vpc_network_detail" {
 
     card {
       width = 2
-      query = query.gcp_vpc_network_subnet_count
+      query = query.gcp_compute_vpc_network_subnet_count
       args = {
         name = self.input.vpc_name.value
       }
@@ -33,7 +33,7 @@ dashboard "gcp_vpc_network_detail" {
 
     card {
       width = 2
-      query = query.gcp_vpc_network_is_default
+      query = query.gcp_compute_vpc_network_is_default
       args = {
         name = self.input.vpc_name.value
       }
@@ -49,7 +49,7 @@ dashboard "gcp_vpc_network_detail" {
         title = "Overview"
         width = 4
         type  = "line"
-        query = query.gcp_vpc_network_overview
+        query = query.gcp_compute_vpc_network_overview
         args = {
           name = self.input.vpc_name.value
         }
@@ -58,7 +58,7 @@ dashboard "gcp_vpc_network_detail" {
       table {
         title = "Peering Details"
         width = 8
-        query = query.gcp_vpc_network_peering
+        query = query.gcp_compute_vpc_network_peering
         args = {
           name = self.input.vpc_name.value
         }
@@ -70,7 +70,7 @@ dashboard "gcp_vpc_network_detail" {
 
       table {
         title = "Subnet Details"
-        query = query.gcp_vpc_network_subnet
+        query = query.gcp_compute_vpc_network_subnet
         args = {
           name = self.input.vpc_name.value
         }
@@ -82,7 +82,7 @@ dashboard "gcp_vpc_network_detail" {
 
 }
 
-query "gcp_vpc_network_input" {
+query "gcp_compute_vpc_network_input" {
   sql = <<-EOQ
     select
       name as label,
@@ -98,7 +98,7 @@ query "gcp_vpc_network_input" {
   EOQ
 }
 
-query "gcp_vpc_network_mtu" {
+query "gcp_compute_vpc_network_mtu" {
   sql = <<-EOQ
     select
       'MTU (Bytes)' as label,
@@ -112,7 +112,7 @@ query "gcp_vpc_network_mtu" {
   param "name" {}
 }
 
-query "gcp_vpc_network_subnet_count" {
+query "gcp_compute_vpc_network_subnet_count" {
   sql = <<-EOQ
     select
       'Subnets' as label,
@@ -127,7 +127,7 @@ query "gcp_vpc_network_subnet_count" {
   param "name" {}
 }
 
-query "gcp_vpc_network_is_default" {
+query "gcp_compute_vpc_network_is_default" {
   sql = <<-EOQ
     select
       'Default VPC' as label,
@@ -142,7 +142,7 @@ query "gcp_vpc_network_is_default" {
   param "name" {}
 }
 
-query "gcp_vpc_network_overview" {
+query "gcp_compute_vpc_network_overview" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -161,7 +161,7 @@ query "gcp_vpc_network_overview" {
   param "name" {}
 }
 
-query "gcp_vpc_network_peering" {
+query "gcp_compute_vpc_network_peering" {
   sql = <<-EOQ
     select
       p ->> 'name' as "Name",
@@ -180,7 +180,7 @@ query "gcp_vpc_network_peering" {
   param "name" {}
 }
 
-query "gcp_vpc_network_subnet" {
+query "gcp_compute_vpc_network_subnet" {
   sql = <<-EOQ
     select
       name as "Name",
