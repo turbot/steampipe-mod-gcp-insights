@@ -1,3 +1,9 @@
+## v0.3 [2022-05-10]
+
+_Enhancements_
+
+- Updated docs/index.md and README with new dashboard screenshots and latest format. ([#31](https://github.com/turbot/steampipe-mod-gcp-insights/pull/31))
+
 ## v0.2 [2022-04-07]
 
 _What's new?_
