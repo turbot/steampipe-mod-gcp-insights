@@ -1,7 +1,7 @@
-dashboard "gcp_compute_vpc_network_dashboard" {
+dashboard "gcp_compute_network_dashboard" {
 
-  title         = "GCP Compute VPC Network Dashboard"
-  documentation = file("./dashboards/compute/docs/compute_vpc_network_dashboard.md")
+  title         = "GCP Compute Network Dashboard"
+  documentation = file("./dashboards/compute/docs/compute_network_dashboard.md")
 
   tags = merge(local.compute_common_tags, {
     type = "Dashboard"
@@ -10,22 +10,22 @@ dashboard "gcp_compute_vpc_network_dashboard" {
   container {
 
     card {
-      query = query.gcp_compute_vpc_network_count
+      query = query.gcp_compute_network_count
       width = 2
     }
 
     card {
-      query = query.gcp_compute_vpc_network_total_mtu
+      query = query.gcp_compute_network_total_mtu
       width = 2
     }
 
     card {
-      query = query.gcp_compute_vpc_network_default_count
+      query = query.gcp_compute_network_default_count
       width = 2
     }
 
     card {
-      query = query.gcp_compute_vpc_network_no_subnet_count
+      query = query.gcp_compute_network_no_subnet_count
       width = 2
     }
 
@@ -36,10 +36,10 @@ dashboard "gcp_compute_vpc_network_dashboard" {
     title = "Assessments"
 
     chart {
-      title = "Default VPC Networks"
+      title = "Default Networks"
       type  = "donut"
       width = 4
-      query = query.gcp_compute_vpc_network_default_status
+      query = query.gcp_compute_network_default_status
 
       series "count" {
         point "non-default" {
@@ -52,10 +52,10 @@ dashboard "gcp_compute_vpc_network_dashboard" {
     }
 
     chart {
-      title = "Empty VPC Networks (No Subnets)"
+      title = "Empty Networks (No Subnets)"
       type  = "donut"
       width = 4
-      query = query.gcp_compute_vpc_network_subnet_status
+      query = query.gcp_compute_network_subnet_status
 
       series "count" {
         point "non-empty" {
@@ -74,22 +74,22 @@ dashboard "gcp_compute_vpc_network_dashboard" {
     title = "Analysis"
 
     chart {
-      title = "VPC Networks by Project"
-      query = query.gcp_compute_vpc_network_by_project
+      title = "Networks by Project"
+      query = query.gcp_compute_network_by_project
       type  = "column"
       width = 4
     }
 
     chart {
-      title = "VPC Networks by Routing Mode"
-      query = query.gcp_compute_vpc_network_by_routing_mode
+      title = "Networks by Routing Mode"
+      query = query.gcp_compute_network_by_routing_mode
       type  = "column"
       width = 4
     }
 
     chart {
-      title = "VPC Networks by Creation Mode"
-      query = query.gcp_compute_vpc_network_by_creation_mode
+      title = "Networks by Creation Mode"
+      query = query.gcp_compute_network_by_creation_mode
       type  = "column"
       width = 4
     }
@@ -100,23 +100,23 @@ dashboard "gcp_compute_vpc_network_dashboard" {
 
 # Card Queries
 
-query "gcp_compute_vpc_network_count" {
+query "gcp_compute_network_count" {
   sql = <<-EOQ
-    select count(*) as "VPC Networks" from gcp_compute_network;
+    select count(*) as "Networks" from gcp_compute_network;
   EOQ
 }
 
-query "gcp_compute_vpc_network_total_mtu" {
+query "gcp_compute_network_total_mtu" {
   sql = <<-EOQ
     select sum(mtu) as "Total MTU (Bytes)" from gcp_compute_network;
   EOQ
 }
 
-query "gcp_compute_vpc_network_default_count" {
+query "gcp_compute_network_default_count" {
   sql = <<-EOQ
     select
       count(*) as value,
-      'Default VPC Networks' as label,
+      'Default Networks' as label,
       case count(*) when 0 then 'ok' else 'alert' end as type
     from
       gcp_compute_network
@@ -125,11 +125,11 @@ query "gcp_compute_vpc_network_default_count" {
   EOQ
 }
 
-query "gcp_compute_vpc_network_no_subnet_count" {
+query "gcp_compute_network_no_subnet_count" {
   sql = <<-EOQ
     select
        count(*) as value,
-       'VPCs Without Subnets' as label,
+       'Networks Without Subnets' as label,
        case when count(*) = 0 then 'ok' else 'alert' end as type
       from
         gcp_compute_network as n
@@ -141,7 +141,7 @@ query "gcp_compute_vpc_network_no_subnet_count" {
 
 # Assessment Queries
 
-query "gcp_compute_vpc_network_default_status" {
+query "gcp_compute_network_default_status" {
   sql = <<-EOQ
     select
       case
@@ -156,7 +156,7 @@ query "gcp_compute_vpc_network_default_status" {
   EOQ
 }
 
-query "gcp_compute_vpc_network_subnet_status" {
+query "gcp_compute_network_subnet_status" {
   sql = <<-EOQ
     select
       case when s.id is null then 'empty' else 'non-empty' end as status,
@@ -171,7 +171,7 @@ query "gcp_compute_vpc_network_subnet_status" {
 
 # Analysis Queries
 
-query "gcp_compute_vpc_network_by_project" {
+query "gcp_compute_network_by_project" {
   sql = <<-EOQ
     select
       p.title as "project",
@@ -187,7 +187,7 @@ query "gcp_compute_vpc_network_by_project" {
   EOQ
 }
 
-query "gcp_compute_vpc_network_by_routing_mode" {
+query "gcp_compute_network_by_routing_mode" {
   sql = <<-EOQ
     select
       routing_mode as "Routing Mode",
@@ -201,7 +201,7 @@ query "gcp_compute_vpc_network_by_routing_mode" {
   EOQ
 }
 
-query "gcp_compute_vpc_network_by_creation_mode" {
+query "gcp_compute_network_by_creation_mode" {
   sql = <<-EOQ
     select
       case when auto_create_subnetworks then 'auto' else 'custom' end as "Creation Mode",
