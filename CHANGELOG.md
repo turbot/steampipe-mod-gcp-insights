@@ -1,3 +1,13 @@
+## v0.3 [2022-05-09]
+
+_Enhancements_
+
+- Updated docs/index.md and README with new dashboard screenshots and latest format. ([#31](https://github.com/turbot/steampipe-mod-gcp-insights/pull/31))
+
+_Breaking changes_
+
+- Renamed dashboard `gcp_vpc_network_dashboard` to `gcp_compute_network_dashboard` and dashboard `gcp_vpc_network_detail` to `gcp_compute_network_detail` to maintain consistency with the GCP plugin.
+
 ## v0.2 [2022-04-07]
 
 _What's new?_
