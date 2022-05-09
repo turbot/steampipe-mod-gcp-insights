@@ -6,7 +6,7 @@ _Enhancements_
 
 _Breaking changes_
 
-- Renamed `gcp_vpc_network_dashboard` to `gcp_compute_network_dashboard` and `gcp_vpc_network_detail` to `gcp_compute_network_detail` to maintain consistency with the GCP plugin.
+- Renamed dashboard `gcp_vpc_network_dashboard` to `gcp_compute_network_dashboard` and dashboard `gcp_vpc_network_detail` to `gcp_compute_network_detail` to maintain consistency with the GCP plugin.
 
 ## v0.2 [2022-04-07]
 
