@@ -1,4 +1,4 @@
-# GCP Insights
+# GCP Insights Mod for Steampipe
 
 An GCP dashboarding tool that can be used to view dashboards and reports across all of your GCP projects.
 
