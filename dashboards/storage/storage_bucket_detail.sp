@@ -123,7 +123,7 @@ dashboard "gcp_storage_bucket_detail" {
       width = 6
 
       table {
-        title = "Bucket Logging"
+        title = "Logging Details"
         query = query.gcp_storage_bucket_logging_detail
         args = {
           id = self.input.bucket_id.value
@@ -139,7 +139,7 @@ dashboard "gcp_storage_bucket_detail" {
       }
 
       table {
-        title = "Bucket Encryption"
+        title = "Encryption Details"
         query = query.gcp_storage_bucket_encryption_detail
         args = {
           id = self.input.bucket_id.value
