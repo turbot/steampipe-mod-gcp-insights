@@ -260,6 +260,10 @@ query "gcp_storage_bucket_uniform_bucket_level_access" {
 
 ## Graph
 
+category "gcp_storage_bucket" {
+  icon = local.gcp_storage_bucket
+}
+
 node "gcp_storage_bucket_node" {
   category = category.gcp_storage_bucket
 

@@ -257,8 +257,11 @@ query "gcp_compute_instance_confidential_vm_service" {
 
 ## Graph
 
+category "gcp_compute_instance_no_link" {
+}
+
 node "gcp_compute_instance_node" {
-  category = category.gcp_compute_instance
+  category = category.gcp_compute_instance_no_link
 
   sql = <<-EOQ
     select
@@ -485,8 +488,8 @@ edge "gcp_compute_instance_to_compute_instance_group_edge" {
 
   sql = <<-EOQ
     select
-      ins.id::text as from_id,
-      g.id::text as to_id
+      g.id::text as from_id,
+      ins.id::text as to_id
     from
       gcp_compute_instance as ins,
       gcp_compute_instance_group as g,
