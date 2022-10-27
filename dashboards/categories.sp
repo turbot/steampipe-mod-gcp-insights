@@ -5,6 +5,57 @@ category "gcp_compute_backend_bucket" {
   }
 }
 
+category "gcp_compute_disk" {
+  href = "/gcp_insights.dashboard.gcp_compute_disk_detail?input.id={{.properties.'ID' | @uri}}"
+  fold {
+    title     = "Compute Disk"
+    threshold = 3
+  }
+}
+
+category "gcp_compute_instance" {
+  href = "/gcp_insights.dashboard.gcp_compute_instance_detail?input.id={{.properties.'ID' | @uri}}"
+  fold {
+    title     = "Compute Instance"
+    threshold = 3
+  }
+}
+
+category "gcp_compute_instance_group" {
+  fold {
+    title     = "Compute Instance Group"
+    threshold = 3
+  }
+}
+
+category "gcp_compute_machine_type" {
+  fold {
+    title     = "Compute Machine Type"
+    threshold = 3
+  }
+}
+
+category "gcp_compute_network" {
+  fold {
+    title     = "Compute Network"
+    threshold = 3
+  }
+}
+
+category "gcp_compute_network_interface" {
+  fold {
+    title     = "Compute Network Interface"
+    threshold = 3
+  }
+}
+
+category "gcp_compute_subnetwork" {
+  fold {
+    title     = "Compute Subnetwork"
+    threshold = 3
+  }
+}
+
 category "gcp_kms_key" {
   href = "/gcp_insights.dashboard.gcp_kms_key_detail?input.id={{.properties.'ID' | @uri}}"
   icon = local.gcp_kms_key

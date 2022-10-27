@@ -18,7 +18,7 @@ dashboard "gcp_compute_instance_detail" {
     card {
       width = 2
       query = query.gcp_compute_instance_status
-      args  = {
+      args = {
         id = self.input.instance_id.value
       }
     }
@@ -26,7 +26,7 @@ dashboard "gcp_compute_instance_detail" {
     card {
       width = 2
       query = query.gcp_compute_instance_type
-      args  = {
+      args = {
         id = self.input.instance_id.value
       }
     }
@@ -34,7 +34,7 @@ dashboard "gcp_compute_instance_detail" {
     card {
       width = 2
       query = query.gcp_compute_instance_deletion_protection
-      args  = {
+      args = {
         id = self.input.instance_id.value
       }
     }
@@ -42,7 +42,7 @@ dashboard "gcp_compute_instance_detail" {
     card {
       width = 2
       query = query.gcp_compute_instance_public_access
-      args  = {
+      args = {
         id = self.input.instance_id.value
       }
     }
@@ -50,7 +50,7 @@ dashboard "gcp_compute_instance_detail" {
     card {
       width = 2
       query = query.gcp_compute_instance_confidential_vm_service
-      args  = {
+      args = {
         id = self.input.instance_id.value
       }
     }
@@ -76,7 +76,7 @@ dashboard "gcp_compute_instance_detail" {
         title = "Tags"
         width = 6
         query = query.gcp_compute_instance_tags
-        args  = {
+        args = {
           id = self.input.instance_id.value
         }
       }
@@ -87,7 +87,7 @@ dashboard "gcp_compute_instance_detail" {
       table {
         title = "Attached Disks"
         query = query.gcp_compute_instance_attached_disks
-        args  = {
+        args = {
           id = self.input.instance_id.value
         }
       }
@@ -96,12 +96,45 @@ dashboard "gcp_compute_instance_detail" {
   }
 
   container {
+
+    graph {
+      title     = "Relationships"
+      type      = "graph"
+      direction = "TD"
+
+
+      nodes = [
+        node.gcp_compute_instance_node,
+        node.gcp_compute_instance_to_compute_disk_node,
+        node.gcp_compute_instance_to_compute_network_interface_node,
+        node.gcp_compute_instance_compute_network_interface_to_compute_network_node,
+        node.gcp_compute_instance_compute_network_interface_to_compute_subnetwork_node,
+        node.gcp_compute_instance_to_compute_instance_group_node,
+        node.gcp_compute_instance_to_compute_machine_type_node
+      ]
+
+      edges = [
+        edge.gcp_compute_instance_to_compute_disk_edge,
+        edge.gcp_compute_instance_to_compute_network_interface_edge,
+        edge.gcp_compute_instance_compute_network_interface_to_compute_network_edge,
+        edge.gcp_compute_instance_compute_network_interface_to_compute_subnetwork_edge,
+        edge.gcp_compute_instance_to_compute_instance_group_edge,
+        edge.gcp_compute_instance_to_compute_machine_type_edge
+      ]
+
+      args = {
+        id = self.input.instance_id.value
+      }
+    }
+  }
+
+  container {
     width = 12
 
     table {
       title = "Network Interfaces"
       query = query.gcp_compute_instance_network_interfaces
-      args  = {
+      args = {
         id = self.input.instance_id.value
       }
     }
@@ -114,7 +147,7 @@ dashboard "gcp_compute_instance_detail" {
     table {
       title = "Shielded VM Configuration"
       query = query.gcp_compute_instance_shielded_vm
-      args  = {
+      args = {
         id = self.input.instance_id.value
       }
     }
@@ -222,6 +255,292 @@ query "gcp_compute_instance_confidential_vm_service" {
   param "id" {}
 }
 
+## Graph
+
+node "gcp_compute_instance_node" {
+  category = category.gcp_compute_instance
+
+  sql = <<-EOQ
+    select
+      id::text,
+      title,
+      jsonb_build_object(
+        'ID', id,
+        'Name', name,
+        'Created Time', creation_timestamp,
+        'CPU Platform', cpu_platform,
+        'Status', status
+      ) as properties
+    from
+      gcp_compute_instance
+    where
+      id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_instance_to_compute_disk_node" {
+  category = category.gcp_compute_disk
+
+  sql = <<-EOQ
+    select
+      d.id::text,
+      disk ->> 'deviceName' as title,
+      jsonb_build_object(
+        'Name', disk ->> 'deviceName',
+        'Auto Delete', disk ->> 'autoDelete',
+        'Created Time', d.creation_timestamp,
+        'Size(GB)', disk ->> 'diskSizeGb',
+        'Mode', disk ->> 'mode'
+      ) as properties
+    from
+      gcp_compute_instance i,
+      gcp_compute_disk d,
+      jsonb_array_elements(disks) as disk
+    where
+      i.id = $1
+      and d.name = (disk ->> 'deviceName');
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_instance_to_compute_disk_edge" {
+  title = "attached"
+
+  sql = <<-EOQ
+    select
+      i.id::text as from_id,
+      d.id::text as to_id
+    from
+      gcp_compute_instance i,
+      gcp_compute_disk d,
+      jsonb_array_elements(disks) as disk
+    where
+      i.id = $1
+      and d.name = (disk ->> 'deviceName');
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_instance_to_compute_network_interface_node" {
+  category = category.gcp_compute_network_interface
+
+  sql = <<-EOQ
+    select
+      ni ->> 'name' as id,
+      ni ->> 'name' as title,
+      jsonb_build_object(
+        'Network IP', ni ->> 'networkIP',
+        'Stack Type', ni ->> 'stackType'
+      ) as properties
+    from
+      gcp_compute_instance i,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      i.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_instance_to_compute_network_interface_edge" {
+  title = "network interface"
+
+  sql = <<-EOQ
+    select
+      i.id::text as from_id,
+      ni ->> 'name' as to_id
+    from
+      gcp_compute_instance i,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      i.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_instance_compute_network_interface_to_compute_network_node" {
+  category = category.gcp_compute_network
+
+  sql = <<-EOQ
+    select
+      n.id::text as id,
+      n.name as title,
+      jsonb_build_object(
+        'ID', n.id,
+        'Name', n.name,
+        'Created Time', n.creation_timestamp,
+        'Location', n.location
+      ) as properties
+    from
+      gcp_compute_instance i,
+      gcp_compute_network n,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      ni ->> 'network' = n.self_link
+      and i.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_instance_compute_network_interface_to_compute_network_edge" {
+  title = "network"
+
+  sql = <<-EOQ
+    select
+      ni ->> 'name' as from_id,
+      n.id::text as to_id
+    from
+      gcp_compute_instance i,
+      gcp_compute_network n,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      ni ->> 'network' = n.self_link
+      and i.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_instance_compute_network_interface_to_compute_subnetwork_node" {
+  category = category.gcp_compute_subnetwork
+
+  sql = <<-EOQ
+    select
+      s.id::text as id,
+      s.name as title,
+      jsonb_build_object(
+        'ID', s.id,
+        'Name', s.name,
+        'Created Time', s.creation_timestamp,
+        'Location', s.location,
+        'IP Cidr Range', s.ip_cidr_range
+      ) as properties
+    from
+      gcp_compute_instance i,
+      gcp_compute_subnetwork s,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      ni ->> 'subnetwork' = s.self_link
+      and i.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_instance_compute_network_interface_to_compute_subnetwork_edge" {
+  title = "subnetwork"
+
+  sql = <<-EOQ
+    select
+      n.id::text as from_id,
+      s.id::text as to_id
+    from
+      gcp_compute_instance i,
+      gcp_compute_network n,
+      gcp_compute_subnetwork s,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      ni ->> 'network' = n.self_link
+      and ni ->> 'subnetwork' = s.self_link
+      and i.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_instance_to_compute_instance_group_node" {
+  category = category.gcp_compute_instance_group
+
+  sql = <<-EOQ
+    select
+      g.id::text as id,
+      g.name as title,
+      jsonb_build_object(
+        'ID', g.id,
+        'Name', g.name,
+        'Created Time', g.creation_timestamp,
+        'Instance Count', g.size,
+        'Named Ports', g.named_ports
+      ) as properties
+    from
+      gcp_compute_instance as ins,
+      gcp_compute_instance_group as g,
+      jsonb_array_elements(instances) as i
+    where
+      (i ->> 'instance') = ins.self_link
+      and ins.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_instance_to_compute_instance_group_edge" {
+  title = "instance group"
+
+  sql = <<-EOQ
+    select
+      ins.id::text as from_id,
+      g.id::text as to_id
+    from
+      gcp_compute_instance as ins,
+      gcp_compute_instance_group as g,
+      jsonb_array_elements(instances) as i
+    where
+      (i ->> 'instance') = ins.self_link
+      and ins.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_instance_to_compute_machine_type_node" {
+  category = category.gcp_compute_machine_type
+
+  sql = <<-EOQ
+    select
+      m.id::text as id,
+      m.name as title,
+      jsonb_build_object(
+        'ID', m.id,
+        'Name', m.name,
+        'Created Time', m.creation_timestamp,
+        'Description', m.description
+      ) as properties
+    from
+      gcp_compute_instance as i,
+      gcp_compute_machine_type as m
+    where
+      m.name = i.machine_type_name
+      and i.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_instance_to_compute_machine_type_edge" {
+  title = "machine type"
+
+  sql = <<-EOQ
+    select
+      i.id::text as from_id,
+      m.id::text as to_id
+    from
+      gcp_compute_instance as i,
+      gcp_compute_machine_type as m
+    where
+      m.name = i.machine_type_name
+      and i.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
 query "gcp_compute_instance_overview" {
   sql = <<-EOQ
     select
@@ -260,7 +579,7 @@ query "gcp_compute_instance_tags" {
       key;
     EOQ
 
-    param "id" {}
+  param "id" {}
 }
 
 query "gcp_compute_instance_attached_disks" {
