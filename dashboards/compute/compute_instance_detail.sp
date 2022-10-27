@@ -109,7 +109,7 @@ dashboard "gcp_compute_instance_detail" {
         node.gcp_compute_instance_to_compute_network_interface_node,
         node.gcp_compute_instance_compute_network_interface_to_compute_network_node,
         node.gcp_compute_instance_compute_network_interface_to_compute_subnetwork_node,
-        node.gcp_compute_instance_to_compute_instance_group_node,
+        node.gcp_compute_instance_from_compute_instance_group_node,
         node.gcp_compute_instance_to_compute_machine_type_node
       ]
 
@@ -118,7 +118,7 @@ dashboard "gcp_compute_instance_detail" {
         edge.gcp_compute_instance_to_compute_network_interface_edge,
         edge.gcp_compute_instance_compute_network_interface_to_compute_network_edge,
         edge.gcp_compute_instance_compute_network_interface_to_compute_subnetwork_edge,
-        edge.gcp_compute_instance_to_compute_instance_group_edge,
+        edge.gcp_compute_instance_from_compute_instance_group_edge,
         edge.gcp_compute_instance_to_compute_machine_type_edge
       ]
 
@@ -457,7 +457,7 @@ edge "gcp_compute_instance_compute_network_interface_to_compute_subnetwork_edge"
   param "id" {}
 }
 
-node "gcp_compute_instance_to_compute_instance_group_node" {
+node "gcp_compute_instance_from_compute_instance_group_node" {
   category = category.gcp_compute_instance_group
 
   sql = <<-EOQ
@@ -483,7 +483,7 @@ node "gcp_compute_instance_to_compute_instance_group_node" {
   param "id" {}
 }
 
-edge "gcp_compute_instance_to_compute_instance_group_edge" {
+edge "gcp_compute_instance_from_compute_instance_group_edge" {
   title = "instance group"
 
   sql = <<-EOQ

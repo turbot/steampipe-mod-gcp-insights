@@ -21,6 +21,13 @@ category "gcp_compute_instance" {
   }
 }
 
+category "gcp_compute_image" {
+  fold {
+    title     = "Compute Image"
+    threshold = 3
+  }
+}
+
 category "gcp_compute_instance_group" {
   fold {
     title     = "Compute Instance Group"
@@ -45,6 +52,13 @@ category "gcp_compute_network" {
 category "gcp_compute_network_interface" {
   fold {
     title     = "Compute Network Interface"
+    threshold = 3
+  }
+}
+
+category "gcp_compute_snapshot" {
+  fold {
+    title     = "Compute Snapshot"
     threshold = 3
   }
 }

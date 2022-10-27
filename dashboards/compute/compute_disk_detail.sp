@@ -18,7 +18,7 @@ dashboard "gcp_compute_disk_detail" {
     card {
       width = 2
       query = query.gcp_compute_disk_storage
-      args  = {
+      args = {
         id = self.input.disk_id.value
       }
     }
@@ -26,7 +26,7 @@ dashboard "gcp_compute_disk_detail" {
     card {
       width = 2
       query = query.gcp_compute_disk_status
-      args  = {
+      args = {
         id = self.input.disk_id.value
       }
     }
@@ -34,7 +34,7 @@ dashboard "gcp_compute_disk_detail" {
     card {
       width = 2
       query = query.gcp_compute_disk_type
-      args  = {
+      args = {
         id = self.input.disk_id.value
       }
     }
@@ -42,7 +42,7 @@ dashboard "gcp_compute_disk_detail" {
     card {
       width = 2
       query = query.gcp_compute_disk_encryption
-      args  = {
+      args = {
         id = self.input.disk_id.value
       }
     }
@@ -50,11 +50,47 @@ dashboard "gcp_compute_disk_detail" {
     card {
       width = 2
       query = query.gcp_compute_disk_attached_instances_count
-      args  = {
+      args = {
         id = self.input.disk_id.value
       }
     }
 
+  }
+
+  container {
+
+    graph {
+      title     = "Relationships"
+      type      = "graph"
+      direction = "TD"
+
+
+      nodes = [
+        node.gcp_compute_disk_node,
+        node.gcp_compute_disk_to_compute_instance_node,
+        node.gcp_compute_disk_to_kms_key_node,
+        node.gcp_compute_disk_to_compute_disk_node,
+        node.gcp_compute_disk_from_compute_disk_node,
+        node.gcp_compute_disk_to_compute_snapshot_node,
+        node.gcp_compute_disk_from_compute_snapshot_node,
+        node.gcp_compute_disk_to_compute_image_node
+      ]
+
+      edges = [
+        edge.gcp_compute_disk_to_compute_instance_edge,
+        edge.gcp_compute_disk_to_kms_key_edge,
+        edge.gcp_compute_disk_to_compute_disk_edge,
+        edge.gcp_compute_disk_from_compute_disk_edge,
+        edge.gcp_compute_disk_to_compute_snapshot_edge,
+        edge.gcp_compute_disk_from_compute_snapshot_edge,
+        edge.gcp_compute_disk_to_compute_image_edge
+
+      ]
+
+      args = {
+        id = self.input.disk_id.value
+      }
+    }
   }
 
   container {
@@ -68,7 +104,7 @@ dashboard "gcp_compute_disk_detail" {
         type  = "line"
         width = 6
         query = query.gcp_compute_disk_overview
-        args  = {
+        args = {
           id = self.input.disk_id.value
         }
       }
@@ -77,7 +113,7 @@ dashboard "gcp_compute_disk_detail" {
         title = "Tags"
         width = 6
         query = query.gcp_compute_disk_tags
-        args  = {
+        args = {
           id = self.input.disk_id.value
         }
       }
@@ -90,7 +126,7 @@ dashboard "gcp_compute_disk_detail" {
       table {
         title = "Attached To"
         query = query.gcp_compute_disk_attached_instances
-        args  = {
+        args = {
           id = self.input.disk_id.value
         }
 
@@ -102,7 +138,7 @@ dashboard "gcp_compute_disk_detail" {
       table {
         title = "Encryption Details"
         query = query.gcp_compute_disk_encryption_status
-        args  = {
+        args = {
           id = self.input.disk_id.value
         }
       }
@@ -118,7 +154,7 @@ dashboard "gcp_compute_disk_detail" {
       type  = "line"
       width = 6
       query = query.gcp_compute_disk_read_throughput
-      args  = {
+      args = {
         id = self.input.disk_id.value
       }
     }
@@ -128,7 +164,7 @@ dashboard "gcp_compute_disk_detail" {
       type  = "line"
       width = 6
       query = query.gcp_compute_disk_write_throughput
-      args  = {
+      args = {
         id = self.input.disk_id.value
       }
     }
@@ -266,6 +302,342 @@ query "gcp_compute_disk_encryption_status" {
       gcp_compute_disk
     where
       id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+## Graph
+
+category "gcp_compute_disk_no_link" {
+}
+
+node "gcp_compute_disk_node" {
+  category = category.gcp_compute_disk_no_link
+
+  sql = <<-EOQ
+    select
+      id::text,
+      title,
+      jsonb_build_object(
+        'ID', id,
+        'Name', name,
+        'Created Time', creation_timestamp,
+        'Size(GB)', size_gb,
+        'Status', status,
+        'Encryption Key Type', disk_encryption_key_type
+      ) as properties
+    from
+      gcp_compute_disk
+    where
+      id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_disk_to_compute_instance_node" {
+  category = category.gcp_compute_instance
+
+  sql = <<-EOQ
+    select
+      i.id::text,
+      i.title,
+      jsonb_build_object(
+        'ID', i.id,
+        'Name', i.name,
+        'Created Time', i.creation_timestamp,
+        'CPU Platform', cpu_platform
+      ) as properties
+    from
+      gcp_compute_disk d,
+      gcp_compute_instance i,
+      jsonb_array_elements(disks) as disk
+    where
+      d.id = $1
+      and d.name = (disk ->> 'deviceName');
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_disk_to_compute_instance_edge" {
+  title = "attached"
+
+  sql = <<-EOQ
+    select
+      d.id::text as from_id,
+      i.id::text as to_id,
+      jsonb_build_object(
+        'Last Attach Time', d.last_attach_timestamp,
+        'Last Detach Time', d.last_detach_timestamp
+      ) as properties
+    from
+      gcp_compute_disk d,
+      gcp_compute_instance i,
+      jsonb_array_elements(disks) as disk
+    where
+      d.id = $1
+      and d.name = (disk ->> 'deviceName');
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_disk_to_kms_key_node" {
+  category = category.gcp_kms_key
+
+  sql = <<-EOQ
+    select
+      k.name as id,
+      k.title,
+      jsonb_build_object(
+        'Name', k.name,
+        'Created Time', k.create_time,
+        'Key Ring Name', key_ring_name,
+        'Location', k.location
+      ) as properties
+    from
+      gcp_compute_disk d,
+      gcp_kms_key k
+    where
+      d.id = $1
+      and d.disk_encryption_key is not null
+      and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.name;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_disk_to_kms_key_edge" {
+  title = "encrypted with"
+
+  sql = <<-EOQ
+    select
+      d.id::text as from_id,
+      k.name as to_id
+    from
+      gcp_compute_disk d,
+      gcp_kms_key k
+    where
+      d.id = $1
+      and d.disk_encryption_key is not null
+      and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.name;
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_disk_to_compute_disk_node" {
+  category = category.gcp_compute_disk
+
+  sql = <<-EOQ
+    select
+      cd.id::text,
+      cd.title,
+      jsonb_build_object(
+        'ID', cd.id,
+        'Name', cd.name,
+        'Created Time', cd.creation_timestamp,
+        'Size(GB)', cd.size_gb,
+        'Status', cd.status,
+        'Encryption Key Type', cd.disk_encryption_key_type
+      ) as properties
+    from
+      gcp_compute_disk d,
+      gcp_compute_disk cd
+    where
+      d.id = $1
+      and d.id::text = cd.source_disk_id;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_disk_to_compute_disk_edge" {
+  title = "cloned to"
+
+  sql = <<-EOQ
+    select
+      d.id::text as from_id,
+      cd.id::text as to_id
+    from
+      gcp_compute_disk d,
+      gcp_compute_disk cd
+    where
+      d.id = $1
+      and d.id::text = cd.source_disk_id;
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_disk_from_compute_disk_node" {
+  category = category.gcp_compute_disk
+
+  sql = <<-EOQ
+    select
+      cd.id::text,
+      cd.title,
+      jsonb_build_object(
+        'ID', cd.id,
+        'Name', cd.name,
+        'Created Time', cd.creation_timestamp,
+        'Size(GB)', cd.size_gb,
+        'Status', cd.status,
+        'Encryption Key Type', cd.disk_encryption_key_type
+      ) as properties
+    from
+      gcp_compute_disk d,
+      gcp_compute_disk cd
+    where
+      d.id = $1
+      and d.source_disk_id = cd.id::text;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_disk_from_compute_disk_edge" {
+  title = "cloned to"
+
+  sql = <<-EOQ
+    select
+      cd.id::text as from_id,
+      d.id::text as to_id
+    from
+      gcp_compute_disk d,
+      gcp_compute_disk cd
+    where
+      d.id = $1
+      and d.source_disk_id = cd.id::text;
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_disk_to_compute_snapshot_node" {
+  category = category.gcp_compute_snapshot
+
+  sql = <<-EOQ
+    select
+      s.name as id,
+      s.title,
+      jsonb_build_object(
+        'Name', s.name,
+        'Created Time', s.creation_timestamp,
+        'Size(GB)', s.disk_size_gb,
+        'Status', s.status
+      ) as properties
+    from
+      gcp_compute_disk d,
+      gcp_compute_snapshot s
+    where
+      d.id = $1
+      and d.self_link = s.source_disk;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_disk_to_compute_snapshot_edge" {
+  title = "snapshot"
+
+  sql = <<-EOQ
+    select
+      d.id::text as from_id,
+      s.name as to_id
+    from
+      gcp_compute_disk d,
+      gcp_compute_snapshot s
+    where
+      d.id = $1
+      and d.self_link = s.source_disk;
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_disk_from_compute_snapshot_node" {
+  category = category.gcp_compute_snapshot
+
+  sql = <<-EOQ
+    select
+      s.name as id,
+      s.title,
+      jsonb_build_object(
+        'Name', s.name,
+        'Created Time', s.creation_timestamp,
+        'Size(GB)', s.disk_size_gb,
+        'Status', s.status
+      ) as properties
+    from
+      gcp_compute_disk d,
+      gcp_compute_snapshot s
+    where
+      d.id = $1
+      and d.source_snapshot = s.self_link;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_disk_from_compute_snapshot_edge" {
+  title = "snapshot"
+
+  sql = <<-EOQ
+    select
+      s.name as from_id,
+      d.id::text as to_id
+    from
+      gcp_compute_disk d,
+      gcp_compute_snapshot s
+    where
+      d.id = $1
+      and d.source_snapshot = s.self_link;
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_disk_to_compute_image_node" {
+  category = category.gcp_compute_image
+
+  sql = <<-EOQ
+    select
+      i.id::text,
+      i.title,
+      jsonb_build_object(
+        'ID', i.id::text,
+        'Name', i.name,
+        'Created Time', i.creation_timestamp,
+        'Size(GB)', i.disk_size_gb,
+        'Status', i.status
+      ) as properties
+    from
+      gcp_compute_disk d,
+      gcp_compute_image i
+    where
+      d.id = $1
+      and d.self_link = i.source_disk;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_disk_to_compute_image_edge" {
+  title = "image"
+
+  sql = <<-EOQ
+    select
+      d.id::text as from_id,
+      i.id::text as to_id
+    from
+      gcp_compute_disk d,
+      gcp_compute_image i
+    where
+      d.id = $1
+      and d.self_link = i.source_disk;
   EOQ
 
   param "id" {}
