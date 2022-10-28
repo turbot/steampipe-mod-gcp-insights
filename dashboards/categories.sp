@@ -101,3 +101,12 @@ graph "gcp_graph_categories" {
   type  = "graph"
   title = "Relationships"
 }
+
+category "gcp_pubsub_topic" {
+  icon = local.gcp_pubsub_topic
+  fold {
+    title     = "Pub/Sub Topic"
+    icon      = local.gcp_pubsub_topic
+    threshold = 3
+  }
+}
