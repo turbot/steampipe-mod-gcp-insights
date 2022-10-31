@@ -17,16 +17,7 @@ dashboard "gcp_sql_database_instance" {
      card {
       width = 2
 
-      query = query.gcp_sql_database_instance_machine_type
-      args = {
-        name = self.input.database_instance_name.value
-      }
-    }
-
-    card {
-      width = 2
-
-      query = query.gcp_sql_database_instance_data_disk_type
+      query = query.gcp_sql_database_instance_database_version
       args = {
         name = self.input.database_instance_name.value
       }
@@ -36,15 +27,6 @@ dashboard "gcp_sql_database_instance" {
       width = 2
 
       query = query.gcp_sql_database_instance_data_disk_size
-      args = {
-        name = self.input.database_instance_name.value
-      }
-    }
-
-    card {
-      width = 2
-
-      query = query.gcp_sql_database_instance_used_disk_size
       args = {
         name = self.input.database_instance_name.value
       }
@@ -67,10 +49,19 @@ dashboard "gcp_sql_database_instance" {
       }
     }
 
+    # card {
+    #   width = 2
+
+    #   query = query.gcp_sql_database_instance_public_ip_attachment
+    #   args = {
+    #     name = self.input.database_instance_name.value
+    #   }
+    # }
+
     card {
       width = 2
 
-      query = query.gcp_sql_database_instance_public_ip_attachment
+      query = query.gcp_sql_database_instance_is_public
       args = {
         name = self.input.database_instance_name.value
       }
@@ -79,7 +70,7 @@ dashboard "gcp_sql_database_instance" {
     card {
       width = 2
 
-      query = query.gcp_sql_database_instance_open_to_internet
+      query = query.gcp_sql_database_instance_ssl_enabled
       args = {
         name = self.input.database_instance_name.value
       }
@@ -178,11 +169,11 @@ query "gcp_sql_database_instance_input" {
 }
 
 
-query "gcp_sql_database_instance_machine_type" {
+query "gcp_sql_database_instance_database_version" {
   sql = <<-EOQ
     select
-      'Machine Type' as label,
-      machine_type as  value
+      'Database Version' as label,
+      database_version as  value
     from
       gcp_sql_database_instance
     where
@@ -207,20 +198,6 @@ query "gcp_sql_database_instance_encryption" {
   param "name" {}
 }
 
-query "gcp_sql_database_instance_data_disk_type" {
-  sql = <<-EOQ
-    select
-      'Data Disk Type' as label,
-      data_disk_type as value
-    from
-      gcp_sql_database_instance
-    where
-      name = $1;
-  EOQ
-
-  param "name" {}
-}
-
 query "gcp_sql_database_instance_data_disk_size" {
   sql = <<-EOQ
     select
@@ -235,24 +212,11 @@ query "gcp_sql_database_instance_data_disk_size" {
   param "name" {}
 }
 
-query "gcp_sql_database_instance_used_disk_size" {
-  sql = <<-EOQ
-    select
-      'Used Disk Size' as label,
-      "current_disk_size" || ' ' || 'Bytes' as value
-    from
-      gcp_sql_database_instance
-    where
-      name = $1;
-  EOQ
-
-  param "name" {}
-}
 
 query "gcp_sql_database_instance_backup_enabled" {
   sql = <<-EOQ
     select
-        'Backup' as label,
+      'Backup' as label,
       case
         when backup_enabled then 'Enabled'
         else 'Disabled'
@@ -270,12 +234,27 @@ query "gcp_sql_database_instance_backup_enabled" {
   param "name" {}
 }
 
-query "gcp_sql_database_instance_public_ip_attachment" {
+# query "gcp_sql_database_instance_public_ip_attachment" {
+#   sql = <<-EOQ
+#     select
+#       'Public IP Attachment' as label,
+#       case when ip_addresses @> '[{"type": "PRIMARY"}]' and backend_type = 'SECOND_GEN' then 'Enabled' else 'Disabled' end as value,
+#       case when ip_addresses @> '[{"type": "PRIMARY"}]' and backend_type = 'SECOND_GEN' then 'alert' else 'ok' end as type
+#     from
+#       gcp_sql_database_instance
+#     where
+#       name = $1;
+#   EOQ
+
+#   param "name" {}
+# }
+
+query "gcp_sql_database_instance_is_public" {
   sql = <<-EOQ
     select
-      'Public IP Attachment' as label,
-    case when ip_addresses @> '[{"type": "PRIMARY"}]' and backend_type = 'SECOND_GEN' then 'Enabled' else 'Disabled' end as value,
-    case when ip_addresses @> '[{"type": "PRIMARY"}]' and backend_type = 'SECOND_GEN' then 'alert' else 'ok' end as type
+      'Public Access' as label,
+      case when ip_configuration -> 'authorizedNetworks' @> '[{"name": "internet", "value": "0.0.0.0/0"}]' or ip_addresses @> '[{"type": "PRIMARY"}]' and backend_type = 'SECOND_GEN' then 'Enabled' else 'Disabled' end as value,
+      case when ip_configuration -> 'authorizedNetworks' @> '[{"name": "internet", "value": "0.0.0.0/0"}]' or ip_addresses @> '[{"type": "PRIMARY"}]' and backend_type = 'SECOND_GEN' then 'alert' else 'ok' end as type
     from
       gcp_sql_database_instance
     where
@@ -285,19 +264,22 @@ query "gcp_sql_database_instance_public_ip_attachment" {
   param "name" {}
 }
 
-query "gcp_sql_database_instance_open_to_internet" {
+query "gcp_sql_database_instance_ssl_enabled" {
   sql = <<-EOQ
     select
-      'Open to Internet' as label,
-    case when ip_configuration -> 'authorizedNetworks' @> '[{"name": "internet", "value": "0.0.0.0/0"}]' then 'Enabled' else 'Disabled' end as value,
-    case when ip_configuration -> 'authorizedNetworks' @> '[{"name": "internet", "value": "0.0.0.0/0"}]' then 'alert' else 'ok' end as type
+      'SSL Enabled' as label,
+      case
+        when ip_configuration -> 'requireSsl' is null then 'Disabled'
+        else 'Enabled'
+      end as value,
+      case
+        when ip_configuration -> 'requireSsl' is null
+          then 'alert'
+        else 'ok'
+      end as type
     from
-      gcp_sql_database_instance
-    where
-      name = $1;
+      gcp_sql_database_instance;
   EOQ
-
-  param "name" {}
 }
 
 query "gcp_sql_database_instance_overview" {
@@ -306,8 +288,8 @@ query "gcp_sql_database_instance_overview" {
       name as "Name",
       state as "State",
       instance_type as "Instance Type",
-      kind as "Kind",
       backup_location as "Backup Location",
+      machine_type as "Machine Type",
       title as "Title",
       location as "Location",
       project as "Project ID"
@@ -346,7 +328,7 @@ query "gcp_sql_database_instance_tags" {
 query "gcp_sql_database_instance_replication_status" {
   sql = <<-EOQ
     select
-      backup_replication_log_archiving_enabled::TEXT as "Backup Replication Log Archiving Enabled",
+      backup_replication_log_archiving_enabled as "Backup Replication Log Archiving Enabled",
       crash_safe_replication_enabled as "Crash Safe Replication Enabled",
       database_replication_enabled as "Database Replication Enabled",
       replication_type as "Replication Type",
