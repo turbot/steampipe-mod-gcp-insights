@@ -80,6 +80,13 @@ category "gcp_kms_key" {
   }
 }
 
+category "gcp_kms_key_ring" {
+  fold {
+    title     = "KMS Key Ring"
+    threshold = 3
+  }
+}
+
 category "gcp_logging_bucket" {
   fold {
     title     = "Logging Bucket"

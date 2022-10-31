@@ -17,7 +17,7 @@ dashboard "gcp_kms_key_detail" {
 
     card {
       width = 2
-      query = query.gcp_kms_key_project
+      query = query.gcp_kms_key_purpose
       args = {
         key_name = self.input.key_name.value
       }
@@ -39,7 +39,7 @@ dashboard "gcp_kms_key_detail" {
       }
     }
 
-card {
+    card {
       width = 2
       query = query.gcp_kms_key_protection_level
       args = {
@@ -66,12 +66,14 @@ card {
       nodes = [
         node.gcp_kms_key_node,
         node.gcp_kms_key_from_storage_bucket_node,
-        node.gcp_kms_key_from_pubsub_topic_node
+        node.gcp_kms_key_from_pubsub_topic_node,
+        node.gcp_kms_key_from_kms_key_ring_node
       ]
 
       edges = [
         edge.gcp_kms_key_from_storage_bucket_edge,
-        edge.gcp_kms_key_from_pubsub_topic_edge
+        edge.gcp_kms_key_from_pubsub_topic_edge,
+        edge.gcp_kms_key_from_kms_key_ring_edge
       ]
 
       args = {
@@ -129,7 +131,7 @@ node "gcp_kms_key_node" {
 
   sql = <<-EOQ
     select
-      name as id,
+      concat(name, '_key') as id,
       title as title,
       jsonb_build_object(
         'Name', name,
@@ -174,7 +176,7 @@ edge "gcp_kms_key_from_storage_bucket_edge" {
   sql = <<-EOQ
     select
       b.id as from_id,
-      k.name as to_id
+      concat(k.name, '_key') as to_id
     from
       gcp_storage_bucket b,
       gcp_kms_key k
@@ -217,7 +219,7 @@ edge "gcp_kms_key_from_pubsub_topic_edge" {
   sql = <<-EOQ
     select
       p.name as from_id,
-      k.name as to_id
+      concat(k.name, '_key') as to_id
     from
       gcp_pubsub_topic p,
       gcp_kms_key k
@@ -229,7 +231,49 @@ edge "gcp_kms_key_from_pubsub_topic_edge" {
   param "key_name" {}
 }
 
-query "gcp_kms_key_project" {
+node "gcp_kms_key_from_kms_key_ring_node" {
+  category = category.gcp_kms_key_ring
+
+  sql = <<-EOQ
+    select
+      concat(p.name, '_key_ring') as id,
+      p.title,
+      jsonb_build_object(
+        'Name', p.name,
+        'Location', p.location,
+        'Project', p.project,
+        'Create Time', p.create_time
+      ) as properties
+    from
+      gcp_kms_key_ring p,
+      gcp_kms_key k
+    where
+      k.key_ring_name = p.name
+      and k.name = $1;
+  EOQ
+
+  param "key_name" {}
+}
+
+edge "gcp_kms_key_from_kms_key_ring_edge" {
+  title = "organizes"
+
+  sql = <<-EOQ
+    select
+      concat(p.name, '_key_ring') as from_id,
+      concat(k.name, '_key') as to_id
+    from
+      gcp_kms_key_ring p,
+      gcp_kms_key k
+    where
+      k.key_ring_name = p.name
+      and k.name = $1;
+  EOQ
+
+  param "key_name" {}
+}
+
+query "gcp_kms_key_purpose" {
   sql = <<-EOQ
     select
       'Purpose' as label,
@@ -239,7 +283,7 @@ query "gcp_kms_key_project" {
       where
         name = $1;
   EOQ
-  
+
   param "key_name" {}
 }
 
