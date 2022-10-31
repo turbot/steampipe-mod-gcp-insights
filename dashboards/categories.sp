@@ -87,6 +87,13 @@ category "gcp_kms_key_ring" {
   }
 }
 
+category "gcp_kubernetes_cluster" {
+  fold {
+    title     = "Kubernetes Cluster"
+    threshold = 3
+  }
+}
+
 category "gcp_logging_bucket" {
   fold {
     title     = "Logging Bucket"

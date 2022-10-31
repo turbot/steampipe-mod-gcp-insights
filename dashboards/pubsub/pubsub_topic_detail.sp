@@ -41,16 +41,14 @@ dashboard "gcp_pubsub_topic_detail" {
 
 
       nodes = [
-        node.gcp_pubsub_topic_node
-        // node.gcp_storage_bucket_to_kms_key_node,
-        // node.gcp_storage_bucket_to_logging_bucket_node,
-        // node.gcp_storage_bucket_from_compute_backend_bucket_node
+        node.gcp_pubsub_topic_node,
+        node.gcp_pubsub_topic_to_kms_key_node,
+        node.gcp_pubsub_topic_to_kubernetes_cluster_node
       ]
 
       edges = [
-        // edge.gcp_storage_bucket_to_kms_key_edge,
-        // edge.gcp_storage_bucket_to_logging_bucket_edge,
-        // edge.gcp_storage_bucket_from_compute_backend_bucket_edge
+        edge.gcp_pubsub_topic_to_kms_key_edge,
+        edge.gcp_pubsub_topic_to_kubernetes_cluster_edge
       ]
 
       args = {
@@ -110,7 +108,7 @@ query "gcp_pubsub_topic_encryption" {
     select
       'Encryption' as label,
       case when kms_key_name = '' then 'Disabled' else 'Enabled' end as value,
-      case when kms_key_name = '' then 'Alarm' else 'Ok' end as type
+      case when kms_key_name = '' then 'alert' else 'ok' end as type
     from
       gcp_pubsub_topic
     where
@@ -124,9 +122,9 @@ query "gcp_pubsub_topic_encryption" {
 query "gcp_pubsub_topic_labeled" {
   sql = <<-EOQ
     select
-      'Topic' as label,
+      'Topic Labeling' as label,
       case when labels is not null then 'Labeled' else 'Unlabeled' end as value,
-      case when labels is not null then 'Ok' else 'Alarm' end as type
+      case when labels is not null then 'ok' else 'alert' end as type
     from
       gcp_pubsub_topic
     where
@@ -141,8 +139,8 @@ query "gcp_pubsub_topic_overview" {
   sql = <<-EOQ
     select
       name as "Name",
-      title as "Title",
       location as "Location",
+      project as "Project",
       self_link as "Self-Link"
     from
       gcp_pubsub_topic
@@ -187,4 +185,88 @@ node "gcp_pubsub_topic_node" {
   EOQ
 
 param "name" {}
+}
+
+node "gcp_pubsub_topic_to_kms_key_node" {
+  category = category.gcp_kms_key
+
+  sql = <<-EOQ
+    select
+      concat(k.name, '_key') as id,
+      k.title,
+      jsonb_build_object(
+        'Name', k.name,
+        'Location', k.location,
+        'Project', k.project,
+        'Self Link', k.self_link
+      ) as properties
+    from
+      gcp_pubsub_topic p,
+      gcp_kms_key k
+    where
+      split_part(p.kms_key_name, 'cryptoKeys/', 2) = k.name
+      and p.name = $1;
+  EOQ
+
+  param "name" {}
+}
+
+edge "gcp_pubsub_topic_to_kms_key_edge" {
+  title = "encrypted with"
+
+  sql = <<-EOQ
+    select
+      p.name as from_id,
+      concat(k.name, '_key') as to_id
+    from
+      gcp_pubsub_topic p,
+      gcp_kms_key k
+    where
+      k.name = split_part(p.kms_key_name, 'cryptoKeys/', 2)
+      and p.name = $1;
+  EOQ
+
+  param "name" {}
+}
+
+node "gcp_pubsub_topic_to_kubernetes_cluster_node" {
+  category = category.gcp_kubernetes_cluster
+
+  sql = <<-EOQ
+    select
+      c.name as id,
+      c.title,
+      jsonb_build_object(
+        'Name', c.name,
+        'Location', c.location
+      ) as properties
+    from
+      gcp_kubernetes_cluster c,
+      gcp_pubsub_topic t
+    where
+      t.name = $1
+      and c.notification_config is not null
+      and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
+  EOQ
+
+  param "name" {}
+}
+
+edge "gcp_pubsub_topic_to_kubernetes_cluster_edge" {
+  title = "notifies"
+
+  sql = <<-EOQ
+    select
+      c.name as from_id,
+      t.name as to_id
+    from
+      gcp_kubernetes_cluster c,
+      gcp_pubsub_topic t
+    where
+      t.name = $1
+      and c.notification_config is not null
+      and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
+  EOQ
+
+  param "name" {}
 }
