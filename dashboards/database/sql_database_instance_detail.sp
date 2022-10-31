@@ -44,15 +44,6 @@ dashboard "gcp_sql_database_instance" {
     card {
       width = 2
 
-      query = query.gcp_sql_database_instance_encryption
-      args = {
-        name = self.input.database_instance_name.value
-      }
-    }
-
-    card {
-      width = 2
-
       query = query.gcp_sql_database_instance_used_disk_size
       args = {
         name = self.input.database_instance_name.value
@@ -67,15 +58,15 @@ dashboard "gcp_sql_database_instance" {
       }
     }
 
-    # card {
-    #   width = 2
-    #   query = query.gcp_sql_database_instance_replication_enabled
-    #   args  = {
-    #     name = self.input.database_instance_name.value
-    #   }
-    # }
-  }
+    card {
+      width = 2
 
+      query = query.gcp_sql_database_instance_encryption
+      args = {
+        name = self.input.database_instance_name.value
+      }
+    }
+  }
 
   container {
 
