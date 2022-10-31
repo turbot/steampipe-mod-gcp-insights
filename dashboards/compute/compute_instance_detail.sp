@@ -129,6 +129,39 @@ dashboard "gcp_compute_instance_detail" {
   }
 
   container {
+
+    graph {
+      title     = "Relationships"
+      type      = "graph"
+      direction = "TD"
+
+
+      nodes = [
+        node.gcp_compute_instance_node,
+        node.gcp_compute_instance_to_compute_disk_node,
+        node.gcp_compute_instance_to_compute_network_interface_node,
+        node.gcp_compute_instance_compute_network_interface_to_compute_network_node,
+        node.gcp_compute_instance_compute_network_interface_to_compute_subnetwork_node,
+        node.gcp_compute_instance_from_compute_instance_group_node,
+        node.gcp_compute_instance_to_compute_machine_type_node
+      ]
+
+      edges = [
+        edge.gcp_compute_instance_to_compute_disk_edge,
+        edge.gcp_compute_instance_to_compute_network_interface_edge,
+        edge.gcp_compute_instance_compute_network_interface_to_compute_network_edge,
+        edge.gcp_compute_instance_compute_network_interface_to_compute_subnetwork_edge,
+        edge.gcp_compute_instance_from_compute_instance_group_edge,
+        edge.gcp_compute_instance_to_compute_machine_type_edge
+      ]
+
+      args = {
+        id = self.input.instance_id.value
+      }
+    }
+  }
+
+  container {
     width = 12
 
     table {
