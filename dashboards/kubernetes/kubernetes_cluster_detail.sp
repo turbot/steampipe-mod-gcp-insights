@@ -66,6 +66,45 @@ dashboard "gcp_kubernetes_cluster_detail" {
   }
 
   container {
+
+    graph {
+      title     = "Relationships"
+      type      = "graph"
+      direction = "TD"
+
+
+      nodes = [
+        node.gcp_kubernetes_cluster_node,
+        node.gcp_kubernetes_cluster_to_node_pool_node,
+        node.gcp_kubernetes_cluster_to_compute_network_node,
+        node.gcp_kubernetes_cluster_network_to_compute_subnetwork_node,
+        node.gcp_kubernetes_cluster_to_pubsub_topic_node,
+        node.gcp_kubernetes_cluster_node_pool_to_compute_instance_group_node,
+        node.gcp_kubernetes_cluster_to_kms_key_node,
+        node.gcp_kubernetes_cluster_to_bigquery_dataset_node,
+        node.gcp_kubernetes_cluster_node_pool_to_compute_instance_node,
+        node.gcp_kubernetes_cluster_to_compute_zone_node
+      ]
+
+      edges = [
+        edge.gcp_kubernetes_cluster_to_node_pool_edge,
+        edge.gcp_kubernetes_cluster_to_compute_network_edge,
+        edge.gcp_kubernetes_cluster_network_to_compute_subnetwork_edge,
+        edge.gcp_kubernetes_cluster_to_pubsub_topic_edge,
+        edge.gcp_kubernetes_cluster_node_pool_to_compute_instance_group_edge,
+        edge.gcp_kubernetes_cluster_to_kms_key_edge,
+        edge.gcp_kubernetes_cluster_to_bigquery_dataset_edge,
+        edge.gcp_kubernetes_cluster_node_pool_to_compute_instance_edge,
+        edge.gcp_kubernetes_cluster_to_compute_zone_edge
+      ]
+
+      args = {
+        name = self.input.cluster_name.value
+      }
+    }
+  }
+
+  container {
     width = 6
 
     table {
@@ -131,6 +170,7 @@ dashboard "gcp_kubernetes_cluster_detail" {
     }
 
   }
+
   container {
 
     table {
@@ -259,6 +299,435 @@ query "gcp_kubernetes_cluster_auto_repair_disabled" {
       jsonb_array_elements(node_pools) as np
     where
       name = $1;
+  EOQ
+
+  param "name" {}
+}
+
+## Graph
+
+category "gcp_kubernetes_cluster_no_link" {
+  icon = local.gcp_kubernetes_cluster
+}
+
+node "gcp_kubernetes_cluster_node" {
+  category = category.gcp_kubernetes_cluster_no_link
+
+  sql = <<-EOQ
+    select
+      name as id,
+      title,
+      jsonb_build_object(
+        'Name', name,
+        'Created Time', create_time,
+        'Endpoint', endpoint,
+        'Services IPv4 CIDR', services_ipv4_cidr,
+        'Status', status
+      ) as properties
+    from
+      gcp_kubernetes_cluster
+    where
+      name = $1;
+  EOQ
+
+  param "name" {}
+}
+
+node "gcp_kubernetes_cluster_to_node_pool_node" {
+  category = category.gcp_kubernetes_node_pool
+
+  sql = <<-EOQ
+    select
+      p.name as id,
+      p.title,
+      jsonb_build_object(
+        'Name', p.name,
+        'Initial Node Count', p.initial_node_count,
+        'Status', p.status,
+        'Version', p.version
+      ) as properties
+    from
+      gcp_kubernetes_node_pool p
+    where
+      p.cluster_name = $1;
+  EOQ
+
+  param "name" {}
+}
+
+edge "gcp_kubernetes_cluster_to_node_pool_edge" {
+  title = "node pool"
+
+  sql = <<-EOQ
+    select
+      $1 as from_id,
+      p.name as to_id
+    from
+      gcp_kubernetes_node_pool p
+    where
+      p.cluster_name = $1;
+  EOQ
+
+  param "name" {}
+}
+
+node "gcp_kubernetes_cluster_node_pool_to_compute_instance_group_node" {
+  category = category.gcp_compute_instance_group
+
+  sql = <<-EOQ
+    select
+      g.id::text as id,
+      g.name as title,
+      jsonb_build_object(
+        'ID', g.id,
+        'Name', g.name,
+        'Created Time', g.creation_timestamp,
+        'Instance Count', g.size,
+        'Named Ports', g.named_ports
+      ) as properties
+    from
+      gcp_kubernetes_node_pool p,
+      gcp_compute_instance_group g,
+      jsonb_array_elements_text(instance_group_urls) ig
+    where
+      p.cluster_name = $1
+      and split_part(ig, 'instanceGroupManagers/', 2) = g.name;
+  EOQ
+
+  param "name" {}
+}
+
+edge "gcp_kubernetes_cluster_node_pool_to_compute_instance_group_edge" {
+  title = "instance group"
+
+  sql = <<-EOQ
+    select
+      p.name as from_id,
+      g.id::text as to_id
+    from
+      gcp_kubernetes_node_pool p,
+      gcp_compute_instance_group g,
+      jsonb_array_elements_text(instance_group_urls) ig
+    where
+      p.cluster_name = $1
+      and split_part(ig, 'instanceGroupManagers/', 2) = g.name;
+  EOQ
+
+  param "name" {}
+}
+
+node "gcp_kubernetes_cluster_node_pool_to_compute_instance_node" {
+  category = category.gcp_compute_instance
+
+  sql = <<-EOQ
+    select
+      i.id::text,
+      i.title,
+      jsonb_build_object(
+        'ID', i.id::text,
+        'Name', i.name,
+        'Created Time', i.creation_timestamp,
+        'CPU Platform', i.cpu_platform,
+        'Status', i.status
+      ) as properties
+    from
+      gcp_kubernetes_node_pool p,
+      gcp_compute_instance_group g,
+      jsonb_array_elements_text(instance_group_urls) ig,
+      jsonb_array_elements(g.instances) g_ins,
+      gcp_compute_instance i
+    where
+      p.cluster_name = $1
+      and split_part(ig, 'instanceGroupManagers/', 2) = g.name
+      and i.self_link = (g_ins ->> 'instance')
+  EOQ
+
+  param "name" {}
+}
+
+edge "gcp_kubernetes_cluster_node_pool_to_compute_instance_edge" {
+  title = "node"
+
+  sql = <<-EOQ
+    select
+      g.id::text as from_id,
+      i.id::text as to_id
+    from
+      gcp_kubernetes_node_pool p,
+      gcp_compute_instance_group g,
+      jsonb_array_elements_text(instance_group_urls) ig,
+      jsonb_array_elements(g.instances) g_ins,
+      gcp_compute_instance i
+    where
+      p.cluster_name = $1
+      and split_part(ig, 'instanceGroupManagers/', 2) = g.name
+      and i.self_link = (g_ins ->> 'instance')
+  EOQ
+
+  param "name" {}
+}
+
+node "gcp_kubernetes_cluster_to_compute_network_node" {
+  category = category.gcp_compute_network
+
+  sql = <<-EOQ
+    select
+      n.id::text as id,
+      c.network_config ->> 'network' as title,
+      jsonb_build_object(
+        'ID', n.id::text,
+        'Name', n.name,
+        'Created Time', n.creation_timestamp,
+        'Location', n.location
+      ) as properties
+    from
+      gcp_kubernetes_cluster c,
+      gcp_compute_network n
+    where
+      c.name = $1
+      and c.network = n.name
+  EOQ
+
+  param "name" {}
+}
+
+edge "gcp_kubernetes_cluster_to_compute_network_edge" {
+  title = "network"
+
+  sql = <<-EOQ
+    select
+      s.id::text as from_id,
+      n.id::text as to_id
+    from
+      gcp_kubernetes_cluster c,
+      gcp_compute_network n,
+      gcp_compute_subnetwork s
+    where
+      c.name = $1
+      and c.network = n.name
+      and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
+  EOQ
+
+  param "name" {}
+}
+
+node "gcp_kubernetes_cluster_network_to_compute_subnetwork_node" {
+  category = category.gcp_compute_subnetwork
+
+  sql = <<-EOQ
+    select
+      s.id::text as id,
+      c.network_config ->> 'subnetwork' as title,
+      jsonb_build_object(
+        'ID', s.id,
+        'Name', s.name,
+        'Created Time', s.creation_timestamp,
+        'Location', s.location,
+        'IP Cidr Range', s.ip_cidr_range
+      ) as properties
+    from
+      gcp_kubernetes_cluster c,
+      gcp_compute_subnetwork s
+    where
+      c.name = $1
+      and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
+  EOQ
+
+  param "name" {}
+}
+
+edge "gcp_kubernetes_cluster_network_to_compute_subnetwork_edge" {
+  title = "subnetwork"
+
+  sql = <<-EOQ
+    select
+      c.name as from_id,
+      s.id::text as to_id
+    from
+      gcp_kubernetes_cluster c,
+      gcp_compute_network n,
+      gcp_compute_subnetwork s
+    where
+      c.name = $1
+      and c.network = n.name
+      and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
+  EOQ
+
+  param "name" {}
+}
+
+node "gcp_kubernetes_cluster_to_pubsub_topic_node" {
+  category = category.gcp_pubsub_topic
+
+  sql = <<-EOQ
+    select
+      t.name as id,
+      t.title,
+      jsonb_build_object(
+        'Name', t.name,
+        'Location', t.location
+      ) as properties
+    from
+      gcp_kubernetes_cluster c,
+      gcp_pubsub_topic t
+    where
+      c.name = $1
+      and c.notification_config is not null
+      and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
+  EOQ
+
+  param "name" {}
+}
+
+edge "gcp_kubernetes_cluster_to_pubsub_topic_edge" {
+  title = "notifies"
+
+  sql = <<-EOQ
+    select
+      c.name as from_id,
+      t.name as to_id,
+      jsonb_build_object(
+        'Notifications Enabled', (c.notification_config -> 'pubsub' ->> 'enabled')
+      ) as properties
+    from
+      gcp_kubernetes_cluster c,
+      gcp_pubsub_topic t
+    where
+      c.name = $1
+      and c.notification_config is not null
+      and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
+  EOQ
+
+  param "name" {}
+}
+
+node "gcp_kubernetes_cluster_to_kms_key_node" {
+  category = category.gcp_kms_key
+
+  sql = <<-EOQ
+    select
+      k.name as id,
+      k.title,
+      jsonb_build_object(
+        'Name', k.name,
+        'Created Time', k.create_time,
+        'Key Ring Name', key_ring_name,
+        'Location', k.location
+      ) as properties
+    from
+      gcp_kubernetes_cluster c,
+      gcp_kms_key k
+    where
+      c.name = $1
+      and c.database_encryption_key_name is not null
+      and split_part(c.database_encryption_key_name, 'cryptoKeys/', 2) = k.name;
+  EOQ
+
+  param "name" {}
+}
+
+edge "gcp_kubernetes_cluster_to_kms_key_edge" {
+  title = "database encrypted with"
+
+  sql = <<-EOQ
+    select
+      c.name as from_id,
+      k.name as to_id,
+      jsonb_build_object(
+        'Database Encryption State', c.database_encryption_state
+      ) as properties
+    from
+      gcp_kubernetes_cluster c,
+      gcp_kms_key k
+    where
+      c.name = $1
+      and c.database_encryption_key_name is not null
+      and split_part(c.database_encryption_key_name, 'cryptoKeys/', 2) = k.name;
+  EOQ
+
+  param "name" {}
+}
+
+node "gcp_kubernetes_cluster_to_bigquery_dataset_node" {
+  category = category.gcp_bigquery_dataset
+
+  sql = <<-EOQ
+    select
+      d.id,
+      d.title,
+      jsonb_build_object(
+        'ID', d.id,
+        'Created Time', d.creation_time,
+        'Table Expiration(ms)', d.default_table_expiration_ms,
+        'KMS Key', d.kms_key_name,
+        'Location', d.location
+      ) as properties
+    from
+      gcp_kubernetes_cluster c,
+      gcp_bigquery_dataset d
+    where
+      c.name = $1
+      and c.resource_usage_export_config -> 'bigqueryDestination' ->> 'datasetId' = d.dataset_id;
+  EOQ
+
+  param "name" {}
+}
+
+edge "gcp_kubernetes_cluster_to_bigquery_dataset_edge" {
+  title = "usage metering"
+
+  sql = <<-EOQ
+    select
+      c.name as from_id,
+      d.id as to_id
+    from
+      gcp_kubernetes_cluster c,
+      gcp_bigquery_dataset d
+    where
+      c.name = $1
+      and c.resource_usage_export_config -> 'bigqueryDestination' ->> 'datasetId' = d.dataset_id;
+  EOQ
+
+  param "name" {}
+}
+
+node "gcp_kubernetes_cluster_to_compute_zone_node" {
+  category = category.gcp_compute_zone
+
+  sql = <<-EOQ
+    select
+      z.id::text,
+      z.title,
+      jsonb_build_object(
+        'ID', z.id,
+        'Name', z.name,
+        'Status', z.status,
+        'Region', z.region_name
+      ) as properties
+    from
+      gcp_kubernetes_cluster c,
+      gcp_compute_zone z
+    where
+      c.name = $1
+      and c.zone = z.name;
+  EOQ
+
+  param "name" {}
+}
+
+edge "gcp_kubernetes_cluster_to_compute_zone_edge" {
+  title = "zone"
+
+  sql = <<-EOQ
+    select
+      c.name as from_id,
+      z.id::text as to_id
+    from
+      gcp_kubernetes_cluster c,
+      gcp_compute_zone z
+    where
+      c.name = $1
+      and c.zone = z.name;
   EOQ
 
   param "name" {}

@@ -258,6 +258,7 @@ query "gcp_compute_instance_confidential_vm_service" {
 ## Graph
 
 category "gcp_compute_instance_no_link" {
+  icon = local.gcp_compute_instance
 }
 
 node "gcp_compute_instance_node" {
