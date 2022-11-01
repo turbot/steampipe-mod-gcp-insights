@@ -7,9 +7,23 @@ category "gcp_bigquery_dataset" {
   }
 }
 
+category "gcp_compute_autoscaler" {
+  fold {
+    title     = "Compute Autoscalers"
+    threshold = 3
+  }
+}
+
 category "gcp_compute_backend_bucket" {
   fold {
     title     = "Compute Backend Buckets"
+    threshold = 3
+  }
+}
+
+category "gcp_compute_backend_service" {
+  fold {
+    title     = "Compute Backend Services"
     threshold = 3
   }
 }
@@ -18,6 +32,29 @@ category "gcp_compute_disk" {
   href = "/gcp_insights.dashboard.gcp_compute_disk_detail?input.id={{.properties.'ID' | @uri}}"
   fold {
     title     = "Compute Disks"
+    threshold = 3
+  }
+}
+
+category "gcp_compute_firewall" {
+  icon = local.gcp_compute_firewall
+  fold {
+    title     = "Compute Firewall Rules"
+    icon      = local.gcp_compute_firewall
+    threshold = 3
+  }
+}
+
+category "gcp_compute_forwarding_rule" {
+  fold {
+    title     = "Compute Forwarding Rules"
+    threshold = 3
+  }
+}
+
+category "gcp_compute_health_check" {
+  fold {
+    title     = "Compute Health Checks"
     threshold = 3
   }
 }
