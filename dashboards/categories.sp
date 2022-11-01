@@ -124,3 +124,17 @@ category "gcp_pubsub_topic" {
     threshold = 3
   }
 }
+
+category "gcp_pubsub_subscription" {
+  fold {
+    title     = "Pub/Sub Subscription"
+    threshold = 3
+  }
+}
+
+category "gcp_iam_role" {
+  fold {
+    title     = "IAM Policy"
+    threshold = 3
+  }
+}
