@@ -43,7 +43,7 @@ dashboard "gcp_pubsub_topic_detail" {
       nodes = [
         node.gcp_pubsub_topic_node,
         node.gcp_pubsub_topic_to_kms_key_node,
-        node.gcp_pubsub_topic_to_kubernetes_cluster_node,
+        node.gcp_pubsub_topic_from_kubernetes_cluster_node,
         node.gcp_pubsub_topic_to_iam_role_node,
         node.gcp_pubsub_topic_to_pubsub_subscription_node,
         node.gcp_pubsub_topic_to_pubsub_snapshot_node
@@ -83,6 +83,28 @@ dashboard "gcp_pubsub_topic_detail" {
         title = "Tags"
         width = 6
         query = query.gcp_pubsub_topic_tags
+        param "arn" {}
+        args = {
+          name = self.input.name.value
+        }
+      }
+
+    }
+    container {
+      width = 6
+
+      table {
+        title = "Subscription Details"
+        query = query.gcp_pubsub_topic_subscription_details
+        param "arn" {}
+        args = {
+          name = self.input.name.value
+        }
+      }
+
+      table {
+        title = "Encryption Details"
+        query = query.gcp_pubsub_topic_encryption_details
         param "arn" {}
         args = {
           name = self.input.name.value
@@ -128,8 +150,8 @@ query "gcp_pubsub_topic_encryption" {
 query "gcp_pubsub_topic_labeled" {
   sql = <<-EOQ
     select
-      'Topic Labeling' as label,
-      case when labels is not null then 'Labeled' else 'Unlabeled' end as value,
+      'Labeling' as label,
+      case when labels is not null then 'Enabeled' else 'Disabeled' end as value,
       case when labels is not null then 'ok' else 'alert' end as type
     from
       gcp_pubsub_topic
@@ -160,12 +182,51 @@ query "gcp_pubsub_topic_overview" {
 query "gcp_pubsub_topic_tags" {
   sql = <<-EOQ
     select
-    jsonb_object_keys(tags) as "Key",
-    tags ->> jsonb_object_keys(tags) as "Value"
+      jsonb_object_keys(tags) as "Key",
+      tags ->> jsonb_object_keys(tags) as "Value"
+    from
+      gcp_pubsub_topic
+    where
+      name = $1;
+  EOQ
+
+  param "name" {}
+}
+
+query "gcp_pubsub_topic_encryption_details" {
+  sql = <<-EOQ
+  select
+      k.name as "KMS Key Name",
+      k.key_ring_name as "Key Ring Name",
+      k.create_time as "Create Time",
+      k.title as "Title",
+      NULLIF(SPLIT_PART(k.rotation_period, 's', 1), '')::int / ( 60 * 60 * 24) as "Rotation Period",
+      k.location as "Location"
   from
-    gcp_pubsub_topic
-  where
-    name = $1;
+    gcp_pubsub_topic p,
+      gcp_kms_key k
+    where
+      split_part(p.kms_key_name, 'cryptoKeys/', 2) = k.name
+      and p.name = $1;
+  EOQ
+
+  param "name" {}
+}
+
+query "gcp_pubsub_topic_subscription_details" {
+  sql = <<-EOQ
+    select
+      k.name as "Name",
+      topic_name as "Topic Name",
+      message_retention_duration as "Message Retention Duration",
+      retain_acked_messages as "Retain Acknowledged Messages",
+      dead_letter_policy_max_delivery_attempts as "Maximum Number of Delivery Attempts"
+    from
+      gcp_pubsub_topic p,
+      gcp_pubsub_subscription k
+    where
+      p.name = k.topic_name 
+      and p.name = $1;
   EOQ
 
   param "name" {}
@@ -190,7 +251,7 @@ node "gcp_pubsub_topic_node" {
       name = $1;
   EOQ
 
-param "name" {}
+  param "name" {}
 }
 
 node "gcp_pubsub_topic_to_kms_key_node" {
@@ -235,7 +296,7 @@ edge "gcp_pubsub_topic_to_kms_key_edge" {
   param "name" {}
 }
 
-node "gcp_pubsub_topic_to_kubernetes_cluster_node" {
+node "gcp_pubsub_topic_from_kubernetes_cluster_node" {
   category = category.gcp_kubernetes_cluster
 
   sql = <<-EOQ
@@ -364,7 +425,7 @@ node "gcp_pubsub_topic_to_pubsub_subscription_node" {
 }
 
 edge "gcp_pubsub_topic_to_pubsub_subscription_edge" {
-  title = "subscribe to"
+  title = "subscribed to"
 
   sql = <<-EOQ
   select
@@ -402,9 +463,11 @@ node "gcp_pubsub_topic_to_pubsub_snapshot_node" {
       ) as properties
     from
       gcp_pubsub_topic p,
-      gcp_pubsub_snapshot k
+      gcp_pubsub_snapshot k,
+      gcp_pubsub_subscription s
     where
-      p.name = k.topic_name 
+      p.name = s.topic_name 
+      and s.topic_name = k.topic_name
       and p.name = $1
   EOQ
 
@@ -416,20 +479,22 @@ edge "gcp_pubsub_topic_to_pubsub_snapshot_edge" {
 
   sql = <<-EOQ
   select
-      s.name as to_id,
-      t.name as from_id,
+      k.name as to_id,
+      s.name as from_id,
       jsonb_build_object(
-        'Name', s.name,
-        'Location', s.location,
-        'Project', s.project,
-        'Self Link', s.self_link
+        'Name', k.name,
+        'Location', k.location,
+        'Project', k.project,
+        'Self Link', k.self_link
       ) as properties
     from
-      gcp_pubsub_topic t,
-      gcp_pubsub_snapshot s
+      gcp_pubsub_topic p,
+      gcp_pubsub_snapshot k,
+      gcp_pubsub_subscription s
     where
-      t.name = s.topic_name 
-      and t.name = $1
+      p.name = s.topic_name 
+      and s.topic_name = k.topic_name
+      and p.name = $1
   EOQ
 
   param "name" {}
