@@ -122,7 +122,7 @@ query "gcp_pubsub_topic_input" {
       title as label,
       name as value,
       json_build_object(
-          'project', project
+        'project', project
       ) as tags
     from
       gcp_pubsub_topic
@@ -195,15 +195,15 @@ query "gcp_pubsub_topic_tags" {
 
 query "gcp_pubsub_topic_encryption_details" {
   sql = <<-EOQ
-  select
+    select
       k.name as "KMS Key Name",
       k.key_ring_name as "Key Ring Name",
       k.create_time as "Create Time",
       k.title as "Title",
       NULLIF(SPLIT_PART(k.rotation_period, 's', 1), '')::int / ( 60 * 60 * 24) as "Rotation Period",
       k.location as "Location"
-  from
-    gcp_pubsub_topic p,
+    from
+      gcp_pubsub_topic p,
       gcp_kms_key k
     where
       split_part(p.kms_key_name, 'cryptoKeys/', 2) = k.name
