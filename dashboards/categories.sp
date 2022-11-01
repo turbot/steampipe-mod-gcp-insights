@@ -134,7 +134,7 @@ category "gcp_pubsub_subscription" {
 
 category "gcp_iam_role" {
   fold {
-    title     = "IAM Policy"
+    title     = "IAM Role"
     threshold = 3
   }
 }

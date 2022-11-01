@@ -83,7 +83,7 @@ dashboard "gcp_pubsub_topic_detail" {
         title = "Tags"
         width = 6
         query = query.gcp_pubsub_topic_tags
-        param "arn" {}
+        param "name" {}
         args = {
           name = self.input.name.value
         }
@@ -96,7 +96,7 @@ dashboard "gcp_pubsub_topic_detail" {
       table {
         title = "Subscription Details"
         query = query.gcp_pubsub_topic_subscription_details
-        param "arn" {}
+        param "name" {}
         args = {
           name = self.input.name.value
         }
@@ -105,7 +105,7 @@ dashboard "gcp_pubsub_topic_detail" {
       table {
         title = "Encryption Details"
         query = query.gcp_pubsub_topic_encryption_details
-        param "arn" {}
+        param "name" {}
         args = {
           name = self.input.name.value
         }
@@ -363,7 +363,8 @@ node "gcp_pubsub_topic_to_iam_role_node" {
       ) as properties
     from
       iam_role as t join gcp_iam_role i on t.role = i.name
-    where t.name = $1
+    where 
+      t.name = $1;
   EOQ
 
   param "name" {}
@@ -394,7 +395,8 @@ edge "gcp_pubsub_topic_to_iam_role_edge" {
       ) as properties
     from
       iam_role as t join gcp_iam_role i on t.role = i.name
-    where t.name = $1
+    where 
+      t.name = $1;
   EOQ
 
   param "name" {}
@@ -418,7 +420,7 @@ node "gcp_pubsub_topic_to_pubsub_subscription_node" {
       gcp_pubsub_subscription k
     where
       p.name = k.topic_name 
-      and p.name = $1
+      and p.name = $1;
   EOQ
 
   param "name" {}
@@ -442,7 +444,7 @@ edge "gcp_pubsub_topic_to_pubsub_subscription_edge" {
       gcp_pubsub_subscription s
     where
       t.name = s.topic_name 
-      and t.name = $1
+      and t.name = $1;
   EOQ
 
   param "name" {}
@@ -468,7 +470,7 @@ node "gcp_pubsub_topic_to_pubsub_snapshot_node" {
     where
       p.name = s.topic_name 
       and s.topic_name = k.topic_name
-      and p.name = $1
+      and p.name = $1;
   EOQ
 
   param "name" {}
@@ -494,7 +496,7 @@ edge "gcp_pubsub_topic_to_pubsub_snapshot_edge" {
     where
       p.name = s.topic_name 
       and s.topic_name = k.topic_name
-      and p.name = $1
+      and p.name = $1;
   EOQ
 
   param "name" {}
