@@ -92,31 +92,35 @@ dashboard "gcp_compute_group_instance_detail" {
 
   }
 
-  # container {
-  #   width = 12
+  container {
 
-  #   table {
-  #     title = "Network Interfaces"
-  #     query = query.gcp_compute_instance_group_network_interfaces
-  #     args = {
-  #       id = self.input.group_id.value
-  #     }
-  #   }
+    container {
+      width = 4
 
-  # }
+      table {
+        title = "Network Detail"
+        query = query.gcp_compute_instance_group_network_detail
+        args = {
+          id = self.input.group_id.value
+        }
+      }
 
-  # container {
-  #   width = 6
+    }
 
-  #   table {
-  #     title = "Shielded VM Configuration"
-  #     query = query.gcp_compute_instance_group_shielded_vm
-  #     args = {
-  #       id = self.input.group_id.value
-  #     }
-  #   }
+    container {
+      width = 8
 
-  # }
+      table {
+        title = "Firewall Details"
+        query = query.gcp_compute_instance_firewall_detail
+        args = {
+          id = self.input.group_id.value
+        }
+      }
+
+    }
+  }
+
 
 }
 
@@ -254,10 +258,12 @@ edge "gcp_compute_instance_group_to_compute_network_edge" {
 
   sql = <<-EOQ
     select
-      g.id::text as from_id,
+      case when g.subnetwork = '' then (g.id::text) else (s.id::text) end as from_id,
       n.id::text as to_id
     from
-      gcp_compute_instance_group g,
+      gcp_compute_instance_group g
+        left join gcp_compute_subnetwork s 
+        on g.subnetwork = s.self_link,
       gcp_compute_network n
     where
       g.network = n.self_link
@@ -297,7 +303,7 @@ edge "gcp_compute_instance_group_compute_network_to_compute_subnetwork_edge" {
 
   sql = <<-EOQ
     select
-      n.id::text as from_id,
+      g.id::text as from_id,
       s.id::text as to_id
     from
       gcp_compute_instance_group g,
@@ -544,97 +550,6 @@ edge "gcp_compute_instance_group_backend_to_forwarding_rule_edge" {
   param "id" {}
 }
 
-
-# node "gcp_compute_instance_group_to_compute_disk_node" {
-#   category = category.gcp_compute_disk
-
-#   sql = <<-EOQ
-#     select
-#       d.id::text,
-#       disk ->> 'deviceName' as title,
-#       jsonb_build_object(
-#         'Name', disk ->> 'deviceName',
-#         'Auto Delete', disk ->> 'autoDelete',
-#         'Created Time', d.creation_timestamp,
-#         'Size(GB)', disk ->> 'diskSizeGb',
-#         'Mode', disk ->> 'mode'
-#       ) as properties
-#     from
-#       gcp_compute_instance_group i,
-#       gcp_compute_disk d,
-#       jsonb_array_elements(disks) as disk
-#     where
-#       i.id = $1
-#       and d.name = (disk ->> 'deviceName');
-#   EOQ
-
-#   param "id" {}
-# }
-
-# edge "gcp_compute_instance_group_to_compute_disk_edge" {
-#   title = "attached"
-
-#   sql = <<-EOQ
-#     select
-#       i.id::text as from_id,
-#       d.id::text as to_id
-#     from
-#       gcp_compute_instance_group i,
-#       gcp_compute_disk d,
-#       jsonb_array_elements(disks) as disk
-#     where
-#       i.id = $1
-#       and d.name = (disk ->> 'deviceName');
-#   EOQ
-
-#   param "id" {}
-# }
-
-
-
-
-# node "gcp_compute_instance_group_to_compute_machine_type_node" {
-#   category = category.gcp_compute_machine_type
-
-#   sql = <<-EOQ
-#     select
-#       m.id::text as id,
-#       m.name as title,
-#       jsonb_build_object(
-#         'ID', m.id,
-#         'Name', m.name,
-#         'Created Time', m.creation_timestamp,
-#         'Description', m.description
-#       ) as properties
-#     from
-#       gcp_compute_instance_group as i,
-#       gcp_compute_machine_type as m
-#     where
-#       m.name = i.machine_type_name
-#       and i.id = $1;
-#   EOQ
-
-#   param "id" {}
-# }
-
-# edge "gcp_compute_instance_group_to_compute_machine_type_edge" {
-#   title = "machine type"
-
-#   sql = <<-EOQ
-#     select
-#       i.id::text as from_id,
-#       m.id::text as to_id
-#     from
-#       gcp_compute_instance_group as i,
-#       gcp_compute_machine_type as m
-#     where
-#       m.name = i.machine_type_name
-#       and i.id = $1;
-#   EOQ
-
-#   param "id" {}
-# }
-
 query "gcp_compute_instance_group_overview" {
   sql = <<-EOQ
     select
@@ -669,6 +584,46 @@ query "gcp_compute_instance_group_attached_instances" {
     where
       g.id = $1
       and i.self_link = ins ->> 'instance';
+  EOQ
+
+  param "id" {}
+}
+
+query "gcp_compute_instance_group_network_detail" {
+  sql = <<-EOQ
+    select
+      n.name as "Network",
+      s.name as "Subnetwork",
+      s.gateway_address as "Subnet Gateway",
+      s.ip_cidr_range::text as "IP CIDR Range"
+    from
+      gcp_compute_instance_group g,
+      gcp_compute_network n,
+      gcp_compute_subnetwork s
+    where
+      g.network = n.self_link
+      and g.subnetwork = s.self_link
+      and g.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+query "gcp_compute_instance_firewall_detail" {
+  sql = <<-EOQ
+    select
+      f.id as "ID",
+      f.name as "Name",
+      f.direction as "Direction",
+      not f.disabled as "Enabled",
+      f.action as "Action",
+      f.priority as "Priority"
+    from
+      gcp_compute_instance_group g,
+      gcp_compute_firewall f
+    where
+      g.network = f.network
+      and g.id = $1;
   EOQ
 
   param "id" {}

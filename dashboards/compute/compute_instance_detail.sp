@@ -58,6 +58,39 @@ dashboard "gcp_compute_instance_detail" {
 
   container {
 
+    graph {
+      title     = "Relationships"
+      type      = "graph"
+      direction = "TD"
+
+
+      nodes = [
+        node.gcp_compute_instance_node,
+        node.gcp_compute_instance_to_compute_disk_node,
+        node.gcp_compute_instance_subnetwork_to_compute_network_node,
+        node.gcp_compute_instance_to_compute_subnetwork_node,
+        node.gcp_compute_instance_from_compute_instance_group_node,
+        node.gcp_compute_instance_to_compute_zone_node,
+        node.gcp_compute_instance_to_compute_firewall_node
+      ]
+
+      edges = [
+        edge.gcp_compute_instance_to_compute_disk_edge,
+        edge.gcp_compute_instance_subnetwork_to_compute_network_edge,
+        edge.gcp_compute_instance_to_compute_subnetwork_edge,
+        edge.gcp_compute_instance_from_compute_instance_group_edge,
+        edge.gcp_compute_instance_to_compute_zone_edge,
+        edge.gcp_compute_instance_to_compute_firewall_edge
+      ]
+
+      args = {
+        id = self.input.instance_id.value
+      }
+    }
+  }
+
+  container {
+
     container {
       width = 6
 
@@ -93,39 +126,6 @@ dashboard "gcp_compute_instance_detail" {
       }
     }
 
-  }
-
-  container {
-
-    graph {
-      title     = "Relationships"
-      type      = "graph"
-      direction = "TD"
-
-
-      nodes = [
-        node.gcp_compute_instance_node,
-        node.gcp_compute_instance_to_compute_disk_node,
-        node.gcp_compute_instance_to_compute_network_interface_node,
-        node.gcp_compute_instance_compute_network_interface_to_compute_network_node,
-        node.gcp_compute_instance_compute_network_interface_to_compute_subnetwork_node,
-        node.gcp_compute_instance_from_compute_instance_group_node,
-        node.gcp_compute_instance_to_compute_machine_type_node
-      ]
-
-      edges = [
-        edge.gcp_compute_instance_to_compute_disk_edge,
-        edge.gcp_compute_instance_to_compute_network_interface_edge,
-        edge.gcp_compute_instance_compute_network_interface_to_compute_network_edge,
-        edge.gcp_compute_instance_compute_network_interface_to_compute_subnetwork_edge,
-        edge.gcp_compute_instance_from_compute_instance_group_edge,
-        edge.gcp_compute_instance_to_compute_machine_type_edge
-      ]
-
-      args = {
-        id = self.input.instance_id.value
-      }
-    }
   }
 
   container {
@@ -329,45 +329,7 @@ edge "gcp_compute_instance_to_compute_disk_edge" {
   param "id" {}
 }
 
-node "gcp_compute_instance_to_compute_network_interface_node" {
-  category = category.gcp_compute_network_interface
-
-  sql = <<-EOQ
-    select
-      ni ->> 'name' as id,
-      ni ->> 'name' as title,
-      jsonb_build_object(
-        'Network IP', ni ->> 'networkIP',
-        'Stack Type', ni ->> 'stackType'
-      ) as properties
-    from
-      gcp_compute_instance i,
-      jsonb_array_elements(network_interfaces) as ni
-    where
-      i.id = $1;
-  EOQ
-
-  param "id" {}
-}
-
-edge "gcp_compute_instance_to_compute_network_interface_edge" {
-  title = "network interface"
-
-  sql = <<-EOQ
-    select
-      i.id::text as from_id,
-      ni ->> 'name' as to_id
-    from
-      gcp_compute_instance i,
-      jsonb_array_elements(network_interfaces) as ni
-    where
-      i.id = $1;
-  EOQ
-
-  param "id" {}
-}
-
-node "gcp_compute_instance_compute_network_interface_to_compute_network_node" {
+node "gcp_compute_instance_subnetwork_to_compute_network_node" {
   category = category.gcp_compute_network
 
   sql = <<-EOQ
@@ -392,26 +354,28 @@ node "gcp_compute_instance_compute_network_interface_to_compute_network_node" {
   param "id" {}
 }
 
-edge "gcp_compute_instance_compute_network_interface_to_compute_network_edge" {
+edge "gcp_compute_instance_subnetwork_to_compute_network_edge" {
   title = "network"
 
   sql = <<-EOQ
     select
-      ni ->> 'name' as from_id,
+      s.id::text as from_id,
       n.id::text as to_id
     from
       gcp_compute_instance i,
       gcp_compute_network n,
+      gcp_compute_subnetwork s,
       jsonb_array_elements(network_interfaces) as ni
     where
       ni ->> 'network' = n.self_link
+      and ni ->> 'subnetwork' = s.self_link
       and i.id = $1;
   EOQ
 
   param "id" {}
 }
 
-node "gcp_compute_instance_compute_network_interface_to_compute_subnetwork_node" {
+node "gcp_compute_instance_to_compute_subnetwork_node" {
   category = category.gcp_compute_subnetwork
 
   sql = <<-EOQ
@@ -437,21 +401,19 @@ node "gcp_compute_instance_compute_network_interface_to_compute_subnetwork_node"
   param "id" {}
 }
 
-edge "gcp_compute_instance_compute_network_interface_to_compute_subnetwork_edge" {
+edge "gcp_compute_instance_to_compute_subnetwork_edge" {
   title = "subnetwork"
 
   sql = <<-EOQ
     select
-      n.id::text as from_id,
+      i.id::text as from_id,
       s.id::text as to_id
     from
       gcp_compute_instance i,
-      gcp_compute_network n,
       gcp_compute_subnetwork s,
       jsonb_array_elements(network_interfaces) as ni
     where
-      ni ->> 'network' = n.self_link
-      and ni ->> 'subnetwork' = s.self_link
+      ni ->> 'subnetwork' = s.self_link
       and i.id = $1;
   EOQ
 
@@ -485,7 +447,7 @@ node "gcp_compute_instance_from_compute_instance_group_node" {
 }
 
 edge "gcp_compute_instance_from_compute_instance_group_edge" {
-  title = "instance group"
+  title = "manages"
 
   sql = <<-EOQ
     select
@@ -503,42 +465,87 @@ edge "gcp_compute_instance_from_compute_instance_group_edge" {
   param "id" {}
 }
 
-node "gcp_compute_instance_to_compute_machine_type_node" {
-  category = category.gcp_compute_machine_type
+node "gcp_compute_instance_to_compute_zone_node" {
+  category = category.gcp_compute_zone
 
   sql = <<-EOQ
     select
-      m.id::text as id,
-      m.name as title,
+      z.id::text,
+      z.title,
       jsonb_build_object(
-        'ID', m.id,
-        'Name', m.name,
-        'Created Time', m.creation_timestamp,
-        'Description', m.description
+        'ID', z.id,
+        'Name', z.name,
+        'Status', z.status,
+        'Region', z.region_name
       ) as properties
     from
       gcp_compute_instance as i,
-      gcp_compute_machine_type as m
+      gcp_compute_zone z
     where
-      m.name = i.machine_type_name
+      i.zone_name = z.name
       and i.id = $1;
   EOQ
 
   param "id" {}
 }
 
-edge "gcp_compute_instance_to_compute_machine_type_edge" {
-  title = "machine type"
+edge "gcp_compute_instance_to_compute_zone_edge" {
+  title = "zone"
 
   sql = <<-EOQ
     select
       i.id::text as from_id,
-      m.id::text as to_id
+      z.id::text as to_id
     from
       gcp_compute_instance as i,
-      gcp_compute_machine_type as m
+      gcp_compute_zone z
     where
-      m.name = i.machine_type_name
+      i.zone_name = z.name
+      and i.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_instance_to_compute_firewall_node" {
+  category = category.gcp_compute_firewall
+
+  sql = <<-EOQ
+    select
+      f.id::text,
+      f.title,
+      jsonb_build_object(
+        'ID', f.id,
+        'Direction', f.direction,
+        'Enabled', not f.disabled,
+        'Action', f.action,
+        'Priority', f.priority
+      ) as properties
+    from
+      gcp_compute_instance i,
+      gcp_compute_firewall f,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      ni ->> 'network' = f.network
+      and i.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_instance_to_compute_firewall_edge" {
+  title = "firewall"
+
+  sql = <<-EOQ
+    select
+      i.id::text as from_id,
+      f.id::text as to_id
+    from
+      gcp_compute_instance i,
+      gcp_compute_firewall f,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      ni ->> 'network' = f.network
       and i.id = $1;
   EOQ
 
