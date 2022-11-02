@@ -49,15 +49,6 @@ dashboard "gcp_sql_database_instance" {
       }
     }
 
-    # card {
-    #   width = 2
-
-    #   query = query.gcp_sql_database_instance_public_ip_attachment
-    #   args = {
-    #     name = self.input.database_instance_name.value
-    #   }
-    # }
-
     card {
       width = 2
 
@@ -259,27 +250,12 @@ query "gcp_sql_database_instance_backup_enabled" {
   param "name" {}
 }
 
-# query "gcp_sql_database_instance_public_ip_attachment" {
-#   sql = <<-EOQ
-#     select
-#       'Public IP Attachment' as label,
-#       case when ip_addresses @> '[{"type": "PRIMARY"}]' and backend_type = 'SECOND_GEN' then 'Enabled' else 'Disabled' end as value,
-#       case when ip_addresses @> '[{"type": "PRIMARY"}]' and backend_type = 'SECOND_GEN' then 'alert' else 'ok' end as type
-#     from
-#       gcp_sql_database_instance
-#     where
-#       name = $1;
-#   EOQ
-
-#   param "name" {}
-# }
-
 query "gcp_sql_database_instance_is_public" {
   sql = <<-EOQ
     select
       'Public Access' as label,
-      case when ip_configuration -> 'authorizedNetworks' @> '[{"name": "internet", "value": "0.0.0.0/0"}]' or ip_addresses @> '[{"type": "PRIMARY"}]' and backend_type = 'SECOND_GEN' then 'Enabled' else 'Disabled' end as value,
-      case when ip_configuration -> 'authorizedNetworks' @> '[{"name": "internet", "value": "0.0.0.0/0"}]' or ip_addresses @> '[{"type": "PRIMARY"}]' and backend_type = 'SECOND_GEN' then 'alert' else 'ok' end as type
+      case when ip_configuration -> 'authorizedNetworks' @> '[{"name": "internet", "value": "0.0.0.0/0"}]' then 'Enabled' else 'Disabled' end as value,
+      case when ip_configuration -> 'authorizedNetworks' @> '[{"name": "internet", "value": "0.0.0.0/0"}]' then 'alert' else 'ok' end as type
     from
       gcp_sql_database_instance
     where
