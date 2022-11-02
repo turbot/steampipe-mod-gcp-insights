@@ -1,4 +1,4 @@
-This dashboard answers the following questions for each instance:
+This dashboard answers the following questions for each instance group:
 
 - How is the instance group configured?
 - Which instances are attached to the instance group?
