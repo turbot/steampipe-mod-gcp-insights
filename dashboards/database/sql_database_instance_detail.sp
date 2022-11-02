@@ -283,13 +283,18 @@ query "gcp_sql_database_instance_ssl_enabled" {
   EOQ
 }
 
+
+
 query "gcp_sql_database_instance_overview" {
   sql = <<-EOQ
     select
-      name as "Name",
       state as "State",
       instance_type as "Instance Type",
-      backup_location as "Backup Location",
+      pricing_plan as "Pricing Plan",
+      case
+        when storage_auto_resize then 'Enabled'
+        else 'Disabled'
+      end as "Auto Resize",
       machine_type as "Machine Type",
       title as "Title",
       location as "Location",
@@ -346,10 +351,8 @@ query "gcp_sql_database_instance_replication_status" {
 query "gcp_sql_database_instance_encryption_status" {
   sql = <<-EOQ
     select
-      d.kms_key_name as "Kms key Name",
-      d.kms_key_version_name as "Kms Key Version Name",
-      k.primary ->> 'algorithm' as "Key Algorithm",
-      k.primary ->> 'state' as "Key State"
+      k.primary ->> 'state' as "Key State",
+      k.primary ->> 'algorithm' as "Key Algorithm"
     from
       gcp_sql_database_instance as d,
       gcp_kms_key as k
