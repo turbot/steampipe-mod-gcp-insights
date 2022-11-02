@@ -7,6 +7,13 @@ category "gcp_bigquery_dataset" {
   }
 }
 
+category "gcp_compute_address" {
+  fold {
+    title     = "Compute Address"
+    threshold = 3
+  }
+}
+
 category "gcp_compute_autoscaler" {
   fold {
     title     = "Compute Autoscalers"
@@ -77,8 +84,16 @@ category "gcp_compute_instance" {
 }
 
 category "gcp_compute_instance_group" {
+  href = "/gcp_insights.dashboard.gcp_compute_instance_group?input.id={{.properties.'ID' | @uri}}"
   fold {
     title     = "Compute Instance Groups"
+    threshold = 3
+  }
+}
+
+category "gcp_compute_instance_template" {
+  fold {
+    title     = "Compute Instance Templates"
     threshold = 3
   }
 }
@@ -115,6 +130,7 @@ category "gcp_compute_snapshot" {
 }
 
 category "gcp_compute_subnetwork" {
+  href = "/gcp_insights.dashboard.gcp_compute_subnetwork_detail?input.id={{.properties.'ID' | @uri}}"
   fold {
     title     = "Compute Subnetworks"
     threshold = 3
