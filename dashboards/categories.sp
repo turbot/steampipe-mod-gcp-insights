@@ -138,6 +138,13 @@ category "gcp_kms_key" {
   }
 }
 
+category "gcp_kms_key_ring" {
+  fold {
+    title     = "KMS Key Ring"
+    threshold = 3
+  }
+}
+
 category "gcp_kubernetes_cluster" {
   href = "/gcp_insights.dashboard.gcp_kubernetes_cluster_detail?input.name={{.properties.'Name' | @uri}}"
   icon = local.gcp_kubernetes_cluster
