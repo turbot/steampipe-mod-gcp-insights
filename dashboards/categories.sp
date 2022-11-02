@@ -122,6 +122,15 @@ category "gcp_compute_network_interface" {
   }
 }
 
+category "gcp_compute_router" {
+  icon = local.gcp_compute_router
+  fold {
+    title     = "Compute Routers"
+    icon      = local.gcp_compute_router
+    threshold = 3
+  }
+}
+
 category "gcp_compute_snapshot" {
   fold {
     title     = "Compute Snapshots"
@@ -186,6 +195,13 @@ category "gcp_storage_bucket" {
   fold {
     title     = "Storage Buckets"
     icon      = local.gcp_storage_bucket
+    threshold = 3
+  }
+}
+
+category "gcp_sql_database_instance" {
+  fold {
+    title     = "SQL Database Instances"
     threshold = 3
   }
 }

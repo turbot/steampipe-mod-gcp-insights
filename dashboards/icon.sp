@@ -6,6 +6,7 @@ locals {
   gcp_kubernetes_cluster = format("%s,%s", "data:image/svg+xml;base64", filebase64("./icons/gcp_kubernetes_cluster.svg"))
   gcp_compute_network    = format("%s,%s", "data:image/svg+xml;base64", filebase64("./icons/gcp_compute_network.svg"))
   gcp_pubsub_topic       = format("%s,%s", "data:image/svg+xml;base64", filebase64("./icons/gcp_pubsub_topic.svg"))
+  gcp_compute_router     = format("%s,%s", "data:image/svg+xml;base64", filebase64("./icons/gcp_compute_router.svg"))
   gcp_storage_bucket     = format("%s,%s", "data:image/svg+xml;base64", filebase64("./icons/gcp_storage_bucket.svg"))
 }
 
