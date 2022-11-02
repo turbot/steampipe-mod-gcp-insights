@@ -5,10 +5,29 @@ category "gcp_compute_backend_bucket" {
   }
 }
 
+category "gcp_compute_backend_service" {
+  icon = local.gcp_compute_backend_service
+  fold {
+    title     = "Compute Backend Service"
+    icon      = local.gcp_compute_backend_service
+    threshold = 3
+  }
+}
+
 category "gcp_compute_disk" {
   href = "/gcp_insights.dashboard.gcp_compute_disk_detail?input.id={{.properties.'ID' | @uri}}"
   fold {
     title     = "Compute Disk"
+    threshold = 3
+  }
+}
+
+category "gcp_compute_forwarding_rule" {
+   href = "/gcp_insights.dashboard.gcp_compute_forwarding_rule_detail?input.id={{.properties.'ID' | @uri}}"
+  icon = local.gcp_compute_forwarding_rule
+  fold {
+    title     = "Compute Forwarding Rule"
+    icon      = local.gcp_compute_forwarding_rule
     threshold = 3
   }
 }
@@ -69,6 +88,25 @@ category "gcp_compute_subnetwork" {
     threshold = 3
   }
 }
+
+category "gcp_compute_target_pool" {
+  icon = local.gcp_compute_target_pool
+  fold {
+    title     = "Compute Target Pool"
+    icon      = local.gcp_compute_target_pool
+    threshold = 3
+  }
+}
+
+category "gcp_compute_target_https_proxy" {
+  icon = local.gcp_compute_target_https_proxy
+  fold {
+    title     = "Compute Target HTTPS Proxy"
+    icon      = local.gcp_compute_target_https_proxy
+    threshold = 3
+  }
+}
+
 
 category "gcp_kms_key" {
   href = "/gcp_insights.dashboard.gcp_kms_key_detail?input.id={{.properties.'ID' | @uri}}"
