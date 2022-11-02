@@ -225,7 +225,7 @@ query "gcp_pubsub_topic_subscription_details" {
       gcp_pubsub_topic p,
       gcp_pubsub_subscription k
     where
-      p.name = k.topic_name 
+      p.name = k.topic_name
       and p.name = $1;
   EOQ
 
@@ -343,12 +343,12 @@ node "gcp_pubsub_topic_to_iam_role_node" {
 
   sql = <<-EOQ
   with iam_role as (
-    select 
+    select
       t.name,
-      roles->>'role' as role 
-    from 
-      gcp_pubsub_topic t, 
-      jsonb_array_elements(t.iam_policy->'bindings') as roles 
+      roles->>'role' as role
+    from
+      gcp_pubsub_topic t,
+      jsonb_array_elements(t.iam_policy->'bindings') as roles
   )
     select
       i.role_id as id,
@@ -363,7 +363,7 @@ node "gcp_pubsub_topic_to_iam_role_node" {
       ) as properties
     from
       iam_role as t join gcp_iam_role i on t.role = i.name
-    where 
+    where
       t.name = $1;
   EOQ
 
@@ -371,16 +371,16 @@ node "gcp_pubsub_topic_to_iam_role_node" {
 }
 
 edge "gcp_pubsub_topic_to_iam_role_edge" {
-  title = "assume"
+  title = "assumes"
 
   sql = <<-EOQ
   with iam_role as (
-    select 
+    select
       t.name,
-      roles->>'role' as role 
-    from 
-      gcp_pubsub_topic t, 
-      jsonb_array_elements(t.iam_policy->'bindings') as roles 
+      roles->>'role' as role
+    from
+      gcp_pubsub_topic t,
+      jsonb_array_elements(t.iam_policy->'bindings') as roles
   )
     select
       t.name as from_id,
@@ -395,7 +395,7 @@ edge "gcp_pubsub_topic_to_iam_role_edge" {
       ) as properties
     from
       iam_role as t join gcp_iam_role i on t.role = i.name
-    where 
+    where
       t.name = $1;
   EOQ
 
@@ -419,7 +419,7 @@ node "gcp_pubsub_topic_to_pubsub_subscription_node" {
       gcp_pubsub_topic p,
       gcp_pubsub_subscription k
     where
-      p.name = k.topic_name 
+      p.name = k.topic_name
       and p.name = $1;
   EOQ
 
@@ -443,7 +443,7 @@ edge "gcp_pubsub_topic_to_pubsub_subscription_edge" {
       gcp_pubsub_topic t,
       gcp_pubsub_subscription s
     where
-      t.name = s.topic_name 
+      t.name = s.topic_name
       and t.name = $1;
   EOQ
 
