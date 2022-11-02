@@ -371,7 +371,7 @@ node "gcp_pubsub_topic_to_iam_role_node" {
 }
 
 edge "gcp_pubsub_topic_to_iam_role_edge" {
-  title = "assigned to"
+  title = "assume"
 
   sql = <<-EOQ
   with iam_role as (
@@ -465,11 +465,9 @@ node "gcp_pubsub_topic_to_pubsub_snapshot_node" {
       ) as properties
     from
       gcp_pubsub_topic p,
-      gcp_pubsub_snapshot k,
-      gcp_pubsub_subscription s
+      gcp_pubsub_snapshot k
     where
-      p.name = s.topic_name 
-      and s.topic_name = k.topic_name
+      p.name = k.topic_name
       and p.name = $1;
   EOQ
 
@@ -482,7 +480,7 @@ edge "gcp_pubsub_topic_to_pubsub_snapshot_edge" {
   sql = <<-EOQ
   select
       k.name as to_id,
-      s.name as from_id,
+      p.name as from_id,
       jsonb_build_object(
         'Name', k.name,
         'Location', k.location,
@@ -491,11 +489,9 @@ edge "gcp_pubsub_topic_to_pubsub_snapshot_edge" {
       ) as properties
     from
       gcp_pubsub_topic p,
-      gcp_pubsub_snapshot k,
-      gcp_pubsub_subscription s
+      gcp_pubsub_snapshot k
     where
-      p.name = s.topic_name 
-      and s.topic_name = k.topic_name
+      p.name = k.topic_name
       and p.name = $1;
   EOQ
 
