@@ -405,7 +405,7 @@ node "gcp_storage_bucket_from_compute_backend_bucket_node" {
 }
 
 edge "gcp_storage_bucket_from_compute_backend_bucket_edge" {
-  title = "backend bucket"
+  title = "bucket"
 
   sql = <<-EOQ
     select
