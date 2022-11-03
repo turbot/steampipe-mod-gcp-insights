@@ -146,6 +146,13 @@ category "gcp_compute_subnetwork" {
   }
 }
 
+category "gcp_compute_vpn_gateway" {
+  fold {
+    title     = "Compute VPN Gateway"
+    threshold = 3
+  }
+}
+
 category "gcp_kms_key" {
   # href = "/gcp_insights.dashboard.gcp_kms_key_detail?input.id={{.properties.'ID' | @uri}}"
   icon = local.gcp_kms_key
