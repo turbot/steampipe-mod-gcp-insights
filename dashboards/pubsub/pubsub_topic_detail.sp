@@ -168,8 +168,7 @@ query "gcp_pubsub_topic_overview" {
     select
       name as "Name",
       location as "Location",
-      project as "Project",
-      self_link as "Self-Link"
+      project as "Project"
     from
       gcp_pubsub_topic
     where
