@@ -46,6 +46,15 @@ dashboard "gcp_compute_forwarding_rule_detail" {
         id = self.input.id.value
       }
     }
+
+    card {
+      width = 2
+      query = query.gcp_compute_forwarding_rule_label
+      args = {
+        id = self.input.id.value
+      }
+    }
+
   }
 
   container {
@@ -60,13 +69,15 @@ dashboard "gcp_compute_forwarding_rule_detail" {
         node.gcp_compute_forwarding_rule_node,
         node.gcp_compute_forwarding_rule_to_compute_backend_service_node,
         node.gcp_compute_forwarding_rule_to_compute_target_pool_node,
-        node.gcp_compute_forwarding_rule_to_compute_target_https_proxy_node
+        node.gcp_compute_forwarding_rule_to_compute_target_https_proxy_node,
+        node.gcp_compute_forwarding_rule_to_compute_target_ssl_proxy_node
       ]
 
       edges = [
         edge.gcp_compute_forwarding_rule_to_compute_backend_service_edge,
         edge.gcp_compute_forwarding_rule_to_compute_target_pool_edge,
-        edge.gcp_compute_forwarding_rule_to_compute_target_https_proxy_edge
+        edge.gcp_compute_forwarding_rule_to_compute_target_https_proxy_edge,
+        edge.gcp_compute_forwarding_rule_to_compute_target_ssl_proxy_edge
 
       ]
 
@@ -193,6 +204,21 @@ query "gcp_compute_forwarding_rule_all_ports" {
       'All Ports' as label,
       case when all_ports then 'Enabled' else 'Disabled' end as value,
       case when all_ports then 'ok' else 'alert' end as type
+    from
+      gcp_compute_forwarding_rule
+    where
+      id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+query "gcp_compute_forwarding_rule_label" {
+  sql = <<-EOQ
+    select
+      'Label' as label,
+      case when labels is not null then 'Enabled' else 'Disabled' end as value,
+      case when labels is not null then 'ok' else 'alert' end as type
     from
       gcp_compute_forwarding_rule
     where
@@ -409,7 +435,7 @@ node "gcp_compute_forwarding_rule_to_compute_target_https_proxy_node" {
 }
 
 edge "gcp_compute_forwarding_rule_to_compute_target_https_proxy_edge" {
-  title = "target proxy"
+  title = "target https proxy"
 
   sql = <<-EOQ
     with forwarding_rule as (
@@ -431,6 +457,76 @@ edge "gcp_compute_forwarding_rule_to_compute_target_https_proxy_edge" {
       t.id::text as to_id
     from
       gcp_compute_target_https_proxy as t
+      left join forwarding_rule as f on t.name = f.tname
+    where
+      f.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_forwarding_rule_to_compute_target_ssl_proxy_node" {
+  category = category.gcp_compute_target_ssl_proxy
+
+  sql = <<-EOQ
+    with forwarding_rule as (
+      select
+      split_part(t, '/targetSslProxies/', 2) as tname,
+      location,
+      id
+    from (
+      select
+        target as t,
+        location,
+        id
+      from
+        gcp_compute_forwarding_rule
+      ) as tp
+    )
+    select
+      t.id::text,
+      t.title,
+      jsonb_build_object(
+        'ID', t.id,
+        'Name', t.name,
+        'Created Time', t.creation_timestamp,
+        'Location', t.location,
+        'Project ID', t.project,
+        'SSL Policy', ssl_policy
+      ) as properties
+    from
+      gcp_compute_target_ssl_proxy as t
+      left join forwarding_rule as f on t.name = f.tname
+    where
+      f.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_forwarding_rule_to_compute_target_ssl_proxy_edge" {
+  title = "target ssl proxy"
+
+  sql = <<-EOQ
+    with forwarding_rule as (
+      select
+      split_part(t, '/targetSslProxies/', 2) as tname,
+      location,
+      id
+    from (
+      select
+        target as t,
+        location,
+        id
+      from
+        gcp_compute_forwarding_rule
+      ) as tp
+    )
+    select
+      f.id::text as from_id,
+      t.id::text as to_id
+    from
+      gcp_compute_target_ssl_proxy as t
       left join forwarding_rule as f on t.name = f.tname
     where
       f.id = $1;
@@ -505,6 +601,17 @@ query "gcp_compute_forwarding_rule_target_detail" {
         from
           gcp_compute_forwarding_rule
         ) as tp
+      ), forwarding_rule_3 as (
+        select
+        split_part(t, '/targetSslProxies/', 2) as tname,
+        id
+      from (
+        select
+          target as t,
+          id
+        from
+          gcp_compute_forwarding_rule
+        ) as tp
       )
 
     -- Target Pools
@@ -518,7 +625,7 @@ query "gcp_compute_forwarding_rule_target_detail" {
     where
       f.id = $1
 
-    -- Target Proxy
+    -- Target HTTPS Proxy
     union all
     select
       t.title as "Title",
@@ -527,6 +634,18 @@ query "gcp_compute_forwarding_rule_target_detail" {
     from
       gcp_compute_target_https_proxy as t
       left join forwarding_rule_2 as f on t.name = f.tname
+    where
+      f.id = $1
+
+    -- Target SSL Proxy
+    union all
+    select
+      t.title as "Title",
+      t.kind as  "Kind",
+      t.id as "ID"
+    from
+      gcp_compute_target_ssl_proxy as t
+      left join forwarding_rule_3 as f on t.name = f.tname
     where
       f.id = $1;
 

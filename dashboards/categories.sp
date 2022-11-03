@@ -107,6 +107,14 @@ category "gcp_compute_target_https_proxy" {
   }
 }
 
+category "gcp_compute_target_ssl_proxy" {
+  icon = local.gcp_compute_target_ssl_proxy
+  fold {
+    title     = "Compute Target SSL Proxy"
+    icon      = local.gcp_compute_target_ssl_proxy
+    threshold = 3
+  }
+}
 
 category "gcp_kms_key" {
   href = "/gcp_insights.dashboard.gcp_kms_key_detail?input.id={{.properties.'ID' | @uri}}"
