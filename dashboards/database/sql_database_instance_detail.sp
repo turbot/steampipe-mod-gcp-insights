@@ -14,7 +14,7 @@ dashboard "gcp_sql_database_instance" {
   }
 
   container {
-     card {
+    card {
       width = 2
 
       query = query.gcp_sql_database_instance_database_version
@@ -126,7 +126,7 @@ dashboard "gcp_sql_database_instance" {
       table {
       title = "Replication Details"
       query = query.gcp_sql_database_instance_replication_status
-       args  = {
+      args  = {
           name = self.input.database_instance_name.value
         }
       }
@@ -141,7 +141,7 @@ dashboard "gcp_sql_database_instance" {
     }
   }
 
-   container {
+  container {
 
     width = 12
 
