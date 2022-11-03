@@ -217,3 +217,26 @@ graph "gcp_graph_categories" {
   type  = "graph"
   title = "Relationships"
 }
+
+category "gcp_pubsub_topic" {
+  icon = local.gcp_pubsub_topic
+  fold {
+    title     = "Pub/Sub Topic"
+    icon      = local.gcp_pubsub_topic
+    threshold = 3
+  }
+}
+
+category "gcp_pubsub_subscription" {
+  fold {
+    title     = "Pub/Sub Subscription"
+    threshold = 3
+  }
+}
+
+category "gcp_iam_role" {
+  fold {
+    title     = "IAM Role"
+    threshold = 3
+  }
+}
