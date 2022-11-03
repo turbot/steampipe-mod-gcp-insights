@@ -70,7 +70,6 @@ dashboard "gcp_compute_instance_detail" {
         node.gcp_compute_instance_subnetwork_to_compute_network_node,
         node.gcp_compute_instance_to_compute_subnetwork_node,
         node.gcp_compute_instance_from_compute_instance_group_node,
-        node.gcp_compute_instance_to_compute_zone_node,
         node.gcp_compute_instance_to_compute_firewall_node
       ]
 
@@ -79,7 +78,6 @@ dashboard "gcp_compute_instance_detail" {
         edge.gcp_compute_instance_subnetwork_to_compute_network_edge,
         edge.gcp_compute_instance_to_compute_subnetwork_edge,
         edge.gcp_compute_instance_from_compute_instance_group_edge,
-        edge.gcp_compute_instance_to_compute_zone_edge,
         edge.gcp_compute_instance_to_compute_firewall_edge
       ]
 
@@ -460,48 +458,6 @@ edge "gcp_compute_instance_from_compute_instance_group_edge" {
     where
       (i ->> 'instance') = ins.self_link
       and ins.id = $1;
-  EOQ
-
-  param "id" {}
-}
-
-node "gcp_compute_instance_to_compute_zone_node" {
-  category = category.gcp_compute_zone
-
-  sql = <<-EOQ
-    select
-      z.id::text,
-      z.title,
-      jsonb_build_object(
-        'ID', z.id,
-        'Name', z.name,
-        'Status', z.status,
-        'Region', z.region_name
-      ) as properties
-    from
-      gcp_compute_instance as i,
-      gcp_compute_zone z
-    where
-      i.zone_name = z.name
-      and i.id = $1;
-  EOQ
-
-  param "id" {}
-}
-
-edge "gcp_compute_instance_to_compute_zone_edge" {
-  title = "zone"
-
-  sql = <<-EOQ
-    select
-      i.id::text as from_id,
-      z.id::text as to_id
-    from
-      gcp_compute_instance as i,
-      gcp_compute_zone z
-    where
-      i.zone_name = z.name
-      and i.id = $1;
   EOQ
 
   param "id" {}

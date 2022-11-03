@@ -583,7 +583,7 @@ node "gcp_compute_disk_from_compute_snapshot_node" {
 }
 
 edge "gcp_compute_disk_from_compute_snapshot_edge" {
-  title = "snapshot"
+  title = "created from"
 
   sql = <<-EOQ
     select
