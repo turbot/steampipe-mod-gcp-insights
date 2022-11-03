@@ -151,7 +151,7 @@ query "gcp_pubsub_topic_labeled" {
   sql = <<-EOQ
     select
       'Labeling' as label,
-      case when labels is not null then 'Enabeled' else 'Disabeled' end as value,
+      case when labels is not null then 'Enabeled' else 'Disabled' end as value,
       case when labels is not null then 'ok' else 'alert' end as type
     from
       gcp_pubsub_topic
