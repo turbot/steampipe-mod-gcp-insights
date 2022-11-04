@@ -244,8 +244,25 @@ category "gcp_storage_bucket" {
 }
 
 category "gcp_sql_database_instance" {
+  href = "/gcp_insights.dashboard.gcp_sql_database_instance_detail?input.database_instance_name={{.properties.'Name' | @uri}}"
+  icon = local.gcp_sql_database_instance
   fold {
     title     = "SQL Database Instances"
+    icon      = local.gcp_sql_database_instance
+    threshold = 3
+  }
+}
+
+category "gcp_sql_database_instance_data_disk" {
+  fold {
+    title     = "GCP SQL Database Instance Data Disks"
+    threshold = 3
+  }
+}
+
+category "gcp_sql_database" {
+  fold {
+    title     = "GCP SQL Database"
     threshold = 3
   }
 }
