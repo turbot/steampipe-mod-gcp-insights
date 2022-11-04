@@ -194,15 +194,6 @@ category "gcp_logging_bucket" {
   }
 }
 
-category "gcp_pubsub_topic" {
-  icon = local.gcp_pubsub_topic
-  fold {
-    title     = "Pubsub Topics"
-    icon      = local.gcp_pubsub_topic
-    threshold = 3
-  }
-}
-
 category "gcp_storage_bucket" {
   href = "/gcp_insights.dashboard.gcp_storage_bucket_detail?input.id={{.properties.'ID' | @uri}}"
   icon = local.gcp_storage_bucket
