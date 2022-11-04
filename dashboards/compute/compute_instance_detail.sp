@@ -18,7 +18,7 @@ dashboard "gcp_compute_instance_detail" {
     card {
       width = 2
       query = query.gcp_compute_instance_status
-      args  = {
+      args = {
         id = self.input.instance_id.value
       }
     }
@@ -26,7 +26,7 @@ dashboard "gcp_compute_instance_detail" {
     card {
       width = 2
       query = query.gcp_compute_instance_type
-      args  = {
+      args = {
         id = self.input.instance_id.value
       }
     }
@@ -34,7 +34,7 @@ dashboard "gcp_compute_instance_detail" {
     card {
       width = 2
       query = query.gcp_compute_instance_deletion_protection
-      args  = {
+      args = {
         id = self.input.instance_id.value
       }
     }
@@ -42,7 +42,7 @@ dashboard "gcp_compute_instance_detail" {
     card {
       width = 2
       query = query.gcp_compute_instance_public_access
-      args  = {
+      args = {
         id = self.input.instance_id.value
       }
     }
@@ -50,7 +50,38 @@ dashboard "gcp_compute_instance_detail" {
     card {
       width = 2
       query = query.gcp_compute_instance_confidential_vm_service
-      args  = {
+      args = {
+        id = self.input.instance_id.value
+      }
+    }
+  }
+
+  container {
+
+    graph {
+      title     = "Relationships"
+      type      = "graph"
+      direction = "TD"
+
+
+      nodes = [
+        node.gcp_compute_instance_node,
+        node.gcp_compute_instance_to_compute_disk_node,
+        node.gcp_compute_instance_subnetwork_to_compute_network_node,
+        node.gcp_compute_instance_to_compute_subnetwork_node,
+        node.gcp_compute_instance_from_compute_instance_group_node,
+        node.gcp_compute_instance_to_compute_firewall_node
+      ]
+
+      edges = [
+        edge.gcp_compute_instance_to_compute_disk_edge,
+        edge.gcp_compute_instance_subnetwork_to_compute_network_edge,
+        edge.gcp_compute_instance_to_compute_subnetwork_edge,
+        edge.gcp_compute_instance_from_compute_instance_group_edge,
+        edge.gcp_compute_instance_to_compute_firewall_edge
+      ]
+
+      args = {
         id = self.input.instance_id.value
       }
     }
@@ -76,7 +107,7 @@ dashboard "gcp_compute_instance_detail" {
         title = "Tags"
         width = 6
         query = query.gcp_compute_instance_tags
-        args  = {
+        args = {
           id = self.input.instance_id.value
         }
       }
@@ -87,7 +118,7 @@ dashboard "gcp_compute_instance_detail" {
       table {
         title = "Attached Disks"
         query = query.gcp_compute_instance_attached_disks
-        args  = {
+        args = {
           id = self.input.instance_id.value
         }
       }
@@ -101,7 +132,7 @@ dashboard "gcp_compute_instance_detail" {
     table {
       title = "Network Interfaces"
       query = query.gcp_compute_instance_network_interfaces
-      args  = {
+      args = {
         id = self.input.instance_id.value
       }
     }
@@ -114,7 +145,7 @@ dashboard "gcp_compute_instance_detail" {
     table {
       title = "Shielded VM Configuration"
       query = query.gcp_compute_instance_shielded_vm
-      args  = {
+      args = {
         id = self.input.instance_id.value
       }
     }
@@ -222,6 +253,261 @@ query "gcp_compute_instance_confidential_vm_service" {
   param "id" {}
 }
 
+## Graph
+
+category "gcp_compute_instance_no_link" {
+  icon = local.gcp_compute_instance
+}
+
+node "gcp_compute_instance_node" {
+  category = category.gcp_compute_instance_no_link
+
+  sql = <<-EOQ
+    select
+      id::text,
+      title,
+      jsonb_build_object(
+        'ID', id,
+        'Name', name,
+        'Created Time', creation_timestamp,
+        'CPU Platform', cpu_platform,
+        'Status', status
+      ) as properties
+    from
+      gcp_compute_instance
+    where
+      id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_instance_to_compute_disk_node" {
+  category = category.gcp_compute_disk
+
+  sql = <<-EOQ
+    select
+      d.id::text,
+      disk ->> 'deviceName' as title,
+      jsonb_build_object(
+        'Name', disk ->> 'deviceName',
+        'Auto Delete', disk ->> 'autoDelete',
+        'Created Time', d.creation_timestamp,
+        'Size(GB)', disk ->> 'diskSizeGb',
+        'Mode', disk ->> 'mode'
+      ) as properties
+    from
+      gcp_compute_instance i,
+      gcp_compute_disk d,
+      jsonb_array_elements(disks) as disk
+    where
+      i.id = $1
+      and d.name = (disk ->> 'deviceName');
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_instance_to_compute_disk_edge" {
+  title = "attached"
+
+  sql = <<-EOQ
+    select
+      i.id::text as from_id,
+      d.id::text as to_id
+    from
+      gcp_compute_instance i,
+      gcp_compute_disk d,
+      jsonb_array_elements(disks) as disk
+    where
+      i.id = $1
+      and d.name = (disk ->> 'deviceName');
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_instance_subnetwork_to_compute_network_node" {
+  category = category.gcp_compute_network
+
+  sql = <<-EOQ
+    select
+      n.id::text as id,
+      n.name as title,
+      jsonb_build_object(
+        'ID', n.id,
+        'Name', n.name,
+        'Created Time', n.creation_timestamp,
+        'Location', n.location
+      ) as properties
+    from
+      gcp_compute_instance i,
+      gcp_compute_network n,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      ni ->> 'network' = n.self_link
+      and i.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_instance_subnetwork_to_compute_network_edge" {
+  title = "network"
+
+  sql = <<-EOQ
+    select
+      s.id::text as from_id,
+      n.id::text as to_id
+    from
+      gcp_compute_instance i,
+      gcp_compute_network n,
+      gcp_compute_subnetwork s,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      ni ->> 'network' = n.self_link
+      and ni ->> 'subnetwork' = s.self_link
+      and i.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_instance_to_compute_subnetwork_node" {
+  category = category.gcp_compute_subnetwork
+
+  sql = <<-EOQ
+    select
+      s.id::text as id,
+      s.name as title,
+      jsonb_build_object(
+        'ID', s.id,
+        'Name', s.name,
+        'Created Time', s.creation_timestamp,
+        'Location', s.location,
+        'IP Cidr Range', s.ip_cidr_range
+      ) as properties
+    from
+      gcp_compute_instance i,
+      gcp_compute_subnetwork s,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      ni ->> 'subnetwork' = s.self_link
+      and i.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_instance_to_compute_subnetwork_edge" {
+  title = "subnetwork"
+
+  sql = <<-EOQ
+    select
+      i.id::text as from_id,
+      s.id::text as to_id
+    from
+      gcp_compute_instance i,
+      gcp_compute_subnetwork s,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      ni ->> 'subnetwork' = s.self_link
+      and i.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_instance_from_compute_instance_group_node" {
+  category = category.gcp_compute_instance_group
+
+  sql = <<-EOQ
+    select
+      g.id::text as id,
+      g.name as title,
+      jsonb_build_object(
+        'ID', g.id,
+        'Name', g.name,
+        'Created Time', g.creation_timestamp,
+        'Instance Count', g.size,
+        'Named Ports', g.named_ports
+      ) as properties
+    from
+      gcp_compute_instance as ins,
+      gcp_compute_instance_group as g,
+      jsonb_array_elements(instances) as i
+    where
+      (i ->> 'instance') = ins.self_link
+      and ins.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_instance_from_compute_instance_group_edge" {
+  title = "manages"
+
+  sql = <<-EOQ
+    select
+      g.id::text as from_id,
+      ins.id::text as to_id
+    from
+      gcp_compute_instance as ins,
+      gcp_compute_instance_group as g,
+      jsonb_array_elements(instances) as i
+    where
+      (i ->> 'instance') = ins.self_link
+      and ins.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_instance_to_compute_firewall_node" {
+  category = category.gcp_compute_firewall
+
+  sql = <<-EOQ
+    select
+      f.id::text,
+      f.title,
+      jsonb_build_object(
+        'ID', f.id,
+        'Direction', f.direction,
+        'Enabled', not f.disabled,
+        'Action', f.action,
+        'Priority', f.priority
+      ) as properties
+    from
+      gcp_compute_instance i,
+      gcp_compute_firewall f,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      ni ->> 'network' = f.network
+      and i.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_instance_to_compute_firewall_edge" {
+  title = "firewall"
+
+  sql = <<-EOQ
+    select
+      i.id::text as from_id,
+      f.id::text as to_id
+    from
+      gcp_compute_instance i,
+      gcp_compute_firewall f,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      ni ->> 'network' = f.network
+      and i.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
 query "gcp_compute_instance_overview" {
   sql = <<-EOQ
     select
@@ -260,7 +546,7 @@ query "gcp_compute_instance_tags" {
       key;
     EOQ
 
-    param "id" {}
+  param "id" {}
 }
 
 query "gcp_compute_instance_attached_disks" {

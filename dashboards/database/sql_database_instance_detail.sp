@@ -1,7 +1,7 @@
-dashboard "gcp_sql_database_instance" {
+dashboard "gcp_sql_database_instance_detail" {
 
   title         = "GCP SQL Database Instance"
-  documentation = file("./dashboards/database/docs/gcp_sql_database_instance.md")
+  documentation = file("./dashboards/database/docs/gcp_sql_database_instance_detail.md")
 
   tags = merge(local.sql_common_tags, {
     type = "Detail"
@@ -398,8 +398,10 @@ query "gcp_sql_database_instance_connection" {
   param "name" {}
 }
 
+category "gcp_sql_database_instance_no_link" {}
+
 node "gcp_sql_database_instance_node" {
-  category = category.gcp_sql_database_instance
+  category = category.gcp_sql_database_instance_no_link
 
   sql = <<-EOQ
     select
@@ -469,7 +471,7 @@ edge "gcp_sql_database_instance_to_data_disk_edge" {
 }
 
 node "gcp_sql_database_instance_to_kms_key_node" {
-  category = category.gcp_sql_database_instance_kms_key
+  category = category.gcp_kms_key
 
   sql = <<-EOQ
     select
@@ -560,7 +562,7 @@ edge "gcp_sql_database_instance_to_sql_database_edge" {
 }
 
 node "gcp_sql_database_instance_to_compute_network_node" {
-  category = category.gcp_sql_compute_network
+  category = category.gcp_compute_network
 
   sql = <<-EOQ
     select
