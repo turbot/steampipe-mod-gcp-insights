@@ -536,12 +536,12 @@ node "gcp_sql_database_instance_to_sql_database_node" {
 }
 
 edge "gcp_sql_database_instance_to_sql_database_edge" {
-  title = "database"
+  title = "database instance"
 
   sql = <<-EOQ
   select
-      concat(d.instance_name, '_database') as to_id,
-      i.name as from_id,
+      concat(d.instance_name, '_database') as from_id,
+      i.name as to_id,
       jsonb_build_object(
         'Project', d.project,
         'Kind', d.kind,
@@ -585,7 +585,7 @@ node "gcp_sql_database_instance_to_compute_network_node" {
 }
 
 edge "gcp_sql_database_instance_to_compute_network_edge" {
-  title = "connected to"
+  title = "network"
 
   sql = <<-EOQ
     select
@@ -694,7 +694,7 @@ node "gcp_sql_database_instance_from_primary_database_instance_node" {
 }
 
 edge "gcp_sql_database_instance_from_primary_database_instance_edge" {
-  title = "replica"
+  title = "database instance"
 
   sql = <<-EOQ
     with master_instance as (
