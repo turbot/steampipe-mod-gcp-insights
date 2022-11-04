@@ -33,22 +33,6 @@ dashboard "gcp_compute_forwarding_rule_detail" {
 
     card {
       width = 2
-      query = query.gcp_compute_forwarding_rule_mirroring_collector
-      args = {
-        id = self.input.id.value
-      }
-    }
-
-    card {
-      width = 2
-      query = query.gcp_compute_forwarding_rule_all_ports
-      args = {
-        id = self.input.id.value
-      }
-    }
-
-    card {
-      width = 2
       query = query.gcp_compute_forwarding_rule_label
       args = {
         id = self.input.id.value
@@ -183,40 +167,10 @@ query "gcp_compute_forwarding_rule_global_access" {
   param "id" {}
 }
 
-query "gcp_compute_forwarding_rule_mirroring_collector" {
-  sql = <<-EOQ
-    select
-      'Mirroring Colllector' as label,
-      case when is_mirroring_collector then 'Enabled' else 'Disabled' end as value,
-      case when is_mirroring_collector then 'ok' else 'alert' end as type
-    from
-      gcp_compute_forwarding_rule
-    where
-      id = $1;
-  EOQ
-
-  param "id" {}
-}
-
-query "gcp_compute_forwarding_rule_all_ports" {
-  sql = <<-EOQ
-    select
-      'All Ports' as label,
-      case when all_ports then 'Enabled' else 'Disabled' end as value,
-      case when all_ports then 'ok' else 'alert' end as type
-    from
-      gcp_compute_forwarding_rule
-    where
-      id = $1;
-  EOQ
-
-  param "id" {}
-}
-
 query "gcp_compute_forwarding_rule_label" {
   sql = <<-EOQ
     select
-      'Label' as label,
+      'Labeling' as label,
       case when labels is not null then 'Enabled' else 'Disabled' end as value,
       case when labels is not null then 'ok' else 'alert' end as type
     from
@@ -228,8 +182,10 @@ query "gcp_compute_forwarding_rule_label" {
   param "id" {}
 }
 
+category "gcp_compute_forwarding_rule_no_link" {}
+
 node "gcp_compute_forwarding_rule_node" {
-  category = category.gcp_compute_forwarding_rule
+  category = category.gcp_compute_forwarding_rule_no_link
 
   sql = <<-EOQ
     select
