@@ -54,14 +54,20 @@ dashboard "gcp_compute_forwarding_rule_detail" {
         node.gcp_compute_forwarding_rule_to_compute_backend_service_node,
         node.gcp_compute_forwarding_rule_to_compute_target_pool_node,
         node.gcp_compute_forwarding_rule_to_compute_target_https_proxy_node,
-        node.gcp_compute_forwarding_rule_to_compute_target_ssl_proxy_node
+        node.gcp_compute_forwarding_rule_to_compute_target_ssl_proxy_node,
+        node.gcp_compute_forwarding_rule_to_compute_network_node,
+        node.gcp_compute_forwarding_rule_to_compute_subnetwork_node,
+        node.gcp_compute_forwarding_rule_to_compute_firewall_node
       ]
 
       edges = [
         edge.gcp_compute_forwarding_rule_to_compute_backend_service_edge,
         edge.gcp_compute_forwarding_rule_to_compute_target_pool_edge,
         edge.gcp_compute_forwarding_rule_to_compute_target_https_proxy_edge,
-        edge.gcp_compute_forwarding_rule_to_compute_target_ssl_proxy_edge
+        edge.gcp_compute_forwarding_rule_to_compute_target_ssl_proxy_edge,
+        edge.gcp_compute_forwarding_rule_to_compute_network_edge,
+        edge.gcp_compute_forwarding_rule_to_compute_subnetwork_edge,
+        edge.gcp_compute_forwarding_rule_to_compute_firewall_edge
 
       ]
 
@@ -491,6 +497,91 @@ edge "gcp_compute_forwarding_rule_to_compute_target_ssl_proxy_edge" {
   param "id" {}
 }
 
+node "gcp_compute_forwarding_rule_to_compute_network_node" {
+  category = category.gcp_compute_network
+
+  sql = <<-EOQ
+    select
+      n.id::text as id,
+      n.name as title,
+      jsonb_build_object(
+        'ID', n.id,
+        'Name', n.name,
+        'Created Time', n.creation_timestamp,
+        'Location', n.location
+      ) as properties
+    from
+      gcp_compute_forwarding_rule fr,
+      gcp_compute_network n
+    where
+      split_part(fr.network, 'networks/', 2) = n.name
+      and fr.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_forwarding_rule_to_compute_network_edge" {
+  title = "network"
+
+  sql = <<-EOQ
+    select
+      fr.id::text as from_id,
+      n.id::text as to_id
+    from
+      gcp_compute_forwarding_rule fr,
+      gcp_compute_network n
+    where
+      split_part(fr.network, 'networks/', 2) = n.name
+      and fr.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_forwarding_rule_to_compute_subnetwork_node" {
+  category = category.gcp_compute_subnetwork
+
+  sql = <<-EOQ
+    select
+      s.id::text as id,
+      s.name as title,
+      jsonb_build_object(
+        'ID', s.id,
+        'Name', s.name,
+        'Created Time', s.creation_timestamp,
+        'Location', s.location,
+        'IP Cidr Range', s.ip_cidr_range
+      ) as properties
+    from
+      gcp_compute_forwarding_rule fr,
+      gcp_compute_subnetwork s
+    where
+      split_part(fr.subnetwork, 'subnetworks/', 2) = s.name
+      and fr.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_forwarding_rule_to_compute_subnetwork_edge" {
+  title = "subnetwork"
+
+  sql = <<-EOQ
+    select
+      fr.id::text as from_id,
+      s.id::text as to_id
+    from
+      gcp_compute_forwarding_rule fr,
+      gcp_compute_subnetwork s
+    where
+      split_part(fr.subnetwork, 'subnetworks/', 2) = s.name
+      and fr.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
 query "gcp_compute_forwarding_rule_overview" {
   sql = <<-EOQ
     select
@@ -504,6 +595,53 @@ query "gcp_compute_forwarding_rule_overview" {
       gcp_compute_forwarding_rule
     where
       id = $1
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_forwarding_rule_to_compute_firewall_node" {
+  category = category.gcp_compute_firewall
+
+  sql = <<-EOQ
+    select
+      f.id::text,
+      f.title,
+      jsonb_build_object(
+        'ID', f.id,
+        'Direction', f.direction,
+        'Enabled', not f.disabled,
+        'Action', f.action,
+        'Priority', f.priority
+      ) as properties
+    from
+      gcp_compute_forwarding_rule fr,
+      gcp_compute_network n,
+      gcp_compute_firewall f
+    where
+      split_part(fr.network, 'networks/', 2) = n.name
+      and n.self_link = f.network
+      and fr.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_forwarding_rule_to_compute_firewall_edge" {
+  title = "firewall"
+
+  sql = <<-EOQ
+    select
+      fr.id::text as from_id,
+      f.id::text as to_id
+    from
+      gcp_compute_forwarding_rule fr,
+      gcp_compute_network n,
+      gcp_compute_firewall f
+    where
+      split_part(fr.network, 'networks/', 2) = n.name
+      and n.self_link = f.network
+      and fr.id = $1;
   EOQ
 
   param "id" {}

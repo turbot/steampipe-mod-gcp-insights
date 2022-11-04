@@ -98,15 +98,6 @@ dashboard "gcp_compute_subnetwork_detail" {
         }
       }
 
-      # table {
-      #   title = "Peering Details"
-      #   width = 8
-      #   query = query.gcp_compute_subnetwork_peering
-      #   args = {
-      #     id = self.input.subnetwork_id.value
-      #   }
-      # }
-
     }
 
     container {
@@ -523,7 +514,7 @@ node "gcp_compute_subnetwork_node_from_compute_forwarding_rule_node" {
       r.id::text,
       r.title,
       jsonb_build_object(
-        'ID', r.id,
+        'ID', r.id::text,
         'Created Time', r.creation_timestamp,
         'IP Address', r.ip_address,
         'Global Access', r.allow_global_access,
@@ -535,7 +526,7 @@ node "gcp_compute_subnetwork_node_from_compute_forwarding_rule_node" {
       gcp_compute_subnetwork s
     where
       s.id = $1
-      and s.self_link = r.subnetwork
+      and split_part(r.subnetwork, 'subnetworks/', 2) = s.name
 
     union
 
@@ -543,7 +534,7 @@ node "gcp_compute_subnetwork_node_from_compute_forwarding_rule_node" {
       r.id::text,
       r.title,
       jsonb_build_object(
-        'ID', r.id,
+        'ID', r.id::text,
         'Created Time', r.creation_timestamp,
         'IP Address', r.ip_address,
         'Global Access', r.allow_global_access,
@@ -555,7 +546,7 @@ node "gcp_compute_subnetwork_node_from_compute_forwarding_rule_node" {
       gcp_compute_subnetwork s
     where
       s.id = $1
-      and s.self_link = r.subnetwork;
+      and split_part(r.subnetwork, 'subnetworks/', 2) = s.name;
   EOQ
 
   param "id" {}
@@ -573,7 +564,19 @@ edge "gcp_compute_subnetwork_node_from_compute_forwarding_rule_edge" {
       gcp_compute_subnetwork s
     where
       s.id = $1
-      and s.self_link = r.subnetwork;
+      and split_part(r.subnetwork, 'subnetworks/', 2) = s.name
+
+    union
+
+    select
+      r.id::text as from_id,
+      s.id::text as to_id
+    from
+      gcp_compute_global_forwarding_rule r,
+      gcp_compute_subnetwork s
+    where
+      s.id = $1
+      and split_part(r.subnetwork, 'subnetworks/', 2) = s.name;
   EOQ
 
   param "id" {}
