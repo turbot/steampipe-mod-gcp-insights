@@ -77,15 +77,21 @@ dashboard "gcp_sql_database_instance" {
 
       nodes = [
         node.gcp_sql_database_instance_node,
-        node.gcp_sql_database_instance_to_machine_type_node,
         node.gcp_sql_database_instance_to_data_disk_node,
-        node.gcp_sql_database_instance_to_kms_key_node
+        node.gcp_sql_database_instance_to_kms_key_node,
+        node.gcp_sql_database_instance_to_sql_database_node,
+        node.gcp_sql_database_instance_to_compute_network_node,
+        node.gcp_sql_database_instance_to_database_instance_replica_node,
+        node.gcp_sql_database_instance_from_primary_database_instance_node
       ]
 
       edges = [
-        edge.gcp_sql_database_instance_to_machine_type_edge,
         edge.gcp_sql_database_instance_to_data_disk_edge,
-        edge.gcp_sql_database_instance_to_kms_key_edge
+        edge.gcp_sql_database_instance_to_kms_key_edge,
+        edge.gcp_sql_database_instance_to_sql_database_edge,
+        edge.gcp_sql_database_instance_to_compute_network_edge,
+        edge.gcp_sql_database_instance_to_database_instance_replica_edge,
+        edge.gcp_sql_database_instance_from_primary_database_instance_edge
       ]
 
       args = {
@@ -168,7 +174,6 @@ dashboard "gcp_sql_database_instance" {
   }
 }
 
-# Card Queries
 query "gcp_sql_database_instance_input" {
   sql = <<-EOQ
     select
@@ -184,7 +189,6 @@ query "gcp_sql_database_instance_input" {
       title;
   EOQ
 }
-
 
 query "gcp_sql_database_instance_database_version" {
   sql = <<-EOQ
@@ -282,8 +286,6 @@ query "gcp_sql_database_instance_ssl_enabled" {
       gcp_sql_database_instance;
   EOQ
 }
-
-
 
 query "gcp_sql_database_instance_overview" {
   sql = <<-EOQ
@@ -421,50 +423,6 @@ node "gcp_sql_database_instance_node" {
   param "name" {}
 }
 
-node "gcp_sql_database_instance_to_machine_type_node" {
-  category = category.gcp_sql_database_instance_machine_type
-
-  sql = <<-EOQ
-    select
-      machine_type as id,
-      machine_type as title,
-      jsonb_build_object(
-        'Name', name,
-        'State', state,
-        'DatabaseVersion', database_version,
-        'MachineType', machine_type
-      ) as properties
-    from
-      gcp_sql_database_instance
-    where
-      name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-edge "gcp_sql_database_instance_to_machine_type_edge" {
-  title = "machine type"
-
-  sql = <<-EOQ
-    select
-      name as from_id,
-      machine_type as to_id,
-      jsonb_build_object(
-        'Name', name,
-        'State', state,
-        'DatabaseVersion', database_version,
-        'MachineType', machine_type
-      ) as properties
-    from
-      gcp_sql_database_instance
-    where
-      name = $1;
-  EOQ
-
-  param "name" {}
-}
-
 node "gcp_sql_database_instance_to_data_disk_node" {
   category = category.gcp_sql_database_instance_data_disk
 
@@ -514,13 +472,12 @@ node "gcp_sql_database_instance_to_kms_key_node" {
 
   sql = <<-EOQ
     select
-      i.kms_key_name as id,
-      k.name as title,
+      k.name as id,
+      k.title as title,
       jsonb_build_object(
-        'KMS Key Name', i.kms_key_name,
-        'KMS Key Version Name', i.kms_key_version_name,
-        'Primary', k.primary,
-        'Version Template', version_template
+        'Created Time', k.create_time,
+        'Project', k.project,
+        'Location', k.location
       ) as properties
     from
       gcp_sql_database_instance as i,
@@ -533,23 +490,236 @@ node "gcp_sql_database_instance_to_kms_key_node" {
 }
 
 edge "gcp_sql_database_instance_to_kms_key_edge" {
-  title = "kms key"
+  title = "encrypted with"
 
   sql = <<-EOQ
     select
       i.name as from_id,
-      i.kms_key_name as to_id,
+      k.name as to_id,
       jsonb_build_object(
-        'KMS Key Name', i.kms_key_name,
-        'KMS Key Version Name', i.kms_key_version_name,
-        'Primary', k.primary,
-        'Version Template', version_template
+        'KMS Key Name', k.name,
+        'Created Time', k.create_time,
+        'Project', k.project,
+        'Location', k.location
       ) as properties
     from
       gcp_sql_database_instance as i,
       gcp_kms_key as k
     where
       i.name = $1 and i.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2));
+  EOQ
+
+  param "name" {}
+}
+
+node "gcp_sql_database_instance_to_sql_database_node" {
+  category = category.gcp_sql_database
+
+  sql = <<-EOQ
+  select
+      concat(d.instance_name, '_database') as id,
+      d.title as title,
+      jsonb_build_object(
+        'Project', d.project,
+        'Kind', d.kind,
+        'Location', d.location
+      ) as properties
+    from
+      gcp_sql_database_instance as i,
+      gcp_sql_database d
+    where
+      i.name = d.instance_name
+      and i.name = $1;
+  EOQ
+
+  param "name" {}
+}
+
+edge "gcp_sql_database_instance_to_sql_database_edge" {
+  title = "database"
+
+  sql = <<-EOQ
+  select
+      concat(d.instance_name, '_database') as to_id,
+      i.name as from_id,
+      jsonb_build_object(
+        'Project', d.project,
+        'Kind', d.kind,
+        'Location', d.location
+      ) as properties
+    from
+      gcp_sql_database_instance as i,
+      gcp_sql_database d
+    where
+      i.name = d.instance_name
+      and i.name = $1;
+  EOQ
+
+  param "name" {}
+}
+
+node "gcp_sql_database_instance_to_compute_network_node" {
+  category = category.gcp_sql_compute_network
+
+  sql = <<-EOQ
+    select
+      n.name as id,
+      n.title as title,
+      jsonb_build_object(
+        'Name', n.name,
+        'Description', n.description,
+        'Created Time', n.creation_timestamp,
+        'Project', n.project,
+        'Kind', n.kind,
+        'Location', n.location
+      ) as properties
+    from
+      gcp_sql_database_instance as i,
+      gcp_compute_network as n
+    where
+      SPLIT_PART(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
+      and i.name = $1;
+  EOQ
+
+  param "name" {}
+}
+
+edge "gcp_sql_database_instance_to_compute_network_edge" {
+  title = "connected to"
+
+  sql = <<-EOQ
+    select
+      n.name as to_id,
+      i.name as from_id,
+      jsonb_build_object(
+        'Name', n.name,
+        'Description', n.description,
+        'Created Time', n.creation_timestamp,
+        'Project', n.project,
+        'Kind', n.kind,
+        'Location', n.location
+      ) as properties
+    from
+      gcp_sql_database_instance as i,
+      gcp_compute_network as n
+    where
+      SPLIT_PART(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
+      and i.name = $1;
+  EOQ
+
+  param "name" {}
+}
+
+node "gcp_sql_database_instance_to_database_instance_replica_node" {
+  category = category.gcp_sql_database_instance
+
+  sql = <<-EOQ
+    select
+      name as id,
+      title,
+      jsonb_build_object(
+        'Name', name,
+        'State', state,
+        'DatabaseVersion', database_version,
+        'MachineType', machine_type,
+        'DataDiskSizeGB', data_disk_size_gb,
+        'BackupEnabled', backup_enabled,
+        'Project', project,
+        'Location', location
+      ) as properties
+    from
+      gcp_sql_database_instance
+    where
+      SPLIT_PART(master_instance_name, ':', 2) = $1;
+  EOQ
+
+  param "name" {}
+}
+
+edge "gcp_sql_database_instance_to_database_instance_replica_edge" {
+  title = "replica"
+
+  sql = <<-EOQ
+    select
+      name as to_id,
+      SPLIT_PART(master_instance_name, ':', 2) as from_id,
+      jsonb_build_object(
+        'Name', name,
+        'State', state,
+        'Project', project,
+        'Location', location
+      ) as properties
+    from
+      gcp_sql_database_instance
+    where
+      SPLIT_PART(master_instance_name, ':', 2) = $1;
+  EOQ
+
+  param "name" {}
+}
+
+node "gcp_sql_database_instance_from_primary_database_instance_node" {
+  category = category.gcp_sql_database_instance
+
+  sql = <<-EOQ
+  with master_instance as (
+    select 
+      split_part(master_instance_name, ':', 2) as name 
+    from  
+      gcp_sql_database_instance 
+    where 
+      name = $1
+  )
+  select
+    i.name as id,
+    title,
+    jsonb_build_object(
+      'Name', i.name,
+      'State', state,
+      'DatabaseVersion', database_version,
+      'MachineType', machine_type,
+      'DataDiskSizeGB', data_disk_size_gb,
+      'BackupEnabled', backup_enabled,
+      'Project', project,
+      'Location', location
+    ) as properties
+  from
+      gcp_sql_database_instance as i,
+      master_instance as m
+  where
+      i.name = m.name;
+  EOQ
+
+  param "name" {}
+}
+
+edge "gcp_sql_database_instance_from_primary_database_instance_edge" {
+  title = "replica"
+
+  sql = <<-EOQ
+    with master_instance as (
+      select 
+        split_part(master_instance_name, ':', 2) as mname,
+        name
+      from  
+        gcp_sql_database_instance 
+      where 
+        name = $1
+    )
+    select
+      i.name as from_id,
+      m.name as to_id,
+      jsonb_build_object(
+        'Name', i.name,
+        'State', state,
+        'Project', project,
+        'Location', location
+      ) as properties
+    from
+      gcp_sql_database_instance as i,
+      master_instance as m
+    where
+      i.name = m.mname;
   EOQ
 
   param "name" {}
