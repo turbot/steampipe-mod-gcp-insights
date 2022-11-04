@@ -1,15 +1,36 @@
+category "gcp_bigquery_dataset" {
+  icon = local.gcp_bigquery_dataset
+  fold {
+    title     = "BigQuery Datasets"
+    icon      = local.gcp_bigquery_dataset
+    threshold = 3
+  }
+}
+
+category "gcp_compute_address" {
+  fold {
+    title     = "Compute Address"
+    threshold = 3
+  }
+}
+
+category "gcp_compute_autoscaler" {
+  fold {
+    title     = "Compute Autoscalers"
+    threshold = 3
+  }
+}
+
 category "gcp_compute_backend_bucket" {
   fold {
-    title     = "Compute Backend Bucket"
+    title     = "Compute Backend Buckets"
     threshold = 3
   }
 }
 
 category "gcp_compute_backend_service" {
-  icon = local.gcp_compute_backend_service
   fold {
-    title     = "Compute Backend Service"
-    icon      = local.gcp_compute_backend_service
+    title     = "Compute Backend Services"
     threshold = 3
   }
 }
@@ -17,118 +38,197 @@ category "gcp_compute_backend_service" {
 category "gcp_compute_disk" {
   href = "/gcp_insights.dashboard.gcp_compute_disk_detail?input.id={{.properties.'ID' | @uri}}"
   fold {
-    title     = "Compute Disk"
+    title     = "Compute Disks"
     threshold = 3
   }
 }
 
 category "gcp_compute_forwarding_rule" {
-   href = "/gcp_insights.dashboard.gcp_compute_forwarding_rule_detail?input.id={{.properties.'ID' | @uri}}"
-  icon = local.gcp_compute_forwarding_rule
+  href = "/gcp_insights.dashboard.gcp_compute_forwarding_rule_detail?input.id={{.properties.'ID' | @uri}}"
   fold {
     title     = "Compute Forwarding Rule"
-    icon      = local.gcp_compute_forwarding_rule
     threshold = 3
   }
 }
 
-category "gcp_compute_instance" {
-  href = "/gcp_insights.dashboard.gcp_compute_instance_detail?input.id={{.properties.'ID' | @uri}}"
+category "gcp_compute_firewall" {
+  icon = local.gcp_compute_firewall
   fold {
-    title     = "Compute Instance"
+    title     = "Compute Firewall Rules"
+    icon      = local.gcp_compute_firewall
+    threshold = 3
+  }
+}
+
+category "gcp_compute_health_check" {
+  fold {
+    title     = "Compute Health Checks"
     threshold = 3
   }
 }
 
 category "gcp_compute_image" {
   fold {
-    title     = "Compute Image"
+    title     = "Compute Images"
+    threshold = 3
+  }
+}
+
+category "gcp_compute_instance" {
+  href = "/gcp_insights.dashboard.gcp_compute_instance_detail?input.id={{.properties.'ID' | @uri}}"
+  icon = local.gcp_compute_instance
+  fold {
+    title     = "Compute Instances"
+    icon      = local.gcp_compute_instance
     threshold = 3
   }
 }
 
 category "gcp_compute_instance_group" {
+  href = "/gcp_insights.dashboard.gcp_compute_instance_group?input.id={{.properties.'ID' | @uri}}"
   fold {
-    title     = "Compute Instance Group"
+    title     = "Compute Instance Groups"
     threshold = 3
   }
 }
 
-category "gcp_compute_machine_type" {
+category "gcp_compute_instance_template" {
   fold {
-    title     = "Compute Machine Type"
+    title     = "Compute Instance Templates"
     threshold = 3
   }
 }
 
 category "gcp_compute_network" {
+  href = "/gcp_insights.dashboard.gcp_compute_network_detail?input.name={{.properties.'Name' | @uri}}"
+  icon = local.gcp_compute_network
   fold {
-    title     = "Compute Network"
+    title     = "Compute Networks"
+    icon      = local.gcp_compute_network
     threshold = 3
   }
 }
 
 category "gcp_compute_network_interface" {
   fold {
-    title     = "Compute Network Interface"
+    title     = "Compute Network Interfaces"
+    threshold = 3
+  }
+}
+
+category "gcp_compute_router" {
+  icon = local.gcp_compute_router
+  fold {
+    title     = "Compute Routers"
+    icon      = local.gcp_compute_router
     threshold = 3
   }
 }
 
 category "gcp_compute_snapshot" {
   fold {
-    title     = "Compute Snapshot"
+    title     = "Compute Snapshots"
     threshold = 3
   }
 }
 
 category "gcp_compute_subnetwork" {
+  href = "/gcp_insights.dashboard.gcp_compute_subnetwork_detail?input.id={{.properties.'ID' | @uri}}"
   fold {
-    title     = "Compute Subnetwork"
+    title     = "Compute Subnetworks"
+    threshold = 3
+  }
+}
+
+category "gcp_compute_vpn_gateway" {
+  fold {
+    title     = "Compute VPN Gateway"
     threshold = 3
   }
 }
 
 category "gcp_compute_target_pool" {
-  icon = local.gcp_compute_target_pool
   fold {
     title     = "Compute Target Pool"
-    icon      = local.gcp_compute_target_pool
     threshold = 3
   }
 }
 
 category "gcp_compute_target_https_proxy" {
-  icon = local.gcp_compute_target_https_proxy
   fold {
     title     = "Compute Target HTTPS Proxy"
-    icon      = local.gcp_compute_target_https_proxy
     threshold = 3
   }
 }
 
 category "gcp_compute_target_ssl_proxy" {
-  icon = local.gcp_compute_target_ssl_proxy
   fold {
     title     = "Compute Target SSL Proxy"
-    icon      = local.gcp_compute_target_ssl_proxy
+    threshold = 3
+  }
+}
+
+category "gcp_dns_policy" {
+  fold {
+    title     = "DNS Policy"
+    threshold = 3
+  }
+}
+
+category "gcp_iam_role" {
+  fold {
+    title     = "IAM Role"
     threshold = 3
   }
 }
 
 category "gcp_kms_key" {
-  href = "/gcp_insights.dashboard.gcp_kms_key_detail?input.id={{.properties.'ID' | @uri}}"
+  # href = "/gcp_insights.dashboard.gcp_kms_key_detail?input.id={{.properties.'ID' | @uri}}"
   icon = local.gcp_kms_key
   fold {
-    title     = "KMS Key"
+    title     = "KMS Keys"
     icon      = local.gcp_kms_key
+    threshold = 3
+  }
+}
+
+category "gcp_kubernetes_cluster" {
+  href = "/gcp_insights.dashboard.gcp_kubernetes_cluster_detail?input.name={{.properties.'Name' | @uri}}"
+  icon = local.gcp_kubernetes_cluster
+  fold {
+    title     = "Kubernetes Clusters"
+    icon      = local.gcp_kubernetes_cluster
+    threshold = 3
+  }
+}
+
+category "gcp_kubernetes_node_pool" {
+  fold {
+    title     = "Kubernetes Node Pools"
     threshold = 3
   }
 }
 
 category "gcp_logging_bucket" {
   fold {
-    title     = "Logging Bucket"
+    title     = "Logging Buckets"
+    threshold = 3
+  }
+}
+
+category "gcp_pubsub_subscription" {
+  fold {
+    title     = "Pub/Sub Subscription"
+    threshold = 3
+  }
+}
+
+category "gcp_pubsub_topic" {
+  href = "/gcp_insights.dashboard.gcp_pubsub_topic_detail?input.name={{.properties.'Name' | @uri}}"
+  icon = local.gcp_pubsub_topic
+  fold {
+    title     = "Pubsub Topics"
+    icon      = local.gcp_pubsub_topic
     threshold = 3
   }
 }
@@ -137,8 +237,15 @@ category "gcp_storage_bucket" {
   href = "/gcp_insights.dashboard.gcp_storage_bucket_detail?input.id={{.properties.'ID' | @uri}}"
   icon = local.gcp_storage_bucket
   fold {
-    title     = "Storage Bucket"
+    title     = "Storage Buckets"
     icon      = local.gcp_storage_bucket
+    threshold = 3
+  }
+}
+
+category "gcp_sql_database_instance" {
+  fold {
+    title     = "SQL Database Instances"
     threshold = 3
   }
 }
