@@ -1,6 +1,6 @@
 dashboard "gcp_sql_database_instance" {
 
-  title = "GCP SQL Database Instance"
+  title         = "GCP SQL Database Instance"
   documentation = file("./dashboards/database/docs/gcp_sql_database_instance.md")
 
   tags = merge(local.sql_common_tags, {
@@ -35,7 +35,7 @@ dashboard "gcp_sql_database_instance" {
     card {
       width = 2
       query = query.gcp_sql_database_instance_backup_enabled
-      args  = {
+      args = {
         name = self.input.database_instance_name.value
       }
     }
@@ -111,7 +111,7 @@ dashboard "gcp_sql_database_instance" {
         type  = "line"
         width = 6
         query = query.gcp_sql_database_instance_overview
-        args  = {
+        args = {
           name = self.input.database_instance_name.value
         }
       }
@@ -120,7 +120,7 @@ dashboard "gcp_sql_database_instance" {
         title = "Tags"
         width = 6
         query = query.gcp_sql_database_instance_tags
-        args  = {
+        args = {
           name = self.input.database_instance_name.value
         }
       }
@@ -130,9 +130,9 @@ dashboard "gcp_sql_database_instance" {
       width = 6
 
       table {
-      title = "Replication Details"
-      query = query.gcp_sql_database_instance_replication_status
-      args  = {
+        title = "Replication Details"
+        query = query.gcp_sql_database_instance_replication_status
+        args = {
           name = self.input.database_instance_name.value
         }
       }
@@ -140,7 +140,7 @@ dashboard "gcp_sql_database_instance" {
       table {
         title = "Encryption Details"
         query = query.gcp_sql_database_instance_encryption_status
-        args  = {
+        args = {
           name = self.input.database_instance_name.value
         }
       }
@@ -156,7 +156,7 @@ dashboard "gcp_sql_database_instance" {
       type  = "line"
       width = 6
       query = query.gcp_sql_database_instance_cpu_utilization
-      args  = {
+      args = {
         name = self.input.database_instance_name.value
       }
     }
@@ -166,7 +166,7 @@ dashboard "gcp_sql_database_instance" {
       type  = "line"
       width = 6
       query = query.gcp_sql_database_instance_connection
-      args  = {
+      args = {
         name = self.input.database_instance_name.value
       }
     }
@@ -336,11 +336,10 @@ query "gcp_sql_database_instance_tags" {
 query "gcp_sql_database_instance_replication_status" {
   sql = <<-EOQ
     select
-      backup_replication_log_archiving_enabled as "Backup Replication Log Archiving Enabled",
-      crash_safe_replication_enabled as "Crash Safe Replication Enabled",
-      database_replication_enabled as "Database Replication Enabled",
+      master_instance_name as "Master Instance Name",
       replication_type as "Replication Type",
-      replication_configuration as "Replication Configuration"
+      database_replication_enabled as "Database Replication Enabled",
+      crash_safe_replication_enabled as "Crash Safe Replication Enabled"
     from
       gcp_sql_database_instance
     where
@@ -353,6 +352,8 @@ query "gcp_sql_database_instance_replication_status" {
 query "gcp_sql_database_instance_encryption_status" {
   sql = <<-EOQ
     select
+      k.name as "Key Name",
+      k.key_ring_name as "Key Ring Name",
       k.primary ->> 'state' as "Key State",
       k.primary ->> 'algorithm' as "Key Algorithm"
     from
