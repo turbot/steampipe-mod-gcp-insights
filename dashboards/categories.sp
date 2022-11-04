@@ -43,18 +43,19 @@ category "gcp_compute_disk" {
   }
 }
 
+category "gcp_compute_forwarding_rule" {
+  href = "/gcp_insights.dashboard.gcp_compute_forwarding_rule_detail?input.id={{.properties.'ID' | @uri}}"
+  fold {
+    title     = "Compute Forwarding Rule"
+    threshold = 3
+  }
+}
+
 category "gcp_compute_firewall" {
   icon = local.gcp_compute_firewall
   fold {
     title     = "Compute Firewall Rules"
     icon      = local.gcp_compute_firewall
-    threshold = 3
-  }
-}
-
-category "gcp_compute_forwarding_rule" {
-  fold {
-    title     = "Compute Forwarding Rules"
     threshold = 3
   }
 }
@@ -94,13 +95,6 @@ category "gcp_compute_instance_group" {
 category "gcp_compute_instance_template" {
   fold {
     title     = "Compute Instance Templates"
-    threshold = 3
-  }
-}
-
-category "gcp_compute_machine_type" {
-  fold {
-    title     = "Compute Machine Types"
     threshold = 3
   }
 }
@@ -153,9 +147,37 @@ category "gcp_compute_vpn_gateway" {
   }
 }
 
+category "gcp_compute_target_pool" {
+  fold {
+    title     = "Compute Target Pool"
+    threshold = 3
+  }
+}
+
+category "gcp_compute_target_https_proxy" {
+  fold {
+    title     = "Compute Target HTTPS Proxy"
+    threshold = 3
+  }
+}
+
+category "gcp_compute_target_ssl_proxy" {
+  fold {
+    title     = "Compute Target SSL Proxy"
+    threshold = 3
+  }
+}
+
 category "gcp_dns_policy" {
   fold {
     title     = "DNS Policy"
+    threshold = 3
+  }
+}
+
+category "gcp_iam_role" {
+  fold {
+    title     = "IAM Role"
     threshold = 3
   }
 }
@@ -194,6 +216,23 @@ category "gcp_logging_bucket" {
   }
 }
 
+category "gcp_pubsub_subscription" {
+  fold {
+    title     = "Pub/Sub Subscription"
+    threshold = 3
+  }
+}
+
+category "gcp_pubsub_topic" {
+  href = "/gcp_insights.dashboard.gcp_pubsub_topic_detail?input.name={{.properties.'Name' | @uri}}"
+  icon = local.gcp_pubsub_topic
+  fold {
+    title     = "Pubsub Topics"
+    icon      = local.gcp_pubsub_topic
+    threshold = 3
+  }
+}
+
 category "gcp_storage_bucket" {
   href = "/gcp_insights.dashboard.gcp_storage_bucket_detail?input.id={{.properties.'ID' | @uri}}"
   icon = local.gcp_storage_bucket
@@ -214,27 +253,4 @@ category "gcp_sql_database_instance" {
 graph "gcp_graph_categories" {
   type  = "graph"
   title = "Relationships"
-}
-
-category "gcp_pubsub_topic" {
-  icon = local.gcp_pubsub_topic
-  fold {
-    title     = "Pub/Sub Topic"
-    icon      = local.gcp_pubsub_topic
-    threshold = 3
-  }
-}
-
-category "gcp_pubsub_subscription" {
-  fold {
-    title     = "Pub/Sub Subscription"
-    threshold = 3
-  }
-}
-
-category "gcp_iam_role" {
-  fold {
-    title     = "IAM Role"
-    threshold = 3
-  }
 }
