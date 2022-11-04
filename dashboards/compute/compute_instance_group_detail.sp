@@ -40,9 +40,7 @@ dashboard "gcp_compute_group_instance_detail" {
         node.gcp_compute_instance_group_compute_network_to_compute_subnetwork_node,
         node.gcp_compute_instance_group_to_compute_autoscaler_node,
         node.gcp_compute_instance_group_to_compute_firewall_node,
-        node.gcp_compute_instance_group_to_compute_backend_service_node,
-        node.gcp_compute_instance_group_backend_to_health_check_node,
-        node.gcp_compute_instance_group_backend_to_forwarding_rule_node
+        node.gcp_compute_instance_group_to_compute_backend_service_node
       ]
 
       edges = [
@@ -51,9 +49,7 @@ dashboard "gcp_compute_group_instance_detail" {
         edge.gcp_compute_instance_group_compute_network_to_compute_subnetwork_edge,
         edge.gcp_compute_instance_group_to_compute_autoscaler_edge,
         edge.gcp_compute_instance_group_to_compute_firewall_edge,
-        edge.gcp_compute_instance_group_to_compute_backend_service_edge,
-        edge.gcp_compute_instance_group_backend_to_health_check_edge,
-        edge.gcp_compute_instance_group_backend_to_forwarding_rule_edge
+        edge.gcp_compute_instance_group_to_compute_backend_service_edge
       ]
 
       args = {
@@ -431,119 +427,18 @@ node "gcp_compute_instance_group_to_compute_backend_service_node" {
 }
 
 edge "gcp_compute_instance_group_to_compute_backend_service_edge" {
-  title = "backend"
+  title = "instance group"
 
   sql = <<-EOQ
     select
-      g.id::text as from_id,
-      bs.id::text as to_id
+      bs.id::text as from_id,
+      g.id::text as to_id
     from
       gcp_compute_instance_group g,
       gcp_compute_backend_service bs,
       jsonb_array_elements(bs.backends) b
     where
       b ->> 'group' = g.self_link
-      and g.id = $1;
-  EOQ
-
-  param "id" {}
-}
-
-node "gcp_compute_instance_group_backend_to_health_check_node" {
-  category = category.gcp_compute_health_check
-
-  sql = <<-EOQ
-    select
-      hc.id::text,
-      hc.title,
-      jsonb_build_object(
-        'ID', hc.id,
-        'Name', hc.name,
-        'Type', hc.type,
-        'Check Interval(Sec)', hc.check_interval_sec,
-        'Healthy Threshold', hc.healthy_threshold,
-        'Unhealthy Threshold', hc.unhealthy_threshold,
-        'Timeout(Sec)', hc.timeout_sec
-      ) as properties
-    from
-      gcp_compute_instance_group g,
-      gcp_compute_backend_service bs,
-      jsonb_array_elements(bs.backends) b,
-      jsonb_array_elements_text(bs.health_checks) bhc,
-      gcp_compute_health_check hc
-    where
-      b ->> 'group' = g.self_link
-      and bhc = hc.self_link
-      and g.id = $1;
-  EOQ
-
-  param "id" {}
-}
-
-edge "gcp_compute_instance_group_backend_to_health_check_edge" {
-  title = "health check"
-
-  sql = <<-EOQ
-    select
-      bs.id::text as from_id,
-      hc.id::text as to_id
-    from
-      gcp_compute_instance_group g,
-      gcp_compute_backend_service bs,
-      jsonb_array_elements(bs.backends) b,
-      jsonb_array_elements_text(bs.health_checks) bhc,
-      gcp_compute_health_check hc
-    where
-      b ->> 'group' = g.self_link
-      and bhc = hc.self_link
-      and g.id = $1;
-  EOQ
-
-  param "id" {}
-}
-
-node "gcp_compute_instance_group_backend_to_forwarding_rule_node" {
-  category = category.gcp_compute_forwarding_rule
-
-  sql = <<-EOQ
-    select
-      fr.id::text,
-      fr.title,
-      jsonb_build_object(
-        'ID', fr.id,
-        'IP Address', fr.ip_address,
-        'Global Access', fr.allow_global_access,
-        'Created Time', fr.creation_timestamp
-      ) as properties
-    from
-      gcp_compute_instance_group g,
-      gcp_compute_backend_service bs,
-      jsonb_array_elements(bs.backends) b,
-      gcp_compute_forwarding_rule fr
-    where
-      b ->> 'group' = g.self_link
-      and split_part(bs.self_link, 'backendServices/', 2) = split_part(fr.backend_service, 'backendServices/', 2)
-      and g.id = $1;
-  EOQ
-
-  param "id" {}
-}
-
-edge "gcp_compute_instance_group_backend_to_forwarding_rule_edge" {
-  title = "forwarding rule"
-
-  sql = <<-EOQ
-    select
-      bs.id::text as from_id,
-      fr.id::text as to_id
-    from
-      gcp_compute_instance_group g,
-      gcp_compute_backend_service bs,
-      jsonb_array_elements(bs.backends) b,
-      gcp_compute_forwarding_rule fr
-    where
-      b ->> 'group' = g.self_link
-      and split_part(bs.self_link, 'backendServices/', 2) = split_part(fr.backend_service, 'backendServices/', 2)
       and g.id = $1;
   EOQ
 

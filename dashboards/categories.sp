@@ -85,7 +85,7 @@ category "gcp_compute_instance" {
 }
 
 category "gcp_compute_instance_group" {
-  href = "/gcp_insights.dashboard.gcp_compute_instance_group?input.id={{.properties.'ID' | @uri}}"
+  href = "/gcp_insights.dashboard.gcp_compute_group_instance_detail?input.id={{.properties.'ID' | @uri}}"
   fold {
     title     = "Compute Instance Groups"
     threshold = 3

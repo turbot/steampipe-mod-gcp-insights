@@ -82,7 +82,8 @@ dashboard "gcp_kubernetes_cluster_detail" {
         node.gcp_kubernetes_cluster_node_pool_to_compute_instance_group_node,
         node.gcp_kubernetes_cluster_to_kms_key_node,
         node.gcp_kubernetes_cluster_to_bigquery_dataset_node,
-        node.gcp_kubernetes_cluster_node_pool_to_compute_instance_node
+        node.gcp_kubernetes_cluster_node_pool_to_compute_instance_node,
+        node.gcp_kubernetes_cluster_to_compute_firewall_node
       ]
 
       edges = [
@@ -93,7 +94,8 @@ dashboard "gcp_kubernetes_cluster_detail" {
         edge.gcp_kubernetes_cluster_node_pool_to_compute_instance_group_edge,
         edge.gcp_kubernetes_cluster_to_kms_key_edge,
         edge.gcp_kubernetes_cluster_to_bigquery_dataset_edge,
-        edge.gcp_kubernetes_cluster_node_pool_to_compute_instance_edge
+        edge.gcp_kubernetes_cluster_node_pool_to_compute_instance_edge,
+        edge.gcp_kubernetes_cluster_to_compute_firewall_edge
       ]
 
       args = {
@@ -684,6 +686,53 @@ edge "gcp_kubernetes_cluster_to_bigquery_dataset_edge" {
     where
       c.name = $1
       and c.resource_usage_export_config -> 'bigqueryDestination' ->> 'datasetId' = d.dataset_id;
+  EOQ
+
+  param "name" {}
+}
+
+node "gcp_kubernetes_cluster_to_compute_firewall_node" {
+  category = category.gcp_compute_firewall
+
+  sql = <<-EOQ
+    select
+      f.id::text,
+      f.title,
+      jsonb_build_object(
+        'ID', f.id,
+        'Direction', f.direction,
+        'Enabled', not f.disabled,
+        'Action', f.action,
+        'Priority', f.priority
+      ) as properties
+    from
+      gcp_kubernetes_cluster c,
+      gcp_compute_network n,
+      gcp_compute_firewall f
+    where
+      c.network = n.name
+      and n.self_link = f.network
+      and c.name = $1;
+  EOQ
+
+  param "name" {}
+}
+
+edge "gcp_kubernetes_cluster_to_compute_firewall_edge" {
+  title = "firewall"
+
+  sql = <<-EOQ
+    select
+      c.name as from_id,
+      f.id::text as to_id
+    from
+      gcp_kubernetes_cluster c,
+      gcp_compute_network n,
+      gcp_compute_firewall f
+    where
+      c.network = n.name
+      and n.self_link = f.network
+      and c.name = $1;
   EOQ
 
   param "name" {}

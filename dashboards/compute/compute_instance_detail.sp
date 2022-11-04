@@ -302,7 +302,7 @@ node "gcp_compute_instance_to_compute_disk_node" {
       jsonb_array_elements(disks) as disk
     where
       i.id = $1
-      and d.name = (disk ->> 'deviceName');
+      and d.self_link = (disk ->> 'source');
   EOQ
 
   param "id" {}
@@ -321,7 +321,7 @@ edge "gcp_compute_instance_to_compute_disk_edge" {
       jsonb_array_elements(disks) as disk
     where
       i.id = $1
-      and d.name = (disk ->> 'deviceName');
+      and d.self_link = (disk ->> 'source');
   EOQ
 
   param "id" {}
