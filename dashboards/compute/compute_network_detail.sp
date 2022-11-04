@@ -56,7 +56,8 @@ dashboard "gcp_compute_network_detail" {
         node.gcp_compute_network_to_compute_backend_service_node,
         node.gcp_compute_network_to_compute_router_node,
         node.gcp_compute_network_to_sql_database_instance_node,
-        node.gcp_compute_network_to_compute_vpn_gateway_node
+        node.gcp_compute_network_to_compute_vpn_gateway_node,
+        node.gcp_compute_network_to_dns_policy_node
       ]
 
       edges = [
@@ -65,7 +66,8 @@ dashboard "gcp_compute_network_detail" {
         edge.gcp_compute_network_to_compute_backend_service_edge,
         edge.gcp_compute_network_to_compute_router_edge,
         edge.gcp_compute_network_to_sql_database_instance_edge,
-        edge.gcp_compute_network_to_compute_vpn_gateway_edge
+        edge.gcp_compute_network_to_compute_vpn_gateway_edge,
+        edge.gcp_compute_network_to_dns_policy_edge
       ]
 
       args = {
@@ -452,6 +454,51 @@ edge "gcp_compute_network_to_compute_vpn_gateway_edge" {
       gcp_compute_network n
     where
       g.network = n.self_link
+      and n.name = $1;
+  EOQ
+
+  param "name" {}
+}
+
+node "gcp_compute_network_to_dns_policy_node" {
+  category = category.gcp_dns_policy
+
+  sql = <<-EOQ
+    select
+      p.id::text,
+      p.title,
+      jsonb_build_object(
+        'ID', p.id,
+        'Name', p.name,
+        'Enable Logging', p.enable_logging,
+        'Enable Inbound Forwarding', p.enable_inbound_forwarding,
+        'Location', p.location
+      ) as properties
+    from
+      gcp_dns_policy p,
+      jsonb_array_elements(p.networks) pn,
+      gcp_compute_network n
+    where
+      pn ->> 'networkUrl' = n.self_link
+      and n.name = $1;
+  EOQ
+
+  param "name" {}
+}
+
+edge "gcp_compute_network_to_dns_policy_edge" {
+  title = "dns policy"
+
+  sql = <<-EOQ
+    select
+      n.name as from_id,
+      p.id::text as to_id
+    from
+      gcp_dns_policy p,
+      jsonb_array_elements(p.networks) pn,
+      gcp_compute_network n
+    where
+      pn ->> 'networkUrl' = n.self_link
       and n.name = $1;
   EOQ
 

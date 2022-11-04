@@ -153,6 +153,13 @@ category "gcp_compute_vpn_gateway" {
   }
 }
 
+category "gcp_dns_policy" {
+  fold {
+    title     = "DNS Policy"
+    threshold = 3
+  }
+}
+
 category "gcp_kms_key" {
   # href = "/gcp_insights.dashboard.gcp_kms_key_detail?input.id={{.properties.'ID' | @uri}}"
   icon = local.gcp_kms_key
