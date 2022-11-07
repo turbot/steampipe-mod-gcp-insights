@@ -367,7 +367,8 @@ query "gcp_sql_database_instance_by_project" {
       p.project_id = i.project
     group by
       p.title
-    order by count(i.*) desc;
+    order by 
+      count(i.*) desc;
   EOQ
 }
 
