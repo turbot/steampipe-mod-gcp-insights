@@ -1,7 +1,7 @@
 dashboard "gcp_sql_database_instance_dashboard" {
 
   title         = "GCP SQL Database Instance Dashboard"
-  documentation = file("./dashboards/database/docs/gcp_sql_database_instance_dashboard.md")
+  documentation = file("./dashboards/sql/docs/gcp_sql_database_instance_dashboard.md")
 
   tags = merge(local.sql_common_tags, {
     type = "Dashboard"
