@@ -139,7 +139,7 @@ dashboard "gcp_sql_database_instance_detail" {
 
       table {
         title = "Encryption Details"
-        query = query.gcp_sql_database_instance_encryption_status
+        query = query.gcp_sql_database_instance_encryption_detail
         args = {
           name = self.input.database_instance_name.value
         }
@@ -349,7 +349,7 @@ query "gcp_sql_database_instance_replication_status" {
   param "name" {}
 }
 
-query "gcp_sql_database_instance_encryption_status" {
+query "gcp_sql_database_instance_encryption_detail" {
   sql = <<-EOQ
     select
       k.name as "Key Name",
@@ -558,8 +558,7 @@ node "gcp_sql_database_instance_to_compute_network_node" {
         'Description', n.description,
         'Created Time', n.creation_timestamp,
         'Project', n.project,
-        'Kind', n.kind,
-        'Location', n.location
+        'Kind', n.kind
       ) as properties
     from
       gcp_sql_database_instance as i,
