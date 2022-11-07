@@ -36,7 +36,7 @@ category "gcp_compute_backend_service" {
 }
 
 category "gcp_compute_disk" {
-  href = "/gcp_insights.dashboard.gcp_compute_disk_detail?input.id={{.properties.'ID' | @uri}}"
+  href = "/gcp_insights.dashboard.gcp_compute_disk_detail?input.disk_id={{.properties.'ID' | @uri}}"
   fold {
     title     = "Compute Disks"
     threshold = 3
@@ -75,7 +75,7 @@ category "gcp_compute_image" {
 }
 
 category "gcp_compute_instance" {
-  href = "/gcp_insights.dashboard.gcp_compute_instance_detail?input.id={{.properties.'ID' | @uri}}"
+  href = "/gcp_insights.dashboard.gcp_compute_instance_detail?input.instance_id={{.properties.'ID' | @uri}}"
   icon = local.gcp_compute_instance
   fold {
     title     = "Compute Instances"
@@ -85,7 +85,7 @@ category "gcp_compute_instance" {
 }
 
 category "gcp_compute_instance_group" {
-  href = "/gcp_insights.dashboard.gcp_compute_group_instance_detail?input.id={{.properties.'ID' | @uri}}"
+  href = "/gcp_insights.dashboard.gcp_compute_group_instance_detail?input.group_id={{.properties.'ID' | @uri}}"
   fold {
     title     = "Compute Instance Groups"
     threshold = 3
@@ -100,7 +100,7 @@ category "gcp_compute_instance_template" {
 }
 
 category "gcp_compute_network" {
-  href = "/gcp_insights.dashboard.gcp_compute_network_detail?input.name={{.properties.'Name' | @uri}}"
+  href = "/gcp_insights.dashboard.gcp_compute_network_detail?input.network_name={{.properties.'Name' | @uri}}"
   icon = local.gcp_compute_network
   fold {
     title     = "Compute Networks"
@@ -133,7 +133,7 @@ category "gcp_compute_snapshot" {
 }
 
 category "gcp_compute_subnetwork" {
-  href = "/gcp_insights.dashboard.gcp_compute_subnetwork_detail?input.id={{.properties.'ID' | @uri}}"
+  href = "/gcp_insights.dashboard.gcp_compute_subnetwork_detail?input.subnetwork_id={{.properties.'ID' | @uri}}"
   fold {
     title     = "Compute Subnetworks"
     threshold = 3
@@ -193,7 +193,7 @@ category "gcp_kms_key" {
 }
 
 category "gcp_kubernetes_cluster" {
-  href = "/gcp_insights.dashboard.gcp_kubernetes_cluster_detail?input.name={{.properties.'Name' | @uri}}"
+  href = "/gcp_insights.dashboard.gcp_kubernetes_cluster_detail?input.cluster_name={{.properties.'Name' | @uri}}"
   icon = local.gcp_kubernetes_cluster
   fold {
     title     = "Kubernetes Clusters"
@@ -234,7 +234,7 @@ category "gcp_pubsub_topic" {
 }
 
 category "gcp_storage_bucket" {
-  href = "/gcp_insights.dashboard.gcp_storage_bucket_detail?input.id={{.properties.'ID' | @uri}}"
+  href = "/gcp_insights.dashboard.gcp_storage_bucket_detail?input.bucket_id={{.properties.'ID' | @uri}}"
   icon = local.gcp_storage_bucket
   fold {
     title     = "Storage Buckets"
@@ -265,9 +265,4 @@ category "gcp_sql_database" {
     title     = "GCP SQL Database"
     threshold = 3
   }
-}
-
-graph "gcp_graph_categories" {
-  type  = "graph"
-  title = "Relationships"
 }
