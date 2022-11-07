@@ -1,7 +1,7 @@
 dashboard "gcp_sql_database_instance_detail" {
 
   title         = "GCP SQL Database Instance"
-  documentation = file("./dashboards/database/docs/gcp_sql_database_instance_detail.md")
+  documentation = file("./dashboards/sql/docs/gcp_sql_database_instance_detail.md")
 
   tags = merge(local.sql_common_tags, {
     type = "Detail"
