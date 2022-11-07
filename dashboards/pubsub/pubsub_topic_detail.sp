@@ -241,8 +241,7 @@ node "gcp_pubsub_topic_node" {
       jsonb_build_object(
         'Name', name,
         'Location', location,
-        'Project', project,
-        'Self Link', self_link
+        'KMS Key', kms_key_name
       ) as properties
     from
       gcp_pubsub_topic

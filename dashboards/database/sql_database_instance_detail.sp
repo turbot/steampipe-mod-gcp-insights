@@ -454,13 +454,7 @@ edge "gcp_sql_database_instance_to_data_disk_edge" {
   sql = <<-EOQ
     select
       name as from_id,
-      data_disk_type as to_id,
-      jsonb_build_object(
-        'Disk Type', data_disk_type,
-        'Disk Size (GB)', data_disk_size_gb,
-        'MaxDiskSize (Bytes)', max_disk_size,
-        'CurrentDiskSize (Bytes)', current_disk_size
-      ) as properties
+      data_disk_type as to_id
     from
       gcp_sql_database_instance
     where
@@ -498,13 +492,7 @@ edge "gcp_sql_database_instance_to_kms_key_edge" {
   sql = <<-EOQ
     select
       i.name as from_id,
-      k.name as to_id,
-      jsonb_build_object(
-        'KMS Key Name', k.name,
-        'Created Time', k.create_time,
-        'Project', k.project,
-        'Location', k.location
-      ) as properties
+      k.name as to_id
     from
       gcp_sql_database_instance as i,
       gcp_kms_key as k
@@ -544,12 +532,7 @@ edge "gcp_sql_database_instance_to_sql_database_edge" {
   sql = <<-EOQ
   select
       concat(d.instance_name, '_database') as from_id,
-      i.name as to_id,
-      jsonb_build_object(
-        'Project', d.project,
-        'Kind', d.kind,
-        'Location', d.location
-      ) as properties
+      i.name as to_id
     from
       gcp_sql_database_instance as i,
       gcp_sql_database d
@@ -593,15 +576,7 @@ edge "gcp_sql_database_instance_to_compute_network_edge" {
   sql = <<-EOQ
     select
       n.name as to_id,
-      i.name as from_id,
-      jsonb_build_object(
-        'Name', n.name,
-        'Description', n.description,
-        'Created Time', n.creation_timestamp,
-        'Project', n.project,
-        'Kind', n.kind,
-        'Location', n.location
-      ) as properties
+      i.name as from_id
     from
       gcp_sql_database_instance as i,
       gcp_compute_network as n
@@ -645,13 +620,7 @@ edge "gcp_sql_database_instance_to_database_instance_replica_edge" {
   sql = <<-EOQ
     select
       name as to_id,
-      SPLIT_PART(master_instance_name, ':', 2) as from_id,
-      jsonb_build_object(
-        'Name', name,
-        'State', state,
-        'Project', project,
-        'Location', location
-      ) as properties
+      SPLIT_PART(master_instance_name, ':', 2) as from_id
     from
       gcp_sql_database_instance
     where
@@ -711,13 +680,7 @@ edge "gcp_sql_database_instance_from_primary_database_instance_edge" {
     )
     select
       i.name as from_id,
-      m.name as to_id,
-      jsonb_build_object(
-        'Name', i.name,
-        'State', state,
-        'Project', project,
-        'Location', location
-      ) as properties
+      m.name as to_id
     from
       gcp_sql_database_instance as i,
       master_instance as m

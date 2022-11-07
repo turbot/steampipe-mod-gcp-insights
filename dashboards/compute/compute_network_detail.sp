@@ -211,7 +211,7 @@ node "gcp_compute_network_from_compute_subnetwork_node" {
   sql = <<-EOQ
     select
       s.id::text as id,
-      s.name as title,
+      s.location || '/' || s.name as title,
       jsonb_build_object(
         'ID', s.id,
         'Name', s.name,

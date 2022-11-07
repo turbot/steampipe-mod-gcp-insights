@@ -473,7 +473,7 @@ node "gcp_kubernetes_cluster_to_compute_network_node" {
   sql = <<-EOQ
     select
       n.id::text as id,
-      c.network_config ->> 'network' as title,
+      n.title,
       jsonb_build_object(
         'ID', n.id::text,
         'Name', n.name,
@@ -517,7 +517,7 @@ node "gcp_kubernetes_cluster_network_to_compute_subnetwork_node" {
   sql = <<-EOQ
     select
       s.id::text as id,
-      c.network_config ->> 'subnetwork' as title,
+      s.title,
       jsonb_build_object(
         'ID', s.id,
         'Name', s.name,
@@ -565,7 +565,8 @@ node "gcp_kubernetes_cluster_to_pubsub_topic_node" {
       t.title,
       jsonb_build_object(
         'Name', t.name,
-        'Location', t.location
+        'Location', t.location,
+        'KMS Key', t.kms_key_name
       ) as properties
     from
       gcp_kubernetes_cluster c,
