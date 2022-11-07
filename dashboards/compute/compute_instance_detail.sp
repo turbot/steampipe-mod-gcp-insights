@@ -288,9 +288,9 @@ node "gcp_compute_instance_to_compute_disk_node" {
   sql = <<-EOQ
     select
       d.id::text,
-      disk ->> 'deviceName' as title,
+      d.title,
       jsonb_build_object(
-        'Name', disk ->> 'deviceName',
+        'ID', d.id::text,
         'Auto Delete', disk ->> 'autoDelete',
         'Created Time', d.creation_timestamp,
         'Size(GB)', disk ->> 'diskSizeGb',
@@ -381,7 +381,7 @@ node "gcp_compute_instance_to_compute_subnetwork_node" {
       s.id::text as id,
       s.name as title,
       jsonb_build_object(
-        'ID', s.id,
+        'ID', s.id::text,
         'Name', s.name,
         'Created Time', s.creation_timestamp,
         'Location', s.location,
@@ -426,7 +426,7 @@ node "gcp_compute_instance_from_compute_instance_group_node" {
       g.id::text as id,
       g.name as title,
       jsonb_build_object(
-        'ID', g.id,
+        'ID', g.id::text,
         'Name', g.name,
         'Created Time', g.creation_timestamp,
         'Instance Count', g.size,

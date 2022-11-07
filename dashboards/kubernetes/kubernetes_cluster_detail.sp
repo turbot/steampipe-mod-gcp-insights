@@ -379,7 +379,7 @@ node "gcp_kubernetes_cluster_node_pool_to_compute_instance_group_node" {
       g.id::text as id,
       g.name as title,
       jsonb_build_object(
-        'ID', g.id,
+        'ID', g.id::text,
         'Name', g.name,
         'Created Time', g.creation_timestamp,
         'Instance Count', g.size,

@@ -398,7 +398,9 @@ query "gcp_sql_database_instance_connection" {
   param "name" {}
 }
 
-category "gcp_sql_database_instance_no_link" {}
+category "gcp_sql_database_instance_no_link" {
+  icon = local.gcp_sql_database_instance
+}
 
 node "gcp_sql_database_instance_node" {
   category = category.gcp_sql_database_instance_no_link
@@ -666,7 +668,7 @@ node "gcp_sql_database_instance_from_primary_database_instance_node" {
 }
 
 edge "gcp_sql_database_instance_from_primary_database_instance_edge" {
-  title = "database instance"
+  title = "replicated from"
 
   sql = <<-EOQ
     with master_instance as (

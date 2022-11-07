@@ -8,6 +8,6 @@ locals {
   gcp_kubernetes_cluster    = format("%s,%s", "data:image/svg+xml;base64", filebase64("./icons/gcp_kubernetes_cluster.svg"))
   gcp_pubsub_topic          = format("%s,%s", "data:image/svg+xml;base64", filebase64("./icons/gcp_pubsub_topic.svg"))
   gcp_storage_bucket        = format("%s,%s", "data:image/svg+xml;base64", filebase64("./icons/gcp_storage_bucket.svg"))
-  gcp_sql_database_instance = format("%s,%s", "data:image/svg+xml;base64", filebase64("./icons/gcp_sql_database_instance_light.svg"))
+  gcp_sql_database_instance = format("%s,%s", "data:image/svg+xml;base64", filebase64("./icons/gcp_sql_database_instance.svg"))
 }
 

@@ -264,7 +264,7 @@ node "gcp_compute_subnetwork_node_from_compute_instance_node" {
       i.id::text,
       i.title,
       jsonb_build_object(
-        'ID', i.id,
+        'ID', i.id::text,
         'Name', i.name,
         'Created Time', i.creation_timestamp,
         'CPU Platform', cpu_platform
@@ -308,7 +308,7 @@ node "gcp_compute_subnetwork_node_from_compute_instance_group_node" {
       g.id::text,
       g.title,
       jsonb_build_object(
-        'ID', g.id,
+        'ID', g.id::text,
         'Name', g.name,
         'Created Time', g.creation_timestamp,
         'Instance Count', g.size,

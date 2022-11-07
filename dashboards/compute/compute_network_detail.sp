@@ -515,7 +515,7 @@ node "gcp_compute_network_from_compute_forwarding_rule_node" {
       fr.id::text,
       fr.title,
       jsonb_build_object(
-        'ID', fr.id,
+        'ID', fr.id::text,
         'IP Address', fr.ip_address,
         'Global Access', fr.allow_global_access,
         'Created Time', fr.creation_timestamp

@@ -344,7 +344,7 @@ node "gcp_compute_disk_to_compute_instance_node" {
       i.id::text,
       i.title,
       jsonb_build_object(
-        'ID', i.id,
+        'ID', i.id::text,
         'Name', i.name,
         'Created Time', i.creation_timestamp,
         'CPU Platform', cpu_platform
@@ -436,7 +436,7 @@ node "gcp_compute_disk_to_compute_disk_node" {
       cd.id::text,
       cd.title,
       jsonb_build_object(
-        'ID', cd.id,
+        'ID', cd.id::text,
         'Name', cd.name,
         'Created Time', cd.creation_timestamp,
         'Size(GB)', cd.size_gb,
@@ -480,7 +480,7 @@ node "gcp_compute_disk_from_compute_disk_node" {
       cd.id::text,
       cd.title,
       jsonb_build_object(
-        'ID', cd.id,
+        'ID', cd.id::text,
         'Name', cd.name,
         'Created Time', cd.creation_timestamp,
         'Size(GB)', cd.size_gb,

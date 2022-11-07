@@ -547,7 +547,7 @@ node "gcp_compute_forwarding_rule_to_compute_subnetwork_node" {
       s.id::text as id,
       s.name as title,
       jsonb_build_object(
-        'ID', s.id,
+        'ID', s.id::text,
         'Name', s.name,
         'Created Time', s.creation_timestamp,
         'Location', s.location,

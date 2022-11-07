@@ -188,7 +188,7 @@ node "gcp_compute_instance_group_to_compute_instance_node" {
       i.id::text as id,
       i.title,
       jsonb_build_object(
-        'ID', i.id,
+        'ID', i.id::text,
         'Name', i.name,
         'Created Time', i.creation_timestamp,
         'CPU Platform', i.cpu_platform,
@@ -207,7 +207,7 @@ node "gcp_compute_instance_group_to_compute_instance_node" {
 }
 
 edge "gcp_compute_instance_group_to_compute_instance_edge" {
-  title = "instance"
+  title = "manages"
 
   sql = <<-EOQ
     select
@@ -277,7 +277,7 @@ node "gcp_compute_instance_group_compute_network_to_compute_subnetwork_node" {
       s.id::text as id,
       s.name as title,
       jsonb_build_object(
-        'ID', s.id,
+        'ID', s.id::text,
         'Name', s.name,
         'Created Time', s.creation_timestamp,
         'Location', s.location,
