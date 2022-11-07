@@ -28,7 +28,7 @@ dashboard "gcp_sql_database_instance_dashboard" {
       query = query.gcp_sql_database_instance_point_in_time_recovery_enable_count
       width = 2
     }
-    
+
     card {
       query = query.gcp_sql_database_instance_public_access_count
       width = 2
@@ -48,7 +48,7 @@ dashboard "gcp_sql_database_instance_dashboard" {
       title = "Database Encryption Status"
       query = query.gcp_sql_database_instance_encryption_status
       type  = "donut"
-      width = 3
+      width = 4
 
       series "count" {
         point "enabled" {
@@ -64,7 +64,7 @@ dashboard "gcp_sql_database_instance_dashboard" {
       title = "Database Backup Status"
       query = query.gcp_sql_database_instance_backup_status
       type  = "donut"
-      width = 3
+      width = 4
 
       series "count" {
         point "enabled" {
@@ -80,7 +80,7 @@ dashboard "gcp_sql_database_instance_dashboard" {
       title = "Point-in-time Recovery Status"
       query = query.gcp_sql_database_instance_point_in_time_recovery_status
       type  = "donut"
-      width = 3
+      width = 4
 
       series "count" {
         point "enabled" {
@@ -96,7 +96,7 @@ dashboard "gcp_sql_database_instance_dashboard" {
       title = "Public Access Status"
       query = query.gcp_sql_database_instance_public_access_status
       type  = "donut"
-      width = 3
+      width = 4
 
       series "count" {
         point "enabled" {
@@ -112,7 +112,7 @@ dashboard "gcp_sql_database_instance_dashboard" {
       title = "SSL Status"
       query = query.gcp_sql_database_ssl_status
       type  = "donut"
-      width = 3
+      width = 4
 
       series "count" {
         point "enabled" {
@@ -401,6 +401,8 @@ query "gcp_sql_database_instance_by_replica" {
       name,
       jsonb_array_length(replica_names) as replica_count
     from
-      gcp_sql_database_instance;
+      gcp_sql_database_instance
+    where 
+      master_instance_name = '';
   EOQ
 }
