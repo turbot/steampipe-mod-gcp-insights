@@ -159,8 +159,8 @@ dashboard "gcp_sql_database_instance_dashboard" {
     }
 
     chart {
-      title = "Instances by Database Type"
-      query = query.gcp_sql_database_instance_by_database_type
+      title = "Instances by Database Version"
+      query = query.gcp_sql_database_instance_by_database_version
       type  = "column"
       width = 4
     }
@@ -403,16 +403,14 @@ query "gcp_sql_database_instance_by_replica" {
   EOQ
 }
 
-query "gcp_sql_database_instance_by_database_type" {
+query "gcp_sql_database_instance_by_database_version" {
   sql = <<-EOQ
     select
-      case when title = 'msdb' then 'mssql' else title end as database_type,
-      count(instance_name) as instance_count
+      database_version,
+      count(database_version)
     from
-      gcp_sql_database
-    where 
-      title in ('postgres', 'mysql', 'msdb')
+      gcp_sql_database_instance
     group by
-      title
+      database_version;
   EOQ
 }
