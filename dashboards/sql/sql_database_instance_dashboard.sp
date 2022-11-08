@@ -100,10 +100,10 @@ dashboard "gcp_sql_database_instance_dashboard" {
 
       series "count" {
         point "enabled" {
-          color = "ok"
+          color = "alert"
         }
         point "disabled" {
-          color = "alert"
+          color = "ok"
         }
       }
     }
