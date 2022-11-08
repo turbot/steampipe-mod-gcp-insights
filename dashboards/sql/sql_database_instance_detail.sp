@@ -283,8 +283,12 @@ query "gcp_sql_database_instance_ssl_enabled" {
         else 'ok'
       end as type
     from
-      gcp_sql_database_instance;
+      gcp_sql_database_instance
+    where
+      name = $1;
   EOQ
+
+  param "name" {}
 }
 
 query "gcp_sql_database_instance_overview" {
@@ -361,7 +365,10 @@ query "gcp_sql_database_instance_encryption_detail" {
       gcp_kms_key as k
     where
       d.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2))
+      and d.name = $1; 
   EOQ
+
+  param "name" {}
 }
 
 query "gcp_sql_database_instance_cpu_utilization" {
