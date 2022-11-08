@@ -235,8 +235,7 @@ node "gcp_compute_instance_group_to_compute_network_node" {
       jsonb_build_object(
         'ID', n.id,
         'Name', n.name,
-        'Created Time', n.creation_timestamp,
-        'Location', n.location
+        'Created Time', n.creation_timestamp
       ) as properties
     from
       gcp_compute_instance_group g,

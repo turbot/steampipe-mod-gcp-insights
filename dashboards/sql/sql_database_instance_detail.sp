@@ -139,7 +139,7 @@ dashboard "gcp_sql_database_instance_detail" {
 
       table {
         title = "Encryption Details"
-        query = query.gcp_sql_database_instance_encryption_status
+        query = query.gcp_sql_database_instance_encryption_detail
         args = {
           name = self.input.database_instance_name.value
         }
@@ -193,8 +193,8 @@ query "gcp_sql_database_instance_input" {
 query "gcp_sql_database_instance_database_version" {
   sql = <<-EOQ
     select
-      'Database Version' as label,
-      database_version as  value
+      'State' as label,
+      state as  value
     from
       gcp_sql_database_instance
     where
@@ -283,14 +283,18 @@ query "gcp_sql_database_instance_ssl_enabled" {
         else 'ok'
       end as type
     from
-      gcp_sql_database_instance;
+      gcp_sql_database_instance
+    where
+      name = $1;
   EOQ
+
+  param "name" {}
 }
 
 query "gcp_sql_database_instance_overview" {
   sql = <<-EOQ
     select
-      state as "State",
+      database_version as "Database Version",
       instance_type as "Instance Type",
       pricing_plan as "Pricing Plan",
       case
@@ -349,7 +353,7 @@ query "gcp_sql_database_instance_replication_status" {
   param "name" {}
 }
 
-query "gcp_sql_database_instance_encryption_status" {
+query "gcp_sql_database_instance_encryption_detail" {
   sql = <<-EOQ
     select
       k.name as "Key Name",
@@ -361,7 +365,10 @@ query "gcp_sql_database_instance_encryption_status" {
       gcp_kms_key as k
     where
       d.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2))
+      and d.name = $1; 
   EOQ
+
+  param "name" {}
 }
 
 query "gcp_sql_database_instance_cpu_utilization" {
@@ -415,9 +422,7 @@ node "gcp_sql_database_instance_node" {
         'DatabaseVersion', database_version,
         'MachineType', machine_type,
         'DataDiskSizeGB', data_disk_size_gb,
-        'BackupEnabled', backup_enabled,
-        'Project', project,
-        'Location', location
+        'BackupEnabled', backup_enabled
       ) as properties
     from
       gcp_sql_database_instance
@@ -474,8 +479,9 @@ node "gcp_sql_database_instance_to_kms_key_node" {
       k.name as id,
       k.title as title,
       jsonb_build_object(
+        'Name', k.name,
         'Created Time', k.create_time,
-        'Project', k.project,
+        'Key Ring Name', key_ring_name,
         'Location', k.location
       ) as properties
     from
@@ -514,7 +520,6 @@ node "gcp_sql_database_instance_to_sql_database_node" {
       d.title as title,
       jsonb_build_object(
         'Project', d.project,
-        'Kind', d.kind,
         'Location', d.location
       ) as properties
     from
@@ -554,12 +559,9 @@ node "gcp_sql_database_instance_to_compute_network_node" {
       n.name as id,
       n.title as title,
       jsonb_build_object(
+        'ID', n.id,
         'Name', n.name,
-        'Description', n.description,
-        'Created Time', n.creation_timestamp,
-        'Project', n.project,
-        'Kind', n.kind,
-        'Location', n.location
+        'Created Time', n.creation_timestamp
       ) as properties
     from
       gcp_sql_database_instance as i,
