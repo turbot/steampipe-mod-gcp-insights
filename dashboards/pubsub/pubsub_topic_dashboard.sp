@@ -20,7 +20,7 @@ dashboard "gcp_pubsub_topic_dashboard" {
     }
 
     card {
-      query = query.gcp_pubsub_topic_labeled_count
+      query = query.gcp_pubsub_topic_label_count
       width = 2
     }
 
@@ -48,7 +48,7 @@ dashboard "gcp_pubsub_topic_dashboard" {
 
     chart {
       title = "Labeling Status"
-      query = query.gcp_pubsub_topic_labeled_status
+      query = query.gcp_pubsub_topic_label_status
       type  = "donut"
       width = 3
 
@@ -120,7 +120,7 @@ query "gcp_pubsub_topic_encryption_count" {
   EOQ
 }
 
-query "gcp_pubsub_topic_labeled_count" {
+query "gcp_pubsub_topic_label_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -156,7 +156,7 @@ query "gcp_pubsub_topic_encryption_status" {
   EOQ
 }
 
-query "gcp_pubsub_topic_labeled_status" {
+query "gcp_pubsub_topic_label_status" {
   sql = <<-EOQ
     select
       label_status,
