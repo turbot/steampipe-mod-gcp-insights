@@ -48,7 +48,7 @@ dashboard "gcp_sql_database_instance_dashboard" {
       title = "Encryption Status"
       query = query.gcp_sql_database_instance_encryption_status
       type  = "donut"
-      width = 4
+      width = 3
 
       series "count" {
         point "enabled" {
@@ -64,7 +64,7 @@ dashboard "gcp_sql_database_instance_dashboard" {
       title = "Backup Status"
       query = query.gcp_sql_database_instance_backup_status
       type  = "donut"
-      width = 4
+      width = 3
 
       series "count" {
         point "enabled" {
@@ -80,7 +80,7 @@ dashboard "gcp_sql_database_instance_dashboard" {
       title = "Point-in-time Recovery Status"
       query = query.gcp_sql_database_instance_point_in_time_recovery_status
       type  = "donut"
-      width = 4
+      width = 3
 
       series "count" {
         point "enabled" {
@@ -96,7 +96,7 @@ dashboard "gcp_sql_database_instance_dashboard" {
       title = "Public Access Status"
       query = query.gcp_sql_database_instance_public_access_status
       type  = "donut"
-      width = 4
+      width = 3
 
       series "count" {
         point "enabled" {
@@ -112,7 +112,7 @@ dashboard "gcp_sql_database_instance_dashboard" {
       title = "SSL Status"
       query = query.gcp_sql_database_ssl_status
       type  = "donut"
-      width = 4
+      width = 3
 
       series "count" {
         point "enabled" {
@@ -159,8 +159,8 @@ dashboard "gcp_sql_database_instance_dashboard" {
     }
 
     chart {
-      title = "Instances by Database Type"
-      query = query.gcp_sql_database_instance_by_database_type
+      title = "Instances by Database Version"
+      query = query.gcp_sql_database_instance_by_database_version
       type  = "column"
       width = 4
     }
@@ -403,16 +403,14 @@ query "gcp_sql_database_instance_by_replica" {
   EOQ
 }
 
-query "gcp_sql_database_instance_by_database_type" {
+query "gcp_sql_database_instance_by_database_version" {
   sql = <<-EOQ
     select
-      case when title = 'msdb' then 'mssql' else title end as database_type,
-      count(instance_name) as instance_count
+      database_version,
+      count(database_version)
     from
-      gcp_sql_database
-    where 
-      title in ('postgres', 'mysql', 'msdb')
+      gcp_sql_database_instance
     group by
-      title
+      database_version;
   EOQ
 }
