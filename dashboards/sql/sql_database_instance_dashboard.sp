@@ -45,7 +45,7 @@ dashboard "gcp_sql_database_instance_dashboard" {
     title = "Assessments"
 
     chart {
-      title = "Database Encryption Status"
+      title = "Encryption Status"
       query = query.gcp_sql_database_instance_encryption_status
       type  = "donut"
       width = 4
@@ -61,7 +61,7 @@ dashboard "gcp_sql_database_instance_dashboard" {
     }
 
     chart {
-      title = "Database Backup Status"
+      title = "Backup Status"
       query = query.gcp_sql_database_instance_backup_status
       type  = "donut"
       width = 4
@@ -134,28 +134,35 @@ dashboard "gcp_sql_database_instance_dashboard" {
       title = "Instances by Project"
       query = query.gcp_sql_database_instance_by_project
       type  = "column"
-      width = 3
+      width = 4
     }
 
     chart {
       title = "Instances by Location"
       query = query.gcp_sql_database_instance_by_location
       type  = "column"
-      width = 3
+      width = 4
     }
 
     chart {
       title = "Instances by State"
       query = query.gcp_sql_database_instance_by_state
       type  = "column"
-      width = 3
+      width = 4
     }
 
     chart {
       title = "Instances by Replica"
       query = query.gcp_sql_database_instance_by_replica
       type  = "column"
-      width = 3
+      width = 4
+    }
+
+    chart {
+      title = "Instances by Database Type"
+      query = query.gcp_sql_database_instance_by_database_type
+      type  = "column"
+      width = 4
     }
   }
 
@@ -165,7 +172,7 @@ dashboard "gcp_sql_database_instance_dashboard" {
 
 query "gcp_sql_database_instance_count" {
   sql = <<-EOQ
-    select count(*) as "Database Instances" from gcp_sql_database_instance;
+    select count(*) as "Instances" from gcp_sql_database_instance;
   EOQ
 }
 
@@ -173,7 +180,7 @@ query "gcp_sql_database_instance_encryption_count" {
   sql = <<-EOQ
     select
       count(*) as value,
-      'Database Unencrypted' as label,
+      'Unencrypted' as label,
       case count(*) when 0 then 'ok' else 'alert' end as "type"
     from
       gcp_sql_database_instance
@@ -205,19 +212,6 @@ query "gcp_sql_database_instance_point_in_time_recovery_enable_count" {
       gcp_sql_database_instance
     where
       enable_point_in_time_recovery;
-  EOQ
-}
-
-query "gcp_sql_database_instance_failover_replica_available_count" {
-  sql = <<-EOQ
-    select
-      count(*) as value,
-      'Fail Over Replica Disabled' as label,
-      case count(*) when 0 then 'ok' else 'alert' end as "type"
-    from
-      gcp_sql_database_instance
-    where
-      failover_replica_available;
   EOQ
 }
 
@@ -405,5 +399,19 @@ query "gcp_sql_database_instance_by_replica" {
       gcp_sql_database_instance
     where 
       master_instance_name = '';
+  EOQ
+}
+
+query "gcp_sql_database_instance_by_database_type" {
+  sql = <<-EOQ
+    select
+      case when title = 'msdb' then 'mssql' else title end as database_type,
+      count(instance_name) as instance_count
+    from
+      gcp_sql_database
+    where 
+      title in ('postgres', 'mysql', 'msdb')
+    group by
+      title
   EOQ
 }
