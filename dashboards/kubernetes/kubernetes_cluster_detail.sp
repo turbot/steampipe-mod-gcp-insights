@@ -477,8 +477,7 @@ node "gcp_kubernetes_cluster_to_compute_network_node" {
       jsonb_build_object(
         'ID', n.id::text,
         'Name', n.name,
-        'Created Time', n.creation_timestamp,
-        'Location', n.location
+        'Created Time', n.creation_timestamp
       ) as properties
     from
       gcp_kubernetes_cluster c,

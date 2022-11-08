@@ -240,6 +240,7 @@ query "gcp_sql_database_instance_ssl_enabled_count" {
       ip_configuration -> 'requireSsl' is null
   EOQ
 }
+
 # Assessment Queries
 
 query "gcp_sql_database_instance_encryption_status" {
