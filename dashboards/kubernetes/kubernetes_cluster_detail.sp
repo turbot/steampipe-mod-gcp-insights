@@ -83,7 +83,7 @@ dashboard "gcp_kubernetes_cluster_detail" {
         node.gcp_kubernetes_cluster_to_kms_key_node,
         node.gcp_kubernetes_cluster_to_bigquery_dataset_node,
         node.gcp_kubernetes_cluster_node_pool_to_compute_instance_node,
-        node.gcp_kubernetes_cluster_to_compute_zone_node
+        node.gcp_kubernetes_cluster_to_compute_firewall_node
       ]
 
       edges = [
@@ -95,7 +95,7 @@ dashboard "gcp_kubernetes_cluster_detail" {
         edge.gcp_kubernetes_cluster_to_kms_key_edge,
         edge.gcp_kubernetes_cluster_to_bigquery_dataset_edge,
         edge.gcp_kubernetes_cluster_node_pool_to_compute_instance_edge,
-        edge.gcp_kubernetes_cluster_to_compute_zone_edge
+        edge.gcp_kubernetes_cluster_to_compute_firewall_edge
       ]
 
       args = {
@@ -379,7 +379,7 @@ node "gcp_kubernetes_cluster_node_pool_to_compute_instance_group_node" {
       g.id::text as id,
       g.name as title,
       jsonb_build_object(
-        'ID', g.id,
+        'ID', g.id::text,
         'Name', g.name,
         'Created Time', g.creation_timestamp,
         'Instance Count', g.size,
@@ -473,12 +473,11 @@ node "gcp_kubernetes_cluster_to_compute_network_node" {
   sql = <<-EOQ
     select
       n.id::text as id,
-      c.network_config ->> 'network' as title,
+      n.title,
       jsonb_build_object(
         'ID', n.id::text,
         'Name', n.name,
-        'Created Time', n.creation_timestamp,
-        'Location', n.location
+        'Created Time', n.creation_timestamp
       ) as properties
     from
       gcp_kubernetes_cluster c,
@@ -517,9 +516,9 @@ node "gcp_kubernetes_cluster_network_to_compute_subnetwork_node" {
   sql = <<-EOQ
     select
       s.id::text as id,
-      c.network_config ->> 'subnetwork' as title,
+      s.title,
       jsonb_build_object(
-        'ID', s.id,
+        'ID', s.id::text,
         'Name', s.name,
         'Created Time', s.creation_timestamp,
         'Location', s.location,
@@ -565,7 +564,8 @@ node "gcp_kubernetes_cluster_to_pubsub_topic_node" {
       t.title,
       jsonb_build_object(
         'Name', t.name,
-        'Location', t.location
+        'Location', t.location,
+        'KMS Key', t.kms_key_name
       ) as properties
     from
       gcp_kubernetes_cluster c,
@@ -691,43 +691,48 @@ edge "gcp_kubernetes_cluster_to_bigquery_dataset_edge" {
   param "name" {}
 }
 
-node "gcp_kubernetes_cluster_to_compute_zone_node" {
-  category = category.gcp_compute_zone
+node "gcp_kubernetes_cluster_to_compute_firewall_node" {
+  category = category.gcp_compute_firewall
 
   sql = <<-EOQ
     select
-      z.id::text,
-      z.title,
+      f.id::text,
+      f.title,
       jsonb_build_object(
-        'ID', z.id,
-        'Name', z.name,
-        'Status', z.status,
-        'Region', z.region_name
+        'ID', f.id,
+        'Direction', f.direction,
+        'Enabled', not f.disabled,
+        'Action', f.action,
+        'Priority', f.priority
       ) as properties
     from
       gcp_kubernetes_cluster c,
-      gcp_compute_zone z
+      gcp_compute_network n,
+      gcp_compute_firewall f
     where
-      c.name = $1
-      and c.zone = z.name;
+      c.network = n.name
+      and n.self_link = f.network
+      and c.name = $1;
   EOQ
 
   param "name" {}
 }
 
-edge "gcp_kubernetes_cluster_to_compute_zone_edge" {
-  title = "zone"
+edge "gcp_kubernetes_cluster_to_compute_firewall_edge" {
+  title = "firewall"
 
   sql = <<-EOQ
     select
       c.name as from_id,
-      z.id::text as to_id
+      f.id::text as to_id
     from
       gcp_kubernetes_cluster c,
-      gcp_compute_zone z
+      gcp_compute_network n,
+      gcp_compute_firewall f
     where
-      c.name = $1
-      and c.zone = z.name;
+      c.network = n.name
+      and n.self_link = f.network
+      and c.name = $1;
   EOQ
 
   param "name" {}

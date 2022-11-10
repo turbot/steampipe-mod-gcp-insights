@@ -70,7 +70,6 @@ dashboard "gcp_compute_instance_detail" {
         node.gcp_compute_instance_subnetwork_to_compute_network_node,
         node.gcp_compute_instance_to_compute_subnetwork_node,
         node.gcp_compute_instance_from_compute_instance_group_node,
-        node.gcp_compute_instance_to_compute_zone_node,
         node.gcp_compute_instance_to_compute_firewall_node
       ]
 
@@ -79,7 +78,6 @@ dashboard "gcp_compute_instance_detail" {
         edge.gcp_compute_instance_subnetwork_to_compute_network_edge,
         edge.gcp_compute_instance_to_compute_subnetwork_edge,
         edge.gcp_compute_instance_from_compute_instance_group_edge,
-        edge.gcp_compute_instance_to_compute_zone_edge,
         edge.gcp_compute_instance_to_compute_firewall_edge
       ]
 
@@ -290,9 +288,9 @@ node "gcp_compute_instance_to_compute_disk_node" {
   sql = <<-EOQ
     select
       d.id::text,
-      disk ->> 'deviceName' as title,
+      d.title,
       jsonb_build_object(
-        'Name', disk ->> 'deviceName',
+        'ID', d.id::text,
         'Auto Delete', disk ->> 'autoDelete',
         'Created Time', d.creation_timestamp,
         'Size(GB)', disk ->> 'diskSizeGb',
@@ -304,7 +302,7 @@ node "gcp_compute_instance_to_compute_disk_node" {
       jsonb_array_elements(disks) as disk
     where
       i.id = $1
-      and d.name = (disk ->> 'deviceName');
+      and d.self_link = (disk ->> 'source');
   EOQ
 
   param "id" {}
@@ -323,7 +321,7 @@ edge "gcp_compute_instance_to_compute_disk_edge" {
       jsonb_array_elements(disks) as disk
     where
       i.id = $1
-      and d.name = (disk ->> 'deviceName');
+      and d.self_link = (disk ->> 'source');
   EOQ
 
   param "id" {}
@@ -339,8 +337,7 @@ node "gcp_compute_instance_subnetwork_to_compute_network_node" {
       jsonb_build_object(
         'ID', n.id,
         'Name', n.name,
-        'Created Time', n.creation_timestamp,
-        'Location', n.location
+        'Created Time', n.creation_timestamp
       ) as properties
     from
       gcp_compute_instance i,
@@ -383,7 +380,7 @@ node "gcp_compute_instance_to_compute_subnetwork_node" {
       s.id::text as id,
       s.name as title,
       jsonb_build_object(
-        'ID', s.id,
+        'ID', s.id::text,
         'Name', s.name,
         'Created Time', s.creation_timestamp,
         'Location', s.location,
@@ -428,7 +425,7 @@ node "gcp_compute_instance_from_compute_instance_group_node" {
       g.id::text as id,
       g.name as title,
       jsonb_build_object(
-        'ID', g.id,
+        'ID', g.id::text,
         'Name', g.name,
         'Created Time', g.creation_timestamp,
         'Instance Count', g.size,
@@ -460,48 +457,6 @@ edge "gcp_compute_instance_from_compute_instance_group_edge" {
     where
       (i ->> 'instance') = ins.self_link
       and ins.id = $1;
-  EOQ
-
-  param "id" {}
-}
-
-node "gcp_compute_instance_to_compute_zone_node" {
-  category = category.gcp_compute_zone
-
-  sql = <<-EOQ
-    select
-      z.id::text,
-      z.title,
-      jsonb_build_object(
-        'ID', z.id,
-        'Name', z.name,
-        'Status', z.status,
-        'Region', z.region_name
-      ) as properties
-    from
-      gcp_compute_instance as i,
-      gcp_compute_zone z
-    where
-      i.zone_name = z.name
-      and i.id = $1;
-  EOQ
-
-  param "id" {}
-}
-
-edge "gcp_compute_instance_to_compute_zone_edge" {
-  title = "zone"
-
-  sql = <<-EOQ
-    select
-      i.id::text as from_id,
-      z.id::text as to_id
-    from
-      gcp_compute_instance as i,
-      gcp_compute_zone z
-    where
-      i.zone_name = z.name
-      and i.id = $1;
   EOQ
 
   param "id" {}
