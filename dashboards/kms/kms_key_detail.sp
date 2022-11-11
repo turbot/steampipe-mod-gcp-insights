@@ -145,7 +145,7 @@ node "gcp_kms_key_node" {
 
   sql = <<-EOQ
     select
-      concat(name, '_key') as id,
+      name as id,
       title as title,
       jsonb_build_object(
         'Name', name,
@@ -190,7 +190,7 @@ edge "gcp_kms_key_from_storage_bucket_edge" {
   sql = <<-EOQ
     select
       b.id as from_id,
-      concat(k.name, '_key') as to_id
+      k.name as to_id
     from
       gcp_storage_bucket b,
       gcp_kms_key k
@@ -233,7 +233,7 @@ edge "gcp_kms_key_from_pubsub_topic_edge" {
   sql = <<-EOQ
     select
       p.name as from_id,
-      concat(k.name, '_key') as to_id
+      k.name as to_id
     from
       gcp_pubsub_topic p,
       gcp_kms_key k
@@ -275,7 +275,7 @@ edge "gcp_kms_key_from_kms_key_ring_edge" {
   sql = <<-EOQ
     select
       concat(p.name, '_key_ring') as from_id,
-      concat(k.name, '_key') as to_id
+      k.name as to_id
     from
       gcp_kms_key_ring p,
       gcp_kms_key k
@@ -310,7 +310,7 @@ node "gcp_kms_key_from_compute_disk_node" {
       and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.name;
   EOQ
 
-  param "id" {}
+  param "key_name" {}
 }
 
 edge "gcp_kms_key_from_compute_disk_edge" {
@@ -329,52 +329,7 @@ edge "gcp_kms_key_from_compute_disk_edge" {
       and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.name;
   EOQ
 
-  param "id" {}
-}
-
-node "gcp_kms_key_from_compute_disk_node" {
-  category = category.gcp_compute_disk
-
-  sql = <<-EOQ
-    select
-      d.id::text,
-      d.title,
-      jsonb_build_object(
-        'ID', d.id,
-        'Created Time', d.creation_timestamp,
-        'Size(GB)', d.size_gb,
-        'Status', d.status,
-        'Encryption Key Type', d.disk_encryption_key_type
-      ) as properties
-    from
-      gcp_compute_disk d,
-      gcp_kms_key k
-    where
-      k.name = $1
-      and d.disk_encryption_key is not null
-      and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.name;
-  EOQ
-
-  param "id" {}
-}
-
-edge "gcp_kms_key_from_compute_disk_edge" {
-  title = "encrypted with"
-
-  sql = <<-EOQ
-    select
-      d.id::text as from_id,
-      k.name as to_id
-    from
-      gcp_compute_disk d,
-      gcp_kms_key k
-    where
-      k.name = $1
-      and d.disk_encryption_key is not null
-      and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.name;
-  EOQ
-
-  param "id" {}
+  param "key_name" {}
 }
 
 node "gcp_kms_key_from_sql_database_instance_node" {
@@ -400,7 +355,7 @@ node "gcp_kms_key_from_sql_database_instance_node" {
       and k.name = $1;
   EOQ
 
-  param "name" {}
+  param "key_name" {}
 }
 
 edge "gcp_kms_key_from_sql_database_instance_edge" {
@@ -418,7 +373,7 @@ edge "gcp_kms_key_from_sql_database_instance_edge" {
       and k.name = $1;
   EOQ
 
-  param "name" {}
+  param "key_name" {}
 }
 
 node "gcp_kms_key_from_compute_snapshot_node" {
@@ -442,7 +397,7 @@ node "gcp_kms_key_from_compute_snapshot_node" {
       and k.name = $1;
   EOQ
 
-  param "id" {}
+  param "key_name" {}
 }
 
 edge "gcp_kms_key_from_compute_snapshot_edge" {
@@ -460,7 +415,7 @@ edge "gcp_kms_key_from_compute_snapshot_edge" {
       and k.name = $1;
   EOQ
 
-  param "id" {}
+  param "key_name" {}
 }
 
 node "gcp_kms_key_from_bigquery_dataset_node" {
@@ -485,7 +440,7 @@ node "gcp_kms_key_from_bigquery_dataset_node" {
       and k.name = $1;
   EOQ
 
-  param "id" {}
+  param "key_name" {}
 }
 
 edge "gcp_kms_key_from_bigquery_dataset_edge" {
@@ -503,7 +458,7 @@ edge "gcp_kms_key_from_bigquery_dataset_edge" {
       and k.name = $1;
   EOQ
 
-  param "id" {}
+  param "key_name" {}
 }
 
 node "gcp_kms_key_from_bigquery_table_node" {
@@ -529,7 +484,7 @@ node "gcp_kms_key_from_bigquery_table_node" {
       and k.name = $1;
   EOQ
 
-  param "id" {}
+  param "key_name" {}
 }
 
 edge "gcp_kms_key_from_bigquery_table_edge" {
@@ -547,7 +502,7 @@ edge "gcp_kms_key_from_bigquery_table_edge" {
       and k.name = $1;
   EOQ
 
-  param "id" {}
+  param "key_name" {}
 }
 
 node "gcp_kms_key_from_sql_backup_node" {
@@ -572,7 +527,7 @@ node "gcp_kms_key_from_sql_backup_node" {
       split_part(b.disk_encryption_configuration ->> 'kmsKeyName','cryptoKeys/',2) = $1;
   EOQ
 
-  param "id" {}
+  param "key_name" {}
 }
 
 edge "gcp_kms_key_from_sql_backup_edge" {
@@ -589,7 +544,7 @@ edge "gcp_kms_key_from_sql_backup_edge" {
       split_part(b.disk_encryption_configuration ->> 'kmsKeyName','cryptoKeys/',2) = $1;
   EOQ
 
-  param "id" {}
+  param "key_name" {}
 }
 
 node "gcp_kms_key_to_kms_key_version_node" {
@@ -597,7 +552,7 @@ node "gcp_kms_key_to_kms_key_version_node" {
 
   sql = <<-EOQ
     select
-      v.self_link::text as id,
+      v.name || '_' || v.crypto_key_version as id,
       v.title,
       jsonb_build_object(
         'Created Time', v.create_time,
@@ -609,30 +564,28 @@ node "gcp_kms_key_to_kms_key_version_node" {
         'Location', v.location
       ) as properties
     from
-      gcp_kms_key k,
       gcp_kms_key_version v
     where
       v.name = $1;
   EOQ
 
-  param "id" {}
+  param "key_name" {}
 }
 
 edge "gcp_kms_key_to_kms_key_version_edge" {
-  title = "encrypted with"
+  title = "version"
 
   sql = <<-EOQ
     select
-      v.self_link::text as from_id,
-      k.name as to_id
+      $1 as from_id,
+      v.name || '_' || v.crypto_key_version as to_id
     from
-      gcp_kms_key k,
       gcp_kms_key_version v
     where
       v.name = $1;
   EOQ
 
-  param "id" {}
+  param "key_name" {}
 }
 
 query "gcp_kms_key_purpose" {
