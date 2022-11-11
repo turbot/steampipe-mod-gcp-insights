@@ -260,12 +260,12 @@ query "gcp_storage_bucket_uniform_bucket_level_access" {
 
 ## Graph
 
-category "gcp_storage_bucket" {
+category "gcp_storage_bucket_no_link" {
   icon = local.gcp_storage_bucket
 }
 
 node "gcp_storage_bucket_node" {
-  category = category.gcp_storage_bucket
+  category = category.gcp_storage_bucket_no_link
 
   sql = <<-EOQ
     select
@@ -365,7 +365,6 @@ edge "gcp_storage_bucket_to_logging_bucket_edge" {
       b.id as from_id,
       l.name as to_id,
       jsonb_build_object(
-        'Log Bucket', b.log_bucket,
         'Log Object Prefix', b.log_object_prefix
       ) as properties
     from

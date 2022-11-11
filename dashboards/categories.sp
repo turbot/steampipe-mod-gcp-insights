@@ -7,6 +7,13 @@ category "gcp_bigquery_dataset" {
   }
 }
 
+category "gcp_bigquery_table" {
+  fold {
+    title     = "BigQuery Tables"
+    threshold = 3
+  }
+}
+
 category "gcp_compute_address" {
   fold {
     title     = "Compute Address"
@@ -46,7 +53,7 @@ category "gcp_compute_disk" {
 category "gcp_compute_forwarding_rule" {
   href = "/gcp_insights.dashboard.gcp_compute_forwarding_rule_detail?input.id={{.properties.'ID' | @uri}}"
   fold {
-    title     = "Compute Forwarding Rule"
+    title     = "Compute Forwarding Rules"
     threshold = 3
   }
 }
@@ -142,48 +149,48 @@ category "gcp_compute_subnetwork" {
 
 category "gcp_compute_vpn_gateway" {
   fold {
-    title     = "Compute VPN Gateway"
+    title     = "Compute VPN Gateways"
     threshold = 3
   }
 }
 
 category "gcp_compute_target_pool" {
   fold {
-    title     = "Compute Target Pool"
+    title     = "Compute Target Pools"
     threshold = 3
   }
 }
 
 category "gcp_compute_target_https_proxy" {
   fold {
-    title     = "Compute Target HTTPS Proxy"
+    title     = "Compute Target HTTPS Proxies"
     threshold = 3
   }
 }
 
 category "gcp_compute_target_ssl_proxy" {
   fold {
-    title     = "Compute Target SSL Proxy"
+    title     = "Compute Target SSL Proxies"
     threshold = 3
   }
 }
 
 category "gcp_dns_policy" {
   fold {
-    title     = "DNS Policy"
+    title     = "DNS Policies"
     threshold = 3
   }
 }
 
 category "gcp_iam_role" {
   fold {
-    title     = "IAM Role"
+    title     = "IAM Roles"
     threshold = 3
   }
 }
 
 category "gcp_kms_key" {
-  # href = "/gcp_insights.dashboard.gcp_kms_key_detail?input.id={{.properties.'ID' | @uri}}"
+  href = "/gcp_insights.dashboard.gcp_kms_key_detail?input.key_name={{.properties.'Name' | @uri}}"
   icon = local.gcp_kms_key
   fold {
     title     = "KMS Keys"
@@ -194,7 +201,16 @@ category "gcp_kms_key" {
 
 category "gcp_kms_key_ring" {
   fold {
-    title     = "KMS Key Ring"
+    title     = "KMS Key Rings"
+    threshold = 3
+  }
+}
+
+category "gcp_kms_key_version" {
+  icon = local.gcp_kms_key
+  fold {
+    title     = "KMS Key Versions"
+    icon      = local.gcp_kms_key
     threshold = 3
   }
 }
@@ -225,7 +241,7 @@ category "gcp_logging_bucket" {
 
 category "gcp_pubsub_subscription" {
   fold {
-    title     = "Pub/Sub Subscription"
+    title     = "Pub/Sub Subscriptions"
     threshold = 3
   }
 }
@@ -246,6 +262,13 @@ category "gcp_storage_bucket" {
   fold {
     title     = "Storage Buckets"
     icon      = local.gcp_storage_bucket
+    threshold = 3
+  }
+}
+
+category "gcp_sql_backup" {
+  fold {
+    title     = "GCP SQL Backups"
     threshold = 3
   }
 }
