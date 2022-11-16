@@ -155,6 +155,8 @@ query "gcp_compute_instance_group_size" {
 ## Graph
 
 category "gcp_compute_instance_group_no_link" {
+  color = "orange"
+  icon  = "heroicons-outline:rectangle-stack"
 }
 
 node "gcp_compute_instance_group_node" {
@@ -231,7 +233,7 @@ node "gcp_compute_instance_group_to_compute_network_node" {
   sql = <<-EOQ
     select
       n.id::text as id,
-      n.name as title,
+      n.title,
       jsonb_build_object(
         'ID', n.id,
         'Name', n.name,
@@ -274,7 +276,7 @@ node "gcp_compute_instance_group_compute_network_to_compute_subnetwork_node" {
   sql = <<-EOQ
     select
       s.id::text as id,
-      s.name as title,
+      s.title,
       jsonb_build_object(
         'ID', s.id::text,
         'Name', s.name,

@@ -51,7 +51,7 @@ dashboard "gcp_compute_network_detail" {
 
       nodes = [
         node.gcp_compute_network_node,
-        node.gcp_compute_network_from_compute_subnetwork_node,
+        node.gcp_compute_network_to_compute_subnetwork_node,
         node.gcp_compute_network_to_compute_firewall_node,
         node.gcp_compute_network_from_compute_backend_service_node,
         node.gcp_compute_network_from_compute_router_node,
@@ -62,7 +62,7 @@ dashboard "gcp_compute_network_detail" {
       ]
 
       edges = [
-        edge.gcp_compute_network_from_compute_subnetwork_edge,
+        edge.gcp_compute_network_to_compute_subnetwork_edge,
         edge.gcp_compute_network_to_compute_firewall_edge,
         edge.gcp_compute_network_from_compute_backend_service_edge,
         edge.gcp_compute_network_from_compute_router_edge,
@@ -180,7 +180,8 @@ query "gcp_compute_network_is_default" {
 }
 
 category "gcp_compute_network_no_link" {
-  icon = local.gcp_compute_network
+  color = "orange"
+  icon  = "heroicons-outline:cloud"
 }
 
 node "gcp_compute_network_node" {
@@ -204,13 +205,13 @@ node "gcp_compute_network_node" {
   param "name" {}
 }
 
-node "gcp_compute_network_from_compute_subnetwork_node" {
+node "gcp_compute_network_to_compute_subnetwork_node" {
   category = category.gcp_compute_subnetwork
 
   sql = <<-EOQ
     select
       s.id::text as id,
-      s.location || '/' || s.name as title,
+      s.title,
       jsonb_build_object(
         'ID', s.id::text,
         'Name', s.name,
@@ -229,13 +230,13 @@ node "gcp_compute_network_from_compute_subnetwork_node" {
   param "name" {}
 }
 
-edge "gcp_compute_network_from_compute_subnetwork_edge" {
-  title = "network"
+edge "gcp_compute_network_to_compute_subnetwork_edge" {
+  title = "subnetwork"
 
   sql = <<-EOQ
     select
-      s.id::text as from_id,
-      n.name as to_id
+      n.name as from_id,
+      s.id::text as to_id
     from
       gcp_compute_subnetwork s,
       gcp_compute_network n

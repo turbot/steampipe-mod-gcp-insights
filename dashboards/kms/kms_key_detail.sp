@@ -137,7 +137,8 @@ query "gcp_kms_key_name_input" {
 }
 
 category "gcp_kms_key_no_link" {
-  icon = local.gcp_kms_key
+  color = "red"
+  icon  = "heroicons-outline:key"
 }
 
 node "gcp_kms_key_node" {
@@ -146,7 +147,7 @@ node "gcp_kms_key_node" {
   sql = <<-EOQ
     select
       name as id,
-      title as title,
+      title,
       jsonb_build_object(
         'Name', name,
         'Created Time', create_time,

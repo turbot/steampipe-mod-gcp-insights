@@ -307,7 +307,8 @@ query "gcp_kubernetes_cluster_auto_repair_disabled" {
 ## Graph
 
 category "gcp_kubernetes_cluster_no_link" {
-  icon = local.gcp_kubernetes_cluster
+  color = "orange"
+  icon  = "heroicons-outline:cog"
 }
 
 node "gcp_kubernetes_cluster_node" {
@@ -377,7 +378,7 @@ node "gcp_kubernetes_cluster_node_pool_to_compute_instance_group_node" {
   sql = <<-EOQ
     select
       g.id::text as id,
-      g.name as title,
+      g.title,
       jsonb_build_object(
         'ID', g.id::text,
         'Name', g.name,
@@ -627,7 +628,7 @@ node "gcp_kubernetes_cluster_to_kms_key_node" {
 }
 
 edge "gcp_kubernetes_cluster_to_kms_key_edge" {
-  title = "database encrypted with"
+  title = "encrypted with"
 
   sql = <<-EOQ
     select

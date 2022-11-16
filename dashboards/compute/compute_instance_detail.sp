@@ -256,7 +256,8 @@ query "gcp_compute_instance_confidential_vm_service" {
 ## Graph
 
 category "gcp_compute_instance_no_link" {
-  icon = local.gcp_compute_instance
+  color = "orange"
+  icon  = "heroicons-outline:cpu-chip"
 }
 
 node "gcp_compute_instance_node" {
@@ -333,7 +334,7 @@ node "gcp_compute_instance_subnetwork_to_compute_network_node" {
   sql = <<-EOQ
     select
       n.id::text as id,
-      n.name as title,
+      n.title,
       jsonb_build_object(
         'ID', n.id,
         'Name', n.name,
@@ -378,7 +379,7 @@ node "gcp_compute_instance_to_compute_subnetwork_node" {
   sql = <<-EOQ
     select
       s.id::text as id,
-      s.name as title,
+      s.title,
       jsonb_build_object(
         'ID', s.id::text,
         'Name', s.name,
@@ -423,7 +424,7 @@ node "gcp_compute_instance_from_compute_instance_group_node" {
   sql = <<-EOQ
     select
       g.id::text as id,
-      g.name as title,
+      g.title,
       jsonb_build_object(
         'ID', g.id::text,
         'Name', g.name,

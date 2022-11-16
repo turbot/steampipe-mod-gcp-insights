@@ -188,7 +188,10 @@ query "gcp_compute_forwarding_rule_label" {
   param "id" {}
 }
 
-category "gcp_compute_forwarding_rule_no_link" {}
+category "gcp_compute_forwarding_rule_no_link" {
+  color = "orange"
+  icon  = "heroicons-outline:arrow-right-on-rectangle"
+}
 
 node "gcp_compute_forwarding_rule_node" {
   category = category.gcp_compute_forwarding_rule_no_link
@@ -503,7 +506,7 @@ node "gcp_compute_forwarding_rule_to_compute_network_node" {
   sql = <<-EOQ
     select
       n.id::text as id,
-      n.name as title,
+      n.title,
       jsonb_build_object(
         'ID', n.id,
         'Name', n.name,
@@ -544,7 +547,7 @@ node "gcp_compute_forwarding_rule_to_compute_subnetwork_node" {
   sql = <<-EOQ
     select
       s.id::text as id,
-      s.name as title,
+      s.title,
       jsonb_build_object(
         'ID', s.id::text,
         'Name', s.name,

@@ -310,6 +310,8 @@ query "gcp_compute_disk_encryption_status" {
 ## Graph
 
 category "gcp_compute_disk_no_link" {
+  color = "orange"
+  icon  = "heroicons-outline:server"
 }
 
 node "gcp_compute_disk_node" {
