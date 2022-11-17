@@ -70,7 +70,7 @@ category "gcp_compute_instance" {
 category "gcp_compute_instance_group" {
   color = local.compute_color
   icon  = "rectangle-stack"
-  href  = "/gcp_insights.dashboard.gcp_compute_group_instance_detail?input.group_id={{.properties.'ID' | @uri}}"
+  href  = "/gcp_insights.dashboard.gcp_compute_instance_group_detail?input.group_id={{.properties.'ID' | @uri}}"
   title = "Compute Instance Group"
 }
 

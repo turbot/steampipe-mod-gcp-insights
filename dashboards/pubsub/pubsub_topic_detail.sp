@@ -231,11 +231,6 @@ query "gcp_pubsub_topic_subscription_details" {
   param "name" {}
 }
 
-category "gcp_pubsub_topic" {
-  color = local.pubsub_color
-  icon  = "heroicons-outline:rss"
-}
-
 node "gcp_pubsub_topic_node" {
   category = category.gcp_pubsub_topic
 

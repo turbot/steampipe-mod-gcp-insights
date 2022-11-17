@@ -1,4 +1,4 @@
-dashboard "gcp_compute_group_instance_detail" {
+dashboard "gcp_compute_instance_group_detail" {
 
   title         = "GCP Compute Instance Group Detail"
   documentation = file("./dashboards/compute/docs/compute_instance_group_detail.md")
@@ -155,11 +155,6 @@ query "gcp_compute_instance_group_size" {
 }
 
 ## Graph
-
-category "gcp_compute_instance_group" {
-  color = "orange"
-  icon  = "heroicons-outline:rectangle-stack"
-}
 
 node "gcp_compute_instance_group_node" {
   category = category.gcp_compute_instance_group

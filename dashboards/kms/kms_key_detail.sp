@@ -138,11 +138,6 @@ query "gcp_kms_key_name_input" {
   EOQ
 }
 
-category "gcp_kms_key" {
-  color = "red"
-  icon  = "heroicons-outline:key"
-}
-
 node "gcp_kms_key_node" {
   category = category.gcp_kms_key
 

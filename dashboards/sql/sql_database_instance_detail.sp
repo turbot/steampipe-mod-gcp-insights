@@ -403,11 +403,6 @@ query "gcp_sql_database_instance_connection" {
   param "name" {}
 }
 
-category "gcp_sql_database_instance" {
-  color = "blue"
-  icon  = "heroicons-outline:circle-stack"
-}
-
 node "gcp_sql_database_instance_node" {
   category = category.gcp_sql_database_instance
 

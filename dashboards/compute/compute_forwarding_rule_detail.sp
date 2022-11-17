@@ -188,11 +188,6 @@ query "gcp_compute_forwarding_rule_label" {
   param "id" {}
 }
 
-category "gcp_compute_forwarding_rule" {
-  color = "orange"
-  icon  = "heroicons-outline:arrow-right-on-rectangle"
-}
-
 node "gcp_compute_forwarding_rule_node" {
   category = category.gcp_compute_forwarding_rule
 
