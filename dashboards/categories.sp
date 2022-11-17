@@ -62,8 +62,8 @@ category "gcp_compute_image" {
 
 category "gcp_compute_instance" {
   color = local.compute_color
-  href  = "/gcp_insights.dashboard.gcp_compute_instance_detail?input.instance_id={{.properties.'ID' | @uri}}"
   icon  = "cpu-chip"
+  href  = "/gcp_insights.dashboard.gcp_compute_instance_detail?input.instance_id={{.properties.'ID' | @uri}}"
   title = "Compute Instance"
 }
 
@@ -114,7 +114,7 @@ category "gcp_compute_subnetwork" {
 
 category "gcp_compute_vpn_gateway" {
   color = local.compute_color
-  icon  = "arrows-right-left"
+  icon  = "text:vpngw"
   title = "Compute VPN Gateway"
 }
 
@@ -169,8 +169,8 @@ category "gcp_kms_key_version" {
 
 category "gcp_kubernetes_cluster" {
   color = local.kubernetes_color
-  href  = "/gcp_insights.dashboard.gcp_kubernetes_cluster_detail?input.cluster_name={{.properties.'Name' | @uri}}"
   icon  = "cog"
+  href  = "/gcp_insights.dashboard.gcp_kubernetes_cluster_detail?input.cluster_name={{.properties.'Name' | @uri}}"
   title = "Kubernetes Cluster"
 }
 

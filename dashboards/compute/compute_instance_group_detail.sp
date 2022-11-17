@@ -35,21 +35,23 @@ dashboard "gcp_compute_group_instance_detail" {
 
       nodes = [
         node.gcp_compute_instance_group_node,
+        node.gcp_compute_instance_group_from_compute_backend_service_node,
         node.gcp_compute_instance_group_to_compute_instance_node,
         node.gcp_compute_instance_group_to_compute_network_node,
         node.gcp_compute_instance_group_compute_network_to_compute_subnetwork_node,
         node.gcp_compute_instance_group_to_compute_autoscaler_node,
         node.gcp_compute_instance_group_to_compute_firewall_node,
-        node.gcp_compute_instance_group_to_compute_backend_service_node
+        node.gcp_compute_instance_group_from_kubernetes_cluster_node
       ]
 
       edges = [
+        edge.gcp_compute_instance_group_from_compute_backend_service_edge,
         edge.gcp_compute_instance_group_to_compute_instance_edge,
         edge.gcp_compute_instance_group_to_compute_network_edge,
         edge.gcp_compute_instance_group_compute_network_to_compute_subnetwork_edge,
         edge.gcp_compute_instance_group_to_compute_autoscaler_edge,
         edge.gcp_compute_instance_group_to_compute_firewall_edge,
-        edge.gcp_compute_instance_group_to_compute_backend_service_edge
+        edge.gcp_compute_instance_group_from_kubernetes_cluster_edge
       ]
 
       args = {
@@ -401,7 +403,7 @@ edge "gcp_compute_instance_group_to_compute_firewall_edge" {
   param "id" {}
 }
 
-node "gcp_compute_instance_group_to_compute_backend_service_node" {
+node "gcp_compute_instance_group_from_compute_backend_service_node" {
   category = category.gcp_compute_backend_service
 
   sql = <<-EOQ
@@ -427,7 +429,7 @@ node "gcp_compute_instance_group_to_compute_backend_service_node" {
   param "id" {}
 }
 
-edge "gcp_compute_instance_group_to_compute_backend_service_edge" {
+edge "gcp_compute_instance_group_from_compute_backend_service_edge" {
   title = "instance group"
 
   sql = <<-EOQ
@@ -440,6 +442,51 @@ edge "gcp_compute_instance_group_to_compute_backend_service_edge" {
       jsonb_array_elements(bs.backends) b
     where
       b ->> 'group' = g.self_link
+      and g.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_instance_group_from_kubernetes_cluster_node" {
+  category = category.gcp_kubernetes_cluster
+
+  sql = <<-EOQ
+    select
+      c.name as id,
+      c.title,
+      jsonb_build_object(
+        'Name', c.name,
+        'Created Time', c.create_time,
+        'Endpoint', c.endpoint,
+        'Services IPv4 CIDR', c.services_ipv4_cidr,
+        'Status', c.status
+      ) as properties
+    from
+      gcp_kubernetes_cluster c,
+      gcp_compute_instance_group g,
+      jsonb_array_elements_text(instance_group_urls) ig
+    where
+      split_part(ig, 'instanceGroupManagers/', 2) = g.name
+      and g.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_instance_group_from_kubernetes_cluster_edge" {
+  title = "instance group"
+
+  sql = <<-EOQ
+    select
+      c.name as from_id,
+      g.id::text as to_id
+    from
+      gcp_kubernetes_cluster c,
+      gcp_compute_instance_group g,
+      jsonb_array_elements_text(instance_group_urls) ig
+    where
+      split_part(ig, 'instanceGroupManagers/', 2) = g.name
       and g.id = $1;
   EOQ
 

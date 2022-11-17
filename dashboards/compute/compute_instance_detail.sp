@@ -310,7 +310,7 @@ node "gcp_compute_instance_to_compute_disk_node" {
 }
 
 edge "gcp_compute_instance_to_compute_disk_edge" {
-  title = "attached"
+  title = "mounts"
 
   sql = <<-EOQ
     select

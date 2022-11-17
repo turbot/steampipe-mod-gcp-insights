@@ -68,21 +68,21 @@ dashboard "gcp_compute_disk_detail" {
       nodes = [
         node.gcp_compute_disk_node,
         node.gcp_compute_disk_from_compute_instance_node,
+        node.gcp_compute_disk_from_compute_disk_node,
+        node.gcp_compute_disk_from_compute_snapshot_node,
         node.gcp_compute_disk_to_kms_key_node,
         node.gcp_compute_disk_to_compute_disk_node,
-        node.gcp_compute_disk_from_compute_disk_node,
         node.gcp_compute_disk_to_compute_snapshot_node,
-        node.gcp_compute_disk_from_compute_snapshot_node,
         node.gcp_compute_disk_to_compute_image_node
       ]
 
       edges = [
         edge.gcp_compute_disk_from_compute_instance_edge,
+        edge.gcp_compute_disk_from_compute_disk_edge,
+        edge.gcp_compute_disk_from_compute_snapshot_edge,
         edge.gcp_compute_disk_to_kms_key_edge,
         edge.gcp_compute_disk_to_compute_disk_edge,
-        edge.gcp_compute_disk_from_compute_disk_edge,
         edge.gcp_compute_disk_to_compute_snapshot_edge,
-        edge.gcp_compute_disk_from_compute_snapshot_edge,
         edge.gcp_compute_disk_to_compute_image_edge
 
       ]
