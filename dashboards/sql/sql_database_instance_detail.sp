@@ -471,7 +471,7 @@ node "gcp_sql_database_instance_to_sql_database_node" {
   category = category.gcp_sql_database
 
   sql = <<-EOQ
-  select
+    select
       d.name as id,
       d.title,
       jsonb_build_object(
@@ -492,7 +492,7 @@ edge "gcp_sql_database_instance_to_sql_database_edge" {
   title = "database"
 
   sql = <<-EOQ
-  select
+    select
       i.name as from_id,
       d.name as to_id
     from
