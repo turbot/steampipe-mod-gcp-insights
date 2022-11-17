@@ -189,13 +189,13 @@ query "gcp_compute_subnetwork_flow_logs" {
   param "id" {}
 }
 
-category "gcp_compute_subnetwork_no_link" {
+category "gcp_compute_subnetwork" {
   color = "orange"
   icon  = "heroicons-solid:share"
 }
 
 node "gcp_compute_subnetwork_node" {
-  category = category.gcp_compute_subnetwork_no_link
+  category = category.gcp_compute_subnetwork
 
   sql = <<-EOQ
     select

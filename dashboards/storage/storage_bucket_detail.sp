@@ -260,13 +260,13 @@ query "gcp_storage_bucket_uniform_bucket_level_access" {
 
 ## Graph
 
-category "gcp_storage_bucket_no_link" {
+category "gcp_storage_bucket" {
   color = "green"
   icon  = "heroicons-outline:archive-box"
 }
 
 node "gcp_storage_bucket_node" {
-  category = category.gcp_storage_bucket_no_link
+  category = category.gcp_storage_bucket
 
   sql = <<-EOQ
     select

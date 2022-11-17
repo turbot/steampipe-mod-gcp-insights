@@ -255,13 +255,13 @@ query "gcp_compute_instance_confidential_vm_service" {
 
 ## Graph
 
-category "gcp_compute_instance_no_link" {
+category "gcp_compute_instance" {
   color = "orange"
   icon  = "heroicons-outline:cpu-chip"
 }
 
 node "gcp_compute_instance_node" {
-  category = category.gcp_compute_instance_no_link
+  category = category.gcp_compute_instance
 
   sql = <<-EOQ
     select

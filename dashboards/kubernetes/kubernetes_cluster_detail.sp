@@ -306,13 +306,13 @@ query "gcp_kubernetes_cluster_auto_repair_disabled" {
 
 ## Graph
 
-category "gcp_kubernetes_cluster_no_link" {
+category "gcp_kubernetes_cluster" {
   color = "orange"
   icon  = "heroicons-outline:cog"
 }
 
 node "gcp_kubernetes_cluster_node" {
-  category = category.gcp_kubernetes_cluster_no_link
+  category = category.gcp_kubernetes_cluster
 
   sql = <<-EOQ
     select

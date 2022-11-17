@@ -72,7 +72,8 @@ dashboard "gcp_kms_key_detail" {
         node.gcp_kms_key_from_compute_snapshot_node,
         node.gcp_kms_key_from_sql_database_instance_node,
         node.gcp_kms_key_from_bigquery_dataset_node,
-        node.gcp_kms_key_to_kms_key_version_node
+        node.gcp_kms_key_to_kms_key_version_node,
+        node.gcp_kms_key_from_kubernetes_cluster_node
       ]
 
       edges = [
@@ -83,7 +84,8 @@ dashboard "gcp_kms_key_detail" {
         edge.gcp_kms_key_from_compute_snapshot_edge,
         edge.gcp_kms_key_from_sql_database_instance_edge,
         edge.gcp_kms_key_from_bigquery_dataset_edge,
-        edge.gcp_kms_key_to_kms_key_version_edge
+        edge.gcp_kms_key_to_kms_key_version_edge,
+        edge.gcp_kms_key_from_kubernetes_cluster_edge
       ]
 
       args = {
@@ -136,13 +138,13 @@ query "gcp_kms_key_name_input" {
   EOQ
 }
 
-category "gcp_kms_key_no_link" {
+category "gcp_kms_key" {
   color = "red"
   icon  = "heroicons-outline:key"
 }
 
 node "gcp_kms_key_node" {
-  category = category.gcp_kms_key_no_link
+  category = category.gcp_kms_key
 
   sql = <<-EOQ
     select
@@ -584,6 +586,51 @@ edge "gcp_kms_key_to_kms_key_version_edge" {
       gcp_kms_key_version v
     where
       v.name = $1;
+  EOQ
+
+  param "key_name" {}
+}
+
+node "gcp_kms_key_from_kubernetes_cluster_node" {
+  category = category.gcp_kubernetes_cluster
+
+  sql = <<-EOQ
+    select
+      c.name as id,
+      c.title,
+      jsonb_build_object(
+        'Name', c.name,
+        'Created Time', c.create_time,
+        'Endpoint', c.endpoint,
+        'Services IPv4 CIDR', c.services_ipv4_cidr,
+        'Status', c.status
+      ) as properties
+    from
+      gcp_kubernetes_cluster c,
+      gcp_kms_key k
+    where
+      k.name = $1
+      and c.database_encryption_key_name is not null
+      and split_part(c.database_encryption_key_name, 'cryptoKeys/', 2) = k.name;
+  EOQ
+
+  param "key_name" {}
+}
+
+edge "gcp_kms_key_from_kubernetes_cluster_edge" {
+  title = "encrypted with"
+
+  sql = <<-EOQ
+    select
+      c.name as from_id,
+      k.name as to_id
+    from
+      gcp_kubernetes_cluster c,
+      gcp_kms_key k
+    where
+      k.name = $1
+      and c.database_encryption_key_name is not null
+      and split_part(c.database_encryption_key_name, 'cryptoKeys/', 2) = k.name;
   EOQ
 
   param "key_name" {}

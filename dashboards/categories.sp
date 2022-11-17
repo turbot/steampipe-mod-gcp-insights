@@ -54,12 +54,6 @@ category "gcp_compute_firewall" {
   title = "Compute Firewall Rule"
 }
 
-category "gcp_compute_health_check" {
-  color = local.compute_color
-  icon  = "heart"
-  title = "Compute Health Check"
-}
-
 category "gcp_compute_image" {
   color = local.compute_color
   icon  = "rectangle-group"

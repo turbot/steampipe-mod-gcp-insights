@@ -179,13 +179,13 @@ query "gcp_compute_network_is_default" {
   param "name" {}
 }
 
-category "gcp_compute_network_no_link" {
+category "gcp_compute_network" {
   color = "orange"
   icon  = "heroicons-outline:cloud"
 }
 
 node "gcp_compute_network_node" {
-  category = category.gcp_compute_network_no_link
+  category = category.gcp_compute_network
 
   sql = <<-EOQ
     select

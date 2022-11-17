@@ -154,13 +154,13 @@ query "gcp_compute_instance_group_size" {
 
 ## Graph
 
-category "gcp_compute_instance_group_no_link" {
+category "gcp_compute_instance_group" {
   color = "orange"
   icon  = "heroicons-outline:rectangle-stack"
 }
 
 node "gcp_compute_instance_group_node" {
-  category = category.gcp_compute_instance_group_no_link
+  category = category.gcp_compute_instance_group
 
   sql = <<-EOQ
     select
