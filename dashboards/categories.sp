@@ -1,29 +1,29 @@
 category "gcp_bigquery_dataset" {
-  color = local.bigquery_color
+  color = local.sql_color
   icon  = "square-3-stack-3d"
   title = "BigQuery Dataset"
 }
 
 category "gcp_bigquery_table" {
-  color = local.bigquery_color
+  color = local.sql_color
   icon  = "table-cells"
   title = "BigQuery Table"
 }
 
 category "gcp_compute_address" {
-  color = local.compute_color
+  color = local.network_color
   icon  = "map-pin"
   title = "Compute Address"
 }
 
 category "gcp_compute_autoscaler" {
-  color = local.compute_color
+  color = local.network_color
   icon  = "square-2-stack"
   title = "Compute Autoscaler"
 }
 
 category "gcp_compute_backend_bucket" {
-  color = local.compute_color
+  color = local.storage_color
   icon  = "archive-box"
   title = "Compute Backend Bucket"
 }
@@ -42,7 +42,7 @@ category "gcp_compute_disk" {
 }
 
 category "gcp_compute_forwarding_rule" {
-  color = local.compute_color
+  color = local.network_color
   icon  = "arrow-right-on-rectangle"
   href  = "/gcp_insights.dashboard.gcp_compute_forwarding_rule_detail?input.id={{.properties.'ID' | @uri}}"
   title = "Compute Forwarding Rule"
@@ -81,20 +81,20 @@ category "gcp_compute_instance_template" {
 }
 
 category "gcp_compute_network" {
-  color = local.compute_color
+  color = local.network_color
   href  = "/gcp_insights.dashboard.gcp_compute_network_detail?input.network_name={{.properties.'Name' | @uri}}"
   icon  = "cloud"
   title = "Compute Network"
 }
 
 category "gcp_compute_network_interface" {
-  color = local.compute_color
-  icon  = "cloud-arrow-down"
+  color = local.network_color
+  icon  = "text:CNI"
   title = "Compute Network Interface"
 }
 
 category "gcp_compute_router" {
-  color = local.compute_color
+  color = local.network_color
   icon  = "arrows-right-left"
   title = "Compute Router"
 }
@@ -106,33 +106,33 @@ category "gcp_compute_snapshot" {
 }
 
 category "gcp_compute_subnetwork" {
-  color = local.compute_color
+  color = local.network_color
   icon  = "share"
   href  = "/gcp_insights.dashboard.gcp_compute_subnetwork_detail?input.subnetwork_id={{.properties.'ID' | @uri}}"
   title = "Compute Subnetwork"
 }
 
 category "gcp_compute_vpn_gateway" {
-  color = local.compute_color
-  icon  = "text:vpngw"
+  color = local.network_color
+  icon  = "text:VPNGW"
   title = "Compute VPN Gateway"
 }
 
 category "gcp_compute_target_pool" {
-  color = local.compute_color
+  color = local.network_color
   icon  = "arrow-down-on-square"
   title = "Compute Target Pool"
 }
 
 category "gcp_compute_target_https_proxy" {
-  color = local.compute_color
-  icon  = "text:thp"
+  color = local.network_color
+  icon  = "text:THP"
   title = "Compute Target HTTPS Proxy"
 }
 
 category "gcp_compute_target_ssl_proxy" {
-  color = local.compute_color
-  icon  = "text:tsp"
+  color = local.network_color
+  icon  = "text:TSP"
   title = "Compute Target SSL Proxy"
 }
 
@@ -195,7 +195,7 @@ category "gcp_pubsub_subscription" {
 category "gcp_pubsub_topic" {
   color = local.pubsub_color
   href  = "/gcp_insights.dashboard.gcp_pubsub_topic_detail?input.name={{.properties.'Name' | @uri}}"
-  icon  = "rss"
+  icon  = "text:PST"
   title = "Pubsub Topic"
 }
 

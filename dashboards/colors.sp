@@ -1,5 +1,4 @@
 locals {
-  bigquery_color   = "purple"
   compute_color    = "orange"
   dns_color        = "purple"
   iam_color        = "red"
@@ -9,4 +8,5 @@ locals {
   pubsub_color     = "deeppink"
   storage_color    = "green"
   sql_color        = "blue"
+  network_color    = "purple"
 }

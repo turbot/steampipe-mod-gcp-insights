@@ -72,6 +72,7 @@ dashboard "gcp_kms_key_detail" {
         node.gcp_kms_key_from_compute_snapshot_node,
         node.gcp_kms_key_from_sql_database_instance_node,
         node.gcp_kms_key_from_bigquery_dataset_node,
+        node.gcp_kms_key_from_bigquery_table_node,
         node.gcp_kms_key_to_kms_key_version_node,
         node.gcp_kms_key_from_kubernetes_cluster_node
       ]
@@ -84,6 +85,7 @@ dashboard "gcp_kms_key_detail" {
         edge.gcp_kms_key_from_compute_snapshot_edge,
         edge.gcp_kms_key_from_sql_database_instance_edge,
         edge.gcp_kms_key_from_bigquery_dataset_edge,
+        edge.gcp_kms_key_from_bigquery_table_edge,
         edge.gcp_kms_key_to_kms_key_version_edge,
         edge.gcp_kms_key_from_kubernetes_cluster_edge
       ]
@@ -301,11 +303,12 @@ node "gcp_kms_key_from_compute_disk_node" {
       ) as properties
     from
       gcp_compute_disk d,
-      gcp_kms_key k
+      gcp_kms_key_version v
     where
-      k.name = $1
+      v.name = $1
       and d.disk_encryption_key is not null
-      and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.name;
+      and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = v.name
+      and v.crypto_key_version::text = split_part(d.disk_encryption_key ->> 'kmsKeyName', 'cryptoKeyVersions/', 2);
   EOQ
 
   param "key_name" {}
@@ -317,14 +320,15 @@ edge "gcp_kms_key_from_compute_disk_edge" {
   sql = <<-EOQ
     select
       d.id::text as from_id,
-      k.name as to_id
+      v.name || '_' || v.crypto_key_version as to_id
     from
       gcp_compute_disk d,
-      gcp_kms_key k
+      gcp_kms_key_version v
     where
-      k.name = $1
+      v.name = $1
       and d.disk_encryption_key is not null
-      and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.name;
+      and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = v.name
+      and v.crypto_key_version::text = split_part(d.disk_encryption_key ->> 'kmsKeyName', 'cryptoKeyVersions/', 2);
   EOQ
 
   param "key_name" {}
@@ -349,7 +353,7 @@ node "gcp_kms_key_from_sql_database_instance_node" {
       gcp_sql_database_instance as i,
       gcp_kms_key as k
     where
-      i.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2))
+      split_part(i.kms_key_name, 'cryptoKeys/', 2) = k.name
       and k.name = $1;
   EOQ
 
@@ -367,7 +371,7 @@ edge "gcp_kms_key_from_sql_database_instance_edge" {
       gcp_sql_database_instance as i,
       gcp_kms_key as k
     where
-      i.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2))
+      split_part(i.kms_key_name, 'cryptoKeys/', 2) = k.name
       and k.name = $1;
   EOQ
 
@@ -388,11 +392,12 @@ node "gcp_kms_key_from_compute_snapshot_node" {
         'Status', s.status
       ) as properties
     from
-      gcp_kms_key k,
-      gcp_compute_snapshot s
+      gcp_compute_snapshot s,
+      gcp_kms_key_version v
     where
-      k.name = s.kms_key_name
-      and k.name = $1;
+      v.crypto_key_version::text = split_part(s.kms_key_name, 'cryptoKeyVersions/', 2)
+      and split_part(s.kms_key_name, '/', 8) = v.name
+      and v.name = $1;
   EOQ
 
   param "key_name" {}
@@ -404,13 +409,14 @@ edge "gcp_kms_key_from_compute_snapshot_edge" {
   sql = <<-EOQ
     select
       s.name as from_id,
-      k.name as to_id
+      v.name || '_' || v.crypto_key_version as to_id
     from
-      gcp_kms_key k,
-      gcp_compute_snapshot s
+      gcp_compute_snapshot s,
+      gcp_kms_key_version v
     where
-      k.name = s.kms_key_name
-      and k.name = $1;
+      v.crypto_key_version::text = split_part(s.kms_key_name, 'cryptoKeyVersions/', 2)
+      and split_part(s.kms_key_name, '/', 8) = v.name
+      and v.name = $1;
   EOQ
 
   param "key_name" {}
@@ -434,7 +440,7 @@ node "gcp_kms_key_from_bigquery_dataset_node" {
       gcp_kms_key k,
       gcp_bigquery_dataset d
     where
-      k.name = d.kms_key_name
+      k.name = split_part(d.kms_key_name, 'cryptoKeys/', 2)
       and k.name = $1;
   EOQ
 
@@ -452,7 +458,7 @@ edge "gcp_kms_key_from_bigquery_dataset_edge" {
       gcp_kms_key k,
       gcp_bigquery_dataset d
     where
-      k.name = d.kms_key_name
+      k.name = split_part(d.kms_key_name, 'cryptoKeys/', 2)
       and k.name = $1;
   EOQ
 
@@ -478,7 +484,7 @@ node "gcp_kms_key_from_bigquery_table_node" {
       gcp_kms_key k,
       gcp_bigquery_table t
     where
-      k.name = t.kms_key_name
+      k.name = split_part(t.kms_key_name, 'cryptoKeys/', 2)
       and k.name = $1;
   EOQ
 
@@ -496,7 +502,7 @@ edge "gcp_kms_key_from_bigquery_table_edge" {
       gcp_kms_key k,
       gcp_bigquery_table t
     where
-      k.name = t.kms_key_name
+      k.name = split_part(t.kms_key_name, 'cryptoKeys/', 2)
       and k.name = $1;
   EOQ
 

@@ -472,7 +472,7 @@ node "gcp_sql_database_instance_to_sql_database_node" {
 
   sql = <<-EOQ
   select
-      concat(d.instance_name, '_database') as id,
+      d.name as id,
       d.title,
       jsonb_build_object(
         'Project', d.project,
@@ -482,26 +482,24 @@ node "gcp_sql_database_instance_to_sql_database_node" {
       gcp_sql_database_instance as i,
       gcp_sql_database d
     where
-      i.name = d.instance_name
-      and i.name = $1;
+      d.instance_name = $1;
   EOQ
 
   param "name" {}
 }
 
 edge "gcp_sql_database_instance_to_sql_database_edge" {
-  title = "database instance"
+  title = "database"
 
   sql = <<-EOQ
   select
-      concat(d.instance_name, '_database') as from_id,
-      i.name as to_id
+      i.name as from_id,
+      d.name as to_id
     from
       gcp_sql_database_instance as i,
       gcp_sql_database d
     where
-      i.name = d.instance_name
-      and i.name = $1;
+      d.instance_name = $1;
   EOQ
 
   param "name" {}
