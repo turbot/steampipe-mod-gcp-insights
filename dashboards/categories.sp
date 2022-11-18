@@ -6,18 +6,18 @@ category "gcp_bigquery_dataset" {
 
 category "gcp_bigquery_table" {
   color = local.sql_color
-  icon  = "table-cells"
+  icon  = "circle-stack"
   title = "BigQuery Table"
 }
 
 category "gcp_compute_address" {
   color = local.network_color
-  icon  = "map-pin"
+  icon  = "table-cells"
   title = "Compute Address"
 }
 
 category "gcp_compute_autoscaler" {
-  color = local.network_color
+  color = local.compute_color
   icon  = "square-2-stack"
   title = "Compute Autoscaler"
 }
@@ -29,13 +29,13 @@ category "gcp_compute_backend_bucket" {
 }
 
 category "gcp_compute_backend_service" {
-  color = local.compute_color
+  color = local.network_color
   icon  = "wrench-screwdriver"
   title = "Compute Backend Service"
 }
 
 category "gcp_compute_disk" {
-  color = local.compute_color
+  color = local.storage_color
   icon  = "inbox-stack"
   href  = "/gcp_insights.dashboard.gcp_compute_disk_detail?input.disk_id={{.properties.'ID' | @uri}}"
   title = "Compute Disk"
@@ -49,14 +49,14 @@ category "gcp_compute_forwarding_rule" {
 }
 
 category "gcp_compute_firewall" {
-  color = local.compute_color
+  color = local.network_color
   icon  = "fire"
   title = "Compute Firewall Rule"
 }
 
 category "gcp_compute_image" {
   color = local.compute_color
-  icon  = "rectangle-group"
+  icon  = "text:image"
   title = "Compute Image"
 }
 
@@ -89,7 +89,7 @@ category "gcp_compute_network" {
 
 category "gcp_compute_network_interface" {
   color = local.network_color
-  icon  = "text:CNI"
+  icon  = "text:NIC"
   title = "Compute Network Interface"
 }
 
@@ -100,7 +100,7 @@ category "gcp_compute_router" {
 }
 
 category "gcp_compute_snapshot" {
-  color = local.compute_color
+  color = local.storage_color
   icon  = "viewfinder-circle"
   title = "Compute Snapshot"
 }
@@ -176,12 +176,12 @@ category "gcp_kubernetes_cluster" {
 
 category "gcp_kubernetes_node_pool" {
   color = local.kubernetes_color
-  icon  = "squares-2x2"
+  icon  = "text:pool"
   title = "Kubernetes Node Pool"
 }
 
 category "gcp_logging_bucket" {
-  color = local.logging_color
+  color = local.storage_color
   icon  = "archive-box-arrow-down"
   title = "Logging Bucket"
 }
@@ -195,7 +195,7 @@ category "gcp_pubsub_subscription" {
 category "gcp_pubsub_topic" {
   color = local.pubsub_color
   href  = "/gcp_insights.dashboard.gcp_pubsub_topic_detail?input.name={{.properties.'Name' | @uri}}"
-  icon  = "text:PST"
+  icon  = "text:topic"
   title = "Pubsub Topic"
 }
 
