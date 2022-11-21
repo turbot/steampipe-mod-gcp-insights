@@ -119,8 +119,8 @@ query "gcp_bigquery_dataset_input" {
 query "gcp_bigquery_dataset_partition_expiration_in_days" {
   sql = <<-EOQ
     select
-      'Default Partition Expiration' as label,
-      concat(default_partition_expiration_ms/(1000*60*60*24), ' ', 'days') as value
+      'Default Partition Expiration (Days)' as label,
+      default_partition_expiration_ms/(1000*60*60*24) as value
     from
       gcp_bigquery_dataset
     where
@@ -133,8 +133,8 @@ query "gcp_bigquery_dataset_partition_expiration_in_days" {
 query "gcp_bigquery_dataset_table_expiration_in_days" {
   sql = <<-EOQ
     select
-      'Default Table Expiration' as label,
-      concat(default_table_expiration_ms/(1000*60*60*24), ' ', 'days') as value
+      'Default Table Expiration (Days)' as label,
+      default_table_expiration_ms/(1000*60*60*24) as value
     from
       gcp_bigquery_dataset
     where
