@@ -80,6 +80,7 @@ dashboard "gcp_sql_database_instance_detail" {
         node.gcp_sql_database_instance_to_kms_key_node,
         node.gcp_sql_database_instance_to_sql_database_node,
         node.gcp_sql_database_instance_to_compute_network_node,
+        node.gcp_sql_database_instance_to_sql_backup_node,
         node.gcp_sql_database_instance_to_database_instance_replica_node,
         node.gcp_sql_database_instance_from_primary_database_instance_node
       ]
@@ -89,6 +90,7 @@ dashboard "gcp_sql_database_instance_detail" {
         edge.gcp_sql_database_instance_to_sql_database_edge,
         edge.gcp_sql_database_instance_to_compute_network_edge,
         edge.gcp_sql_database_instance_to_database_instance_replica_edge,
+        edge.gcp_sql_database_instance_to_sql_backup_edge,
         edge.gcp_sql_database_instance_from_primary_database_instance_edge
       ]
 
@@ -546,6 +548,45 @@ edge "gcp_sql_database_instance_to_compute_network_edge" {
   param "name" {}
 }
 
+node "gcp_sql_database_instance_to_sql_backup_node" {
+  category = category.gcp_sql_backup
+
+  sql = <<-EOQ
+    select
+      id as id,
+      title,
+      jsonb_build_object(
+        'Backup Instance Name', instance_name,
+        'Status', status,
+        'Start Time', enqueued_time,
+        'End Time', end_time,
+        'Project', project,
+        'Location', location
+      ) as properties
+    from
+      gcp_sql_backup
+    where
+      instance_name = $1;
+  EOQ
+
+  param "name" {}
+}
+
+edge "gcp_sql_database_instance_to_sql_backup_edge" {
+  title = "backup"
+
+  sql = <<-EOQ
+    select
+      id as to_id,
+      instance_name as from_id
+    from
+      gcp_sql_backup
+    where
+      instance_name = $1;
+  EOQ
+
+  param "name" {}
+}
 node "gcp_sql_database_instance_to_database_instance_replica_node" {
   category = category.gcp_sql_database_instance
 
