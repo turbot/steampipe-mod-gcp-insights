@@ -81,8 +81,8 @@ dashboard "gcp_compute_network_detail" {
         node.gcp_compute_network_to_compute_router_node,
         node.gcp_compute_network_to_sql_database_instance_node,
         node.gcp_compute_network_to_dns_policy_node,
-        node.gcp_compute_network_from_kubernetes_cluster_node,
-        node.gcp_compute_network_from_compute_instances_node,
+        node.gcp_compute_network_to_kubernetes_cluster_node,
+        node.gcp_compute_network_to_compute_instances_node,
         node.gcp_compute_network_to_compute_forwarding_rule_node
       ]
 
@@ -94,8 +94,8 @@ dashboard "gcp_compute_network_detail" {
         edge.gcp_compute_network_to_compute_router_edge,
         edge.gcp_compute_network_to_sql_database_instance_edge,
         edge.gcp_compute_network_to_dns_policy_edge,
-        edge.gcp_compute_network_from_kubernetes_cluster_edge,
-        edge.gcp_compute_network_from_compute_instances_edge,
+        edge.gcp_compute_network_to_kubernetes_cluster_edge,
+        edge.gcp_compute_network_to_compute_instances_edge,
         edge.gcp_compute_network_to_compute_forwarding_rule_edge
       ]
 
@@ -573,7 +573,7 @@ edge "gcp_compute_network_to_dns_policy_edge" {
   param "name" {}
 }
 
-node "gcp_compute_network_from_compute_instances_node" {
+node "gcp_compute_network_to_compute_instances_node" {
   category = category.gcp_compute_instance
 
   sql = <<-EOQ
@@ -599,13 +599,13 @@ node "gcp_compute_network_from_compute_instances_node" {
   param "name" {}
 }
 
-edge "gcp_compute_network_from_compute_instances_edge" {
+edge "gcp_compute_network_to_compute_instances_edge" {
   title = "network"
 
   sql = <<-EOQ
     select
-      i.id::text as from_id,
-      n.name as to_id
+      i.id::text as to_id,
+      n.name as from_id
     from
       gcp_compute_instance i,
       gcp_compute_network n,
@@ -617,7 +617,7 @@ edge "gcp_compute_network_from_compute_instances_edge" {
 
   param "name" {}
 }
-node "gcp_compute_network_from_kubernetes_cluster_node" {
+node "gcp_compute_network_to_kubernetes_cluster_node" {
   category = category.gcp_kubernetes_cluster
 
   sql = <<-EOQ
@@ -642,13 +642,13 @@ node "gcp_compute_network_from_kubernetes_cluster_node" {
   param "name" {}
 }
 
-edge "gcp_compute_network_from_kubernetes_cluster_edge" {
+edge "gcp_compute_network_to_kubernetes_cluster_edge" {
   title = "network"
 
   sql = <<-EOQ
     select
-      c.name as from_id,
-      n.name as to_id
+      c.name as to_id,
+      n.name as from_id
       from
       gcp_kubernetes_cluster c,
       gcp_compute_network n
