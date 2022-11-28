@@ -51,25 +51,25 @@ dashboard "gcp_compute_network_detail" {
 
       nodes = [
         node.gcp_compute_network_node,
-        node.gcp_compute_network_from_compute_subnetwork_node,
-        node.gcp_compute_network_to_compute_firewall_node,
-        node.gcp_compute_network_from_compute_backend_service_node,
-        node.gcp_compute_network_from_compute_router_node,
-        node.gcp_compute_network_from_sql_database_instance_node,
         node.gcp_compute_network_from_compute_vpn_gateway_node,
-        node.gcp_compute_network_from_dns_policy_node,
-        node.gcp_compute_network_from_compute_forwarding_rule_node
+        node.gcp_compute_network_to_compute_subnetwork_node,
+        node.gcp_compute_network_to_compute_firewall_node,
+        node.gcp_compute_network_to_compute_backend_service_node,
+        node.gcp_compute_network_to_compute_router_node,
+        node.gcp_compute_network_to_sql_database_instance_node,
+        node.gcp_compute_network_to_dns_policy_node,
+        node.gcp_compute_network_to_compute_forwarding_rule_node
       ]
 
       edges = [
-        edge.gcp_compute_network_from_compute_subnetwork_edge,
-        edge.gcp_compute_network_to_compute_firewall_edge,
-        edge.gcp_compute_network_from_compute_backend_service_edge,
-        edge.gcp_compute_network_from_compute_router_edge,
-        edge.gcp_compute_network_from_sql_database_instance_edge,
         edge.gcp_compute_network_from_compute_vpn_gateway_edge,
-        edge.gcp_compute_network_from_dns_policy_edge,
-        edge.gcp_compute_network_from_compute_forwarding_rule_edge
+        edge.gcp_compute_network_to_compute_subnetwork_edge,
+        edge.gcp_compute_network_to_compute_firewall_edge,
+        edge.gcp_compute_network_to_compute_backend_service_edge,
+        edge.gcp_compute_network_to_compute_router_edge,
+        edge.gcp_compute_network_to_sql_database_instance_edge,
+        edge.gcp_compute_network_to_dns_policy_edge,
+        edge.gcp_compute_network_to_compute_forwarding_rule_edge
       ]
 
       args = {
@@ -179,12 +179,8 @@ query "gcp_compute_network_is_default" {
   param "name" {}
 }
 
-category "gcp_compute_network_no_link" {
-  icon = local.gcp_compute_network
-}
-
 node "gcp_compute_network_node" {
-  category = category.gcp_compute_network_no_link
+  category = category.gcp_compute_network
 
   sql = <<-EOQ
     select
@@ -204,13 +200,13 @@ node "gcp_compute_network_node" {
   param "name" {}
 }
 
-node "gcp_compute_network_from_compute_subnetwork_node" {
+node "gcp_compute_network_to_compute_subnetwork_node" {
   category = category.gcp_compute_subnetwork
 
   sql = <<-EOQ
     select
       s.id::text as id,
-      s.location || '/' || s.name as title,
+      s.title,
       jsonb_build_object(
         'ID', s.id::text,
         'Name', s.name,
@@ -229,13 +225,13 @@ node "gcp_compute_network_from_compute_subnetwork_node" {
   param "name" {}
 }
 
-edge "gcp_compute_network_from_compute_subnetwork_edge" {
-  title = "network"
+edge "gcp_compute_network_to_compute_subnetwork_edge" {
+  title = "subnetwork"
 
   sql = <<-EOQ
     select
-      s.id::text as from_id,
-      n.name as to_id
+      n.name as from_id,
+      s.id::text as to_id
     from
       gcp_compute_subnetwork s,
       gcp_compute_network n
@@ -290,8 +286,8 @@ edge "gcp_compute_network_to_compute_firewall_edge" {
   param "name" {}
 }
 
-node "gcp_compute_network_from_compute_backend_service_node" {
-  category = category.gcp_compute_firewall
+node "gcp_compute_network_to_compute_backend_service_node" {
+  category = category.gcp_compute_backend_service
 
   sql = <<-EOQ
     select
@@ -315,13 +311,13 @@ node "gcp_compute_network_from_compute_backend_service_node" {
   param "name" {}
 }
 
-edge "gcp_compute_network_from_compute_backend_service_edge" {
-  title = "network"
+edge "gcp_compute_network_to_compute_backend_service_edge" {
+  title = "backend service"
 
   sql = <<-EOQ
     select
-      bs.id::text as from_id,
-      n.name as to_id
+      n.name as from_id,
+      bs.id::text as to_id
     from
       gcp_compute_backend_service bs,
       gcp_compute_network n
@@ -333,7 +329,7 @@ edge "gcp_compute_network_from_compute_backend_service_edge" {
   param "name" {}
 }
 
-node "gcp_compute_network_from_compute_router_node" {
+node "gcp_compute_network_to_compute_router_node" {
   category = category.gcp_compute_router
 
   sql = <<-EOQ
@@ -357,13 +353,13 @@ node "gcp_compute_network_from_compute_router_node" {
   param "name" {}
 }
 
-edge "gcp_compute_network_from_compute_router_edge" {
-  title = "network"
+edge "gcp_compute_network_to_compute_router_edge" {
+  title = "router"
 
   sql = <<-EOQ
     select
-      r.id::text as from_id,
-      n.name as to_id
+      n.name as from_id,
+      r.id::text as to_id
     from
       gcp_compute_router r,
       gcp_compute_network n
@@ -375,7 +371,7 @@ edge "gcp_compute_network_from_compute_router_edge" {
   param "name" {}
 }
 
-node "gcp_compute_network_from_sql_database_instance_node" {
+node "gcp_compute_network_to_sql_database_instance_node" {
   category = category.gcp_sql_database_instance
 
   sql = <<-EOQ
@@ -401,13 +397,13 @@ node "gcp_compute_network_from_sql_database_instance_node" {
   param "name" {}
 }
 
-edge "gcp_compute_network_from_sql_database_instance_edge" {
-  title = "network"
+edge "gcp_compute_network_to_sql_database_instance_edge" {
+  title = "database instance"
 
   sql = <<-EOQ
     select
-      i.name as from_id,
-      n.name as to_id
+      n.name as from_id,
+      i.name as to_id
     from
       gcp_sql_database_instance i,
       gcp_compute_network n
@@ -461,7 +457,7 @@ edge "gcp_compute_network_from_compute_vpn_gateway_edge" {
   param "name" {}
 }
 
-node "gcp_compute_network_from_dns_policy_node" {
+node "gcp_compute_network_to_dns_policy_node" {
   category = category.gcp_dns_policy
 
   sql = <<-EOQ
@@ -487,13 +483,13 @@ node "gcp_compute_network_from_dns_policy_node" {
   param "name" {}
 }
 
-edge "gcp_compute_network_from_dns_policy_edge" {
-  title = "network"
+edge "gcp_compute_network_to_dns_policy_edge" {
+  title = "dns policy"
 
   sql = <<-EOQ
     select
-      p.id::text as from_id,
-      n.name as to_id
+      n.name as from_id,
+      p.id::text as to_id
     from
       gcp_dns_policy p,
       jsonb_array_elements(p.networks) pn,
@@ -506,7 +502,7 @@ edge "gcp_compute_network_from_dns_policy_edge" {
   param "name" {}
 }
 
-node "gcp_compute_network_from_compute_forwarding_rule_node" {
+node "gcp_compute_network_to_compute_forwarding_rule_node" {
   category = category.gcp_compute_forwarding_rule
 
   sql = <<-EOQ
@@ -529,13 +525,13 @@ node "gcp_compute_network_from_compute_forwarding_rule_node" {
   param "name" {}
 }
 
-edge "gcp_compute_network_from_compute_forwarding_rule_edge" {
-  title = "network"
+edge "gcp_compute_network_to_compute_forwarding_rule_edge" {
+  title = "forwarding rule"
 
   sql = <<-EOQ
     select
-      fr.id::text as from_id,
-      n.name as to_id
+      n.name as from_id,
+      fr.id::text as to_id
     from
       gcp_compute_forwarding_rule fr,
       gcp_compute_network n

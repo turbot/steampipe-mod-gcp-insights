@@ -59,7 +59,7 @@ dashboard "gcp_compute_subnetwork_detail" {
 
       nodes = [
         node.gcp_compute_subnetwork_node,
-        node.gcp_compute_subnetwork_to_compute_network_node,
+        node.gcp_compute_subnetwork_from_compute_network_node,
         node.gcp_compute_subnetwork_node_from_compute_instance_node,
         node.gcp_compute_subnetwork_node_from_compute_instance_group_node,
         node.gcp_compute_subnetwork_node_from_compute_instance_template_node,
@@ -69,7 +69,7 @@ dashboard "gcp_compute_subnetwork_detail" {
       ]
 
       edges = [
-        edge.gcp_compute_subnetwork_to_compute_network_edge,
+        edge.gcp_compute_subnetwork_from_compute_network_edge,
         edge.gcp_compute_subnetwork_node_from_compute_instance_edge,
         edge.gcp_compute_subnetwork_node_from_compute_instance_group_edge,
         edge.gcp_compute_subnetwork_node_from_compute_instance_template_edge,
@@ -189,15 +189,13 @@ query "gcp_compute_subnetwork_flow_logs" {
   param "id" {}
 }
 
-category "gcp_compute_subnetwork_no_link" {}
-
 node "gcp_compute_subnetwork_node" {
-  category = category.gcp_compute_subnetwork_no_link
+  category = category.gcp_compute_subnetwork
 
   sql = <<-EOQ
     select
       s.id::text as id,
-      s.name as title,
+      s.title,
       jsonb_build_object(
         'ID', s.id,
         'Name', s.name,
@@ -214,7 +212,7 @@ node "gcp_compute_subnetwork_node" {
   param "id" {}
 }
 
-node "gcp_compute_subnetwork_to_compute_network_node" {
+node "gcp_compute_subnetwork_from_compute_network_node" {
   category = category.gcp_compute_network
 
   sql = <<-EOQ
@@ -237,13 +235,13 @@ node "gcp_compute_subnetwork_to_compute_network_node" {
   param "id" {}
 }
 
-edge "gcp_compute_subnetwork_to_compute_network_edge" {
-  title = "network"
+edge "gcp_compute_subnetwork_from_compute_network_edge" {
+  title = "subnetwork"
 
   sql = <<-EOQ
     select
-      s.id::text as from_id,
-      n.id::text as to_id
+      n.id::text as from_id,
+      s.id::text as to_id
     from
       gcp_compute_subnetwork s,
       gcp_compute_network n
@@ -281,12 +279,12 @@ node "gcp_compute_subnetwork_node_from_compute_instance_node" {
 }
 
 edge "gcp_compute_subnetwork_node_from_compute_instance_edge" {
-  title = "subnetwork"
+  title = "compute instance"
 
   sql = <<-EOQ
     select
-      i.id::text as from_id,
-      s.id::text as to_id
+      s.id::text as from_id,
+      i.id::text as to_id
     from
       gcp_compute_instance i,
       gcp_compute_subnetwork s,
@@ -325,12 +323,12 @@ node "gcp_compute_subnetwork_node_from_compute_instance_group_node" {
 }
 
 edge "gcp_compute_subnetwork_node_from_compute_instance_group_edge" {
-  title = "subnetwork"
+  title = "compute instance group"
 
   sql = <<-EOQ
     select
-      g.id::text as from_id,
-      s.id::text as to_id
+      s.id::text as from_id,
+      g.id::text as to_id
     from
       gcp_compute_instance_group g,
       gcp_compute_subnetwork s
@@ -368,12 +366,12 @@ node "gcp_compute_subnetwork_node_from_compute_instance_template_node" {
 }
 
 edge "gcp_compute_subnetwork_node_from_compute_instance_template_edge" {
-  title = "subnetwork"
+  title = "compute instance template"
 
   sql = <<-EOQ
     select
-      t.id::text as from_id,
-      s.id::text as to_id
+      s.id::text as from_id,
+      t.id::text as to_id
     from
       gcp_compute_instance_template t,
       jsonb_array_elements(instance_network_interfaces) ni,
@@ -412,12 +410,12 @@ node "gcp_compute_subnetwork_node_from_kubernetes_cluster_node" {
 }
 
 edge "gcp_compute_subnetwork_node_from_kubernetes_cluster_edge" {
-  title = "subnetwork"
+  title = "kubernetes cluster"
 
   sql = <<-EOQ
     select
-      c.name as from_id,
-      s.id::text as to_id
+      s.id::text as from_id,
+      c.name as to_id
     from
       gcp_kubernetes_cluster c,
       gcp_compute_subnetwork s
@@ -476,12 +474,12 @@ node "gcp_compute_subnetwork_node_from_compute_address_node" {
 }
 
 edge "gcp_compute_subnetwork_node_from_compute_address_edge" {
-  title = "subnetwork"
+  title = "compute address"
 
   sql = <<-EOQ
     select
-      a.id::text as from_id,
-      s.id::text as to_id
+      s.id::text as from_id,
+      a.id::text as to_id
     from
       gcp_compute_address a,
       gcp_compute_subnetwork s
@@ -492,8 +490,8 @@ edge "gcp_compute_subnetwork_node_from_compute_address_edge" {
     union
 
     select
-      a.id::text as from_id,
-      s.id::text as to_id
+      s.id::text as from_id,
+      a.id::text as to_id
     from
       gcp_compute_global_address a,
       gcp_compute_subnetwork s
@@ -552,12 +550,12 @@ node "gcp_compute_subnetwork_node_from_compute_forwarding_rule_node" {
 }
 
 edge "gcp_compute_subnetwork_node_from_compute_forwarding_rule_edge" {
-  title = "subnetwork"
+  title = "forwarding rule"
 
   sql = <<-EOQ
     select
-      r.id::text as from_id,
-      s.id::text as to_id
+      s.id::text as from_id,
+      r.id::text as to_id
     from
       gcp_compute_forwarding_rule r,
       gcp_compute_subnetwork s
@@ -568,8 +566,8 @@ edge "gcp_compute_subnetwork_node_from_compute_forwarding_rule_edge" {
     union
 
     select
-      r.id::text as from_id,
-      s.id::text as to_id
+      s.id::text as from_id,
+      r.id::text as to_id
     from
       gcp_compute_global_forwarding_rule r,
       gcp_compute_subnetwork s

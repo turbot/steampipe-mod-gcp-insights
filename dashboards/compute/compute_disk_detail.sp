@@ -67,22 +67,22 @@ dashboard "gcp_compute_disk_detail" {
 
       nodes = [
         node.gcp_compute_disk_node,
-        node.gcp_compute_disk_to_compute_instance_node,
+        node.gcp_compute_disk_from_compute_instance_node,
+        node.gcp_compute_disk_from_compute_disk_node,
+        node.gcp_compute_disk_from_compute_snapshot_node,
         node.gcp_compute_disk_to_kms_key_node,
         node.gcp_compute_disk_to_compute_disk_node,
-        node.gcp_compute_disk_from_compute_disk_node,
         node.gcp_compute_disk_to_compute_snapshot_node,
-        node.gcp_compute_disk_from_compute_snapshot_node,
         node.gcp_compute_disk_to_compute_image_node
       ]
 
       edges = [
-        edge.gcp_compute_disk_to_compute_instance_edge,
+        edge.gcp_compute_disk_from_compute_instance_edge,
+        edge.gcp_compute_disk_from_compute_disk_edge,
+        edge.gcp_compute_disk_from_compute_snapshot_edge,
         edge.gcp_compute_disk_to_kms_key_edge,
         edge.gcp_compute_disk_to_compute_disk_edge,
-        edge.gcp_compute_disk_from_compute_disk_edge,
         edge.gcp_compute_disk_to_compute_snapshot_edge,
-        edge.gcp_compute_disk_from_compute_snapshot_edge,
         edge.gcp_compute_disk_to_compute_image_edge
 
       ]
@@ -309,11 +309,8 @@ query "gcp_compute_disk_encryption_status" {
 
 ## Graph
 
-category "gcp_compute_disk_no_link" {
-}
-
 node "gcp_compute_disk_node" {
-  category = category.gcp_compute_disk_no_link
+  category = category.gcp_compute_disk
 
   sql = <<-EOQ
     select
@@ -336,7 +333,7 @@ node "gcp_compute_disk_node" {
   param "id" {}
 }
 
-node "gcp_compute_disk_to_compute_instance_node" {
+node "gcp_compute_disk_from_compute_instance_node" {
   category = category.gcp_compute_instance
 
   sql = <<-EOQ
@@ -361,13 +358,13 @@ node "gcp_compute_disk_to_compute_instance_node" {
   param "id" {}
 }
 
-edge "gcp_compute_disk_to_compute_instance_edge" {
-  title = "attached"
+edge "gcp_compute_disk_from_compute_instance_edge" {
+  title = "mounts"
 
   sql = <<-EOQ
     select
-      d.id::text as from_id,
-      i.id::text as to_id,
+      i.id::text as from_id,
+      d.id::text as to_id,
       jsonb_build_object(
         'Last Attach Time', d.last_attach_timestamp,
         'Last Detach Time', d.last_detach_timestamp

@@ -237,7 +237,7 @@ node "gcp_pubsub_topic_node" {
   sql = <<-EOQ
     select
       name as id,
-      title as title,
+      title,
       jsonb_build_object(
         'Name', name,
         'Location', location,
@@ -430,13 +430,7 @@ edge "gcp_pubsub_topic_to_pubsub_subscription_edge" {
   sql = <<-EOQ
   select
       s.name as to_id,
-      t.name as from_id,
-      jsonb_build_object(
-        'Name', s.name,
-        'Location', s.location,
-        'Project', s.project,
-        'Self Link', s.self_link
-      ) as properties
+      t.name as from_id
     from
       gcp_pubsub_topic t,
       gcp_pubsub_subscription s
@@ -465,8 +459,7 @@ node "gcp_pubsub_topic_to_pubsub_snapshot_node" {
       gcp_pubsub_topic p,
       gcp_pubsub_snapshot k
     where
-      p.name = k.topic_name
-      and p.name = $1;
+      k.topic_name = $1;
   EOQ
 
   param "name" {}
@@ -477,20 +470,15 @@ edge "gcp_pubsub_topic_to_pubsub_snapshot_edge" {
 
   sql = <<-EOQ
   select
-      k.name as to_id,
-      p.name as from_id,
-      jsonb_build_object(
-        'Name', k.name,
-        'Location', k.location,
-        'Project', k.project,
-        'Self Link', k.self_link
-      ) as properties
+      s.name as from_id,
+      k.name as to_id
     from
-      gcp_pubsub_topic p,
-      gcp_pubsub_snapshot k
+      gcp_pubsub_topic t,
+      gcp_pubsub_snapshot k,
+      gcp_pubsub_subscription s
     where
-      p.name = k.topic_name
-      and p.name = $1;
+      t.name = $1
+      and t.name = $1;
   EOQ
 
   param "name" {}

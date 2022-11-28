@@ -77,7 +77,6 @@ dashboard "gcp_sql_database_instance_detail" {
 
       nodes = [
         node.gcp_sql_database_instance_node,
-        node.gcp_sql_database_instance_to_data_disk_node,
         node.gcp_sql_database_instance_to_kms_key_node,
         node.gcp_sql_database_instance_to_sql_database_node,
         node.gcp_sql_database_instance_to_compute_network_node,
@@ -86,7 +85,6 @@ dashboard "gcp_sql_database_instance_detail" {
       ]
 
       edges = [
-        edge.gcp_sql_database_instance_to_data_disk_edge,
         edge.gcp_sql_database_instance_to_kms_key_edge,
         edge.gcp_sql_database_instance_to_sql_database_edge,
         edge.gcp_sql_database_instance_to_compute_network_edge,
@@ -405,12 +403,8 @@ query "gcp_sql_database_instance_connection" {
   param "name" {}
 }
 
-category "gcp_sql_database_instance_no_link" {
-  icon = local.gcp_sql_database_instance
-}
-
 node "gcp_sql_database_instance_node" {
-  category = category.gcp_sql_database_instance_no_link
+  category = category.gcp_sql_database_instance
 
   sql = <<-EOQ
     select
@@ -433,51 +427,13 @@ node "gcp_sql_database_instance_node" {
   param "name" {}
 }
 
-node "gcp_sql_database_instance_to_data_disk_node" {
-  category = category.gcp_sql_database_instance_data_disk
-
-  sql = <<-EOQ
-    select
-      data_disk_type as id,
-      data_disk_type as title,
-      jsonb_build_object(
-        'Disk Type', data_disk_type,
-        'Disk Size (GB)', data_disk_size_gb,
-        'MaxDiskSize (Bytes)', max_disk_size,
-        'CurrentDiskSize (Bytes)', current_disk_size
-      ) as properties
-    from
-      gcp_sql_database_instance
-    where
-      name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-edge "gcp_sql_database_instance_to_data_disk_edge" {
-  title = "data disk"
-
-  sql = <<-EOQ
-    select
-      name as from_id,
-      data_disk_type as to_id
-    from
-      gcp_sql_database_instance
-    where
-      name = $1;
-  EOQ
-
-  param "name" {}
-}
-
 node "gcp_sql_database_instance_to_kms_key_node" {
   category = category.gcp_kms_key
 
   sql = <<-EOQ
     select
       k.name as id,
-      k.title as title,
+      k.title,
       jsonb_build_object(
         'Name', k.name,
         'Created Time', k.create_time,
@@ -515,9 +471,9 @@ node "gcp_sql_database_instance_to_sql_database_node" {
   category = category.gcp_sql_database
 
   sql = <<-EOQ
-  select
-      concat(d.instance_name, '_database') as id,
-      d.title as title,
+    select
+      d.name as id,
+      d.title,
       jsonb_build_object(
         'Project', d.project,
         'Location', d.location
@@ -526,26 +482,24 @@ node "gcp_sql_database_instance_to_sql_database_node" {
       gcp_sql_database_instance as i,
       gcp_sql_database d
     where
-      i.name = d.instance_name
-      and i.name = $1;
+      d.instance_name = $1;
   EOQ
 
   param "name" {}
 }
 
 edge "gcp_sql_database_instance_to_sql_database_edge" {
-  title = "database instance"
+  title = "database"
 
   sql = <<-EOQ
-  select
-      concat(d.instance_name, '_database') as from_id,
-      i.name as to_id
+    select
+      i.name as from_id,
+      d.name as to_id
     from
       gcp_sql_database_instance as i,
       gcp_sql_database d
     where
-      i.name = d.instance_name
-      and i.name = $1;
+      d.instance_name = $1;
   EOQ
 
   param "name" {}
@@ -557,7 +511,7 @@ node "gcp_sql_database_instance_to_compute_network_node" {
   sql = <<-EOQ
     select
       n.name as id,
-      n.title as title,
+      n.title,
       jsonb_build_object(
         'ID', n.id,
         'Name', n.name,
