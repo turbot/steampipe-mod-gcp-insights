@@ -224,3 +224,9 @@ category "gcp_sql_database" {
   icon  = "square-3-stack-3d"
   title = "GCP SQL Database"
 }
+
+category "gcp_service_account" {
+  color = local.logging_color
+  icon  = "text:SA"
+  title = "Service Account"
+}
