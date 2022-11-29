@@ -87,6 +87,12 @@ category "gcp_compute_network_interface" {
   title = "Compute Network Interface"
 }
 
+category "gcp_compute_resource_policy" {
+  color = local.compute_color
+  icon  = "text:RP"
+  title = "Resource Policy"
+}
+
 category "gcp_compute_router" {
   color = local.network_color
   icon  = "arrows-right-left"

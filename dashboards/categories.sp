@@ -15,3 +15,9 @@ category "gcp_dns_policy" {
   icon  = "globe-alt"
   title = "DNS Policy"
 }
+
+category "gcp_service_account" {
+  color = local.logging_color
+  icon  = "text:SA"
+  title = "Service Account"
+}

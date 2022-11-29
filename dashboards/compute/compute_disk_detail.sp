@@ -70,21 +70,24 @@ dashboard "gcp_compute_disk_detail" {
         node.gcp_compute_disk_from_compute_instance_node,
         node.gcp_compute_disk_from_compute_disk_node,
         node.gcp_compute_disk_from_compute_snapshot_node,
+        node.gcp_compute_disk_from_compute_image_node,
         node.gcp_compute_disk_to_kms_key_node,
         node.gcp_compute_disk_to_compute_disk_node,
         node.gcp_compute_disk_to_compute_snapshot_node,
-        node.gcp_compute_disk_to_compute_image_node
+        node.gcp_compute_disk_to_compute_image_node,
+        node.gcp_compute_disk_to_compute_resource_policy_node
       ]
 
       edges = [
         edge.gcp_compute_disk_from_compute_instance_edge,
         edge.gcp_compute_disk_from_compute_disk_edge,
         edge.gcp_compute_disk_from_compute_snapshot_edge,
+        edge.gcp_compute_disk_from_compute_image_edge,
         edge.gcp_compute_disk_to_kms_key_edge,
         edge.gcp_compute_disk_to_compute_disk_edge,
         edge.gcp_compute_disk_to_compute_snapshot_edge,
-        edge.gcp_compute_disk_to_compute_image_edge
-
+        edge.gcp_compute_disk_to_compute_image_edge,
+        edge.gcp_compute_disk_to_compute_resource_policy_edge
       ]
 
       args = {
@@ -270,14 +273,14 @@ query "gcp_compute_disk_encryption" {
 query "gcp_compute_disk_attached_instances" {
   sql = <<-EOQ
     with disks as (
-      select 
+      select
         instance_selflink
-      from 
+      from
         gcp_compute_disk, jsonb_array_elements_text(users) as instance_selflink
-      where 
+      where
         id =$1
     )
-    select 
+    select
       i.name as "Name",
       i.id::text as "Instance ID",
       i.status as "Instance State"
@@ -640,6 +643,91 @@ edge "gcp_compute_disk_to_compute_image_edge" {
   param "id" {}
 }
 
+node "gcp_compute_disk_from_compute_image_node" {
+  category = category.gcp_compute_snapshot
+
+  sql = <<-EOQ
+    select
+      i.name as id,
+      i.title,
+      jsonb_build_object(
+        'Name', i.name,
+        'Created Time', i.creation_timestamp,
+        'Size(GB)', i.disk_size_gb,
+        'Status', i.status
+      ) as properties
+    from
+      gcp_compute_disk d,
+      gcp_compute_image i
+    where
+      d.id = $1
+      and d.source_image = i.self_link;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_disk_from_compute_image_edge" {
+  title = "created from"
+
+  sql = <<-EOQ
+    select
+      i.name as from_id,
+      d.id::text as to_id
+    from
+      gcp_compute_disk d,
+      gcp_compute_image i
+    where
+      d.id = $1
+      and d.source_image = i.self_link;
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_disk_to_compute_resource_policy_node" {
+  category = category.gcp_compute_resource_policy
+
+  sql = <<-EOQ
+   select
+      r.id as id,
+      r.title,
+      jsonb_build_object(
+        'Name', r.name,
+        'Created Time', r.creation_timestamp,
+        'Status', r.status
+      ) as properties
+    from
+      gcp_compute_disk d,
+      jsonb_array_elements_text(resource_policies) as rp,
+      gcp_compute_resource_policy r
+    where
+      d.id = $1
+      and rp = r.self_link
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_disk_to_compute_resource_policy_edge" {
+  title = "resource policy"
+
+  sql = <<-EOQ
+    select
+      d.id::text as from_id,
+      r.id as to_id
+    from
+      gcp_compute_disk d,
+      jsonb_array_elements_text(resource_policies) as rp,
+      gcp_compute_resource_policy r
+    where
+      d.id = $1
+      and rp = r.self_link;
+  EOQ
+
+  param "id" {}
+}
+
 query "gcp_compute_disk_overview" {
   sql = <<-EOQ
     select
@@ -691,7 +779,7 @@ query "gcp_compute_disk_read_throughput" {
     where
       timestamp >= current_date - interval '7 day'
       and name in (select name from gcp_compute_disk where id = $1)
-    order by 
+    order by
       timestamp;
   EOQ
 
@@ -708,7 +796,7 @@ query "gcp_compute_disk_write_throughput" {
     where
       timestamp >= current_date - interval '7 day'
       and name in (select name from gcp_compute_disk where id = $1)
-    order by  
+    order by
       timestamp;
   EOQ
 

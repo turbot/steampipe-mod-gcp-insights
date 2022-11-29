@@ -70,7 +70,9 @@ dashboard "gcp_compute_instance_detail" {
         node.gcp_compute_instance_subnetwork_to_compute_network_node,
         node.gcp_compute_instance_to_compute_subnetwork_node,
         node.gcp_compute_instance_from_compute_instance_group_node,
-        node.gcp_compute_instance_to_compute_firewall_node
+        node.gcp_compute_instance_to_compute_firewall_node,
+        node.gcp_compute_instance_to_service_account_node,
+        node.gcp_compute_instance_to_kms_key_node
       ]
 
       edges = [
@@ -78,7 +80,9 @@ dashboard "gcp_compute_instance_detail" {
         edge.gcp_compute_instance_subnetwork_to_compute_network_edge,
         edge.gcp_compute_instance_to_compute_subnetwork_edge,
         edge.gcp_compute_instance_from_compute_instance_group_edge,
-        edge.gcp_compute_instance_to_compute_firewall_edge
+        edge.gcp_compute_instance_to_compute_firewall_edge,
+        edge.gcp_compute_instance_to_service_account_edge,
+        edge.gcp_compute_instance_to_kms_key_edge
       ]
 
       args = {
@@ -223,7 +227,7 @@ query "gcp_compute_instance_public_access" {
         when d ->> 'natIP' is not null then 'Enabled'
         else 'Disabled'
       end as value,
-      case 
+      case
         when d ->> 'natIP' is not null then 'alert'
         else 'ok'
       end as type
@@ -498,6 +502,93 @@ edge "gcp_compute_instance_to_compute_firewall_edge" {
     where
       ni ->> 'network' = f.network
       and i.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_instance_to_service_account_node" {
+  category = category.gcp_service_account
+
+  sql = <<-EOQ
+    select
+      s.name as id,
+      s.title,
+      jsonb_build_object(
+        'ID', s.unique_id,
+        'Enabled', not s.disabled,
+        'Region', s.location,
+        'OAuth 2.0 client ID', s.oauth2_client_id
+      ) as properties
+    from
+      gcp_compute_instance i,
+      gcp_service_account s,
+      jsonb_array_elements(service_accounts) as sa
+    where
+      sa ->> 'email' = s.email
+      and i.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_instance_to_service_account_edge" {
+  title = "service account"
+
+  sql = <<-EOQ
+    select
+      i.id::text as from_id,
+      s.name as to_id
+    from
+      gcp_compute_instance i,
+      gcp_service_account s,
+      jsonb_array_elements(service_accounts) as sa
+    where
+      sa ->> 'email' = s.email
+      and i.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+node "gcp_compute_instance_to_kms_key_node" {
+  category = category.gcp_kms_key
+
+  sql = <<-EOQ
+    select
+      k.name as id,
+      k.title,
+      jsonb_build_object(
+        'Name', k.name,
+        'Created Time', k.create_time,
+        'Location', k.location
+      ) as properties
+    from
+      gcp_compute_instance i,
+      jsonb_array_elements(disks) as disk,
+      gcp_kms_key k
+    where
+      i.id = $1
+      and "primary" -> 'name' = (disk -> 'diskEncryptionKey' -> 'kmsKeyName');
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_instance_to_kms_key_edge" {
+  title = "encrypted with"
+
+  sql = <<-EOQ
+    select
+      i.id::text as from_id,
+      k.name as to_id
+    from
+      gcp_compute_instance i,
+      jsonb_array_elements(disks) as disk,
+      gcp_kms_key k
+    where
+      i.id = $1
+      and "primary" -> 'name' = (disk -> 'diskEncryptionKey' -> 'kmsKeyName');
   EOQ
 
   param "id" {}
