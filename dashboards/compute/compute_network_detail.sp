@@ -39,6 +39,29 @@ dashboard "gcp_compute_network_detail" {
       }
     }
 
+    card {
+      width = 2
+      query = query.gcp_compute_network_routing_mode
+      args = {
+        name = self.input.network_name.value
+      }
+    }
+
+    card {
+      width = 2
+      query = query.gcp_network_firewall_rules_count
+      args = {
+        name = self.input.network_name.value
+      }
+    }
+    
+    card {
+      width = 2
+      query = query.gcp_auto_create_subnetwork
+      args = {
+        name = self.input.network_name.value
+      }
+    }
   }
 
   container {
@@ -58,6 +81,8 @@ dashboard "gcp_compute_network_detail" {
         node.gcp_compute_network_to_compute_router_node,
         node.gcp_compute_network_to_sql_database_instance_node,
         node.gcp_compute_network_to_dns_policy_node,
+        node.gcp_compute_network_to_kubernetes_cluster_node,
+        node.gcp_compute_network_to_compute_instances_node,
         node.gcp_compute_network_to_compute_forwarding_rule_node
       ]
 
@@ -69,6 +94,8 @@ dashboard "gcp_compute_network_detail" {
         edge.gcp_compute_network_to_compute_router_edge,
         edge.gcp_compute_network_to_sql_database_instance_edge,
         edge.gcp_compute_network_to_dns_policy_edge,
+        edge.gcp_compute_network_to_kubernetes_cluster_edge,
+        edge.gcp_compute_network_to_compute_instances_edge,
         edge.gcp_compute_network_to_compute_forwarding_rule_edge
       ]
 
@@ -169,6 +196,50 @@ query "gcp_compute_network_is_default" {
     select
       'Default Network' as label,
       case when name <> 'default' then 'ok' else 'Default network' end as value,
+      case when name <> 'default' then 'ok' else 'alert' end as type
+    from
+      gcp_compute_network
+    where
+      name = $1;
+  EOQ
+
+  param "name" {}
+}
+
+query "gcp_compute_network_routing_mode" {
+  sql = <<-EOQ
+    select
+      'Routing Mode' as label,
+      routing_mode as value
+    from
+      gcp_compute_network
+    where
+      name = $1;
+  EOQ
+
+  param "name" {}
+}
+
+query "gcp_network_firewall_rules_count" {
+  sql = <<-EOQ
+    select
+      'Firewall Rules' as label,
+      count(*) as value,
+      case when count(*) > 0 then 'ok' else 'alert' end as type
+    from
+      gcp_compute_firewall
+    where
+      split_part(network, 'networks/', 2) = $1;
+  EOQ
+
+  param "name" {}
+}
+
+query "gcp_auto_create_subnetwork" {
+  sql = <<-EOQ
+    select
+      'Auto Create Subnetwork' as label,
+      case when auto_create_subnetworks then 'enabled' else 'disabled' end as value,
       case when name <> 'default' then 'ok' else 'alert' end as type
     from
       gcp_compute_network
@@ -497,6 +568,93 @@ edge "gcp_compute_network_to_dns_policy_edge" {
     where
       pn ->> 'networkUrl' = n.self_link
       and n.name = $1;
+  EOQ
+
+  param "name" {}
+}
+
+node "gcp_compute_network_to_compute_instances_node" {
+  category = category.gcp_compute_instance
+
+  sql = <<-EOQ
+    select
+      i.id::text,
+      i.title,
+      jsonb_build_object(
+        'ID', i.id,
+        'Name', i.name,
+        'Created Time', i.creation_timestamp,
+        'CPU Platform', i.cpu_platform,
+        'Status', i.status
+      ) as properties
+    from
+      gcp_compute_instance i,
+      gcp_compute_network n,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      n.self_link = ni ->> 'network'
+      and n.name = $1;
+  EOQ
+
+  param "name" {}
+}
+
+edge "gcp_compute_network_to_compute_instances_edge" {
+  title = "network"
+
+  sql = <<-EOQ
+    select
+      i.id::text as to_id,
+      n.name as from_id
+    from
+      gcp_compute_instance i,
+      gcp_compute_network n,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      n.self_link = ni ->> 'network'
+      and n.name = $1;
+  EOQ
+
+  param "name" {}
+}
+node "gcp_compute_network_to_kubernetes_cluster_node" {
+  category = category.gcp_kubernetes_cluster
+
+  sql = <<-EOQ
+    select
+      c.name as id,
+      c.title,
+      jsonb_build_object(
+        'Name', c.name,
+        'Created Time', c.create_time,
+        'Endpoint', c.endpoint,
+        'Services IPv4 CIDR', c.services_ipv4_cidr,
+        'Status', c.status
+      ) as properties
+      from
+      gcp_kubernetes_cluster c,
+      gcp_compute_network n
+    where
+      n.name = $1
+      and n.name = c.network
+  EOQ
+
+  param "name" {}
+}
+
+edge "gcp_compute_network_to_kubernetes_cluster_edge" {
+  title = "network"
+
+  sql = <<-EOQ
+    select
+      c.name as to_id,
+      n.name as from_id
+      from
+      gcp_kubernetes_cluster c,
+      gcp_compute_network n
+    where
+      n.name = $1
+      and n.name = c.network
   EOQ
 
   param "name" {}
