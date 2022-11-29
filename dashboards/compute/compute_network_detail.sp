@@ -54,7 +54,7 @@ dashboard "gcp_compute_network_detail" {
         name = self.input.network_name.value
       }
     }
-    
+
     card {
       width = 2
       query = query.gcp_auto_create_subnetwork
@@ -73,7 +73,7 @@ dashboard "gcp_compute_network_detail" {
 
 
       nodes = [
-        node.gcp_compute_network_node,
+        node.gcp_compute_network_nodes,
         node.gcp_compute_network_from_compute_vpn_gateway_node,
         node.gcp_compute_network_to_compute_subnetwork_node,
         node.gcp_compute_network_to_compute_firewall_node,
@@ -100,7 +100,8 @@ dashboard "gcp_compute_network_detail" {
       ]
 
       args = {
-        name = self.input.network_name.value
+        name          = self.input.network_name.value
+        network_names = [self.input.network_name.value]
       }
     }
   }
@@ -250,7 +251,7 @@ query "gcp_auto_create_subnetwork" {
   param "name" {}
 }
 
-node "gcp_compute_network_node" {
+node "gcp_compute_network_nodes" {
   category = category.gcp_compute_network
 
   sql = <<-EOQ
@@ -265,10 +266,10 @@ node "gcp_compute_network_node" {
     from
       gcp_compute_network n
     where
-      n.name = $1;
+      n.name = any($1);
   EOQ
 
-  param "name" {}
+  param "network_names" {}
 }
 
 node "gcp_compute_network_to_compute_subnetwork_node" {

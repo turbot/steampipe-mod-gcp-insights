@@ -41,7 +41,7 @@ dashboard "gcp_pubsub_topic_detail" {
 
 
       nodes = [
-        node.gcp_pubsub_topic_node,
+        node.gcp_pubsub_topic_nodes,
         node.gcp_pubsub_topic_to_kms_key_node,
         node.gcp_pubsub_topic_from_kubernetes_cluster_node,
         node.gcp_pubsub_topic_to_iam_role_node,
@@ -58,7 +58,8 @@ dashboard "gcp_pubsub_topic_detail" {
       ]
 
       args = {
-        name = self.input.name.value
+        name        = self.input.name.value
+        topic_names = [self.input.name.value]
       }
     }
   }
@@ -231,7 +232,7 @@ query "gcp_pubsub_topic_subscription_details" {
   param "name" {}
 }
 
-node "gcp_pubsub_topic_node" {
+node "gcp_pubsub_topic_nodes" {
   category = category.gcp_pubsub_topic
 
   sql = <<-EOQ
@@ -246,10 +247,10 @@ node "gcp_pubsub_topic_node" {
     from
       gcp_pubsub_topic
     where
-      name = $1;
+      name = any($1);
   EOQ
 
-  param "name" {}
+  param "topic_names" {}
 }
 
 node "gcp_pubsub_topic_to_kms_key_node" {

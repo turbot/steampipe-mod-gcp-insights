@@ -30,11 +30,11 @@ dashboard "gcp_compute_instance_group_detail" {
     graph {
       title     = "Relationships"
       type      = "graph"
-      direction = "TD"
+      direction = "top_down"
 
 
       nodes = [
-        node.gcp_compute_instance_group_node,
+        node.gcp_compute_instance_group_nodes,
         node.gcp_compute_instance_group_from_compute_backend_service_node,
         node.gcp_compute_instance_group_to_compute_instance_node,
         node.gcp_compute_instance_group_to_compute_network_node,
@@ -55,7 +55,8 @@ dashboard "gcp_compute_instance_group_detail" {
       ]
 
       args = {
-        id = self.input.group_id.value
+        id                 = self.input.group_id.value
+        instance_group_ids = [self.input.group_id.value]
       }
     }
   }
@@ -156,7 +157,7 @@ query "gcp_compute_instance_group_size" {
 
 ## Graph
 
-node "gcp_compute_instance_group_node" {
+node "gcp_compute_instance_group_nodes" {
   category = category.gcp_compute_instance_group
 
   sql = <<-EOQ
@@ -173,10 +174,10 @@ node "gcp_compute_instance_group_node" {
     from
       gcp_compute_instance_group g
     where
-      id = $1;
+      id = any($1);
   EOQ
 
-  param "id" {}
+  param "instance_group_ids" {}
 }
 
 node "gcp_compute_instance_group_to_compute_instance_node" {
@@ -193,25 +194,6 @@ node "gcp_compute_instance_group_to_compute_instance_node" {
         'CPU Platform', i.cpu_platform,
         'Status', i.status
       ) as properties
-    from
-      gcp_compute_instance as i,
-      gcp_compute_instance_group as g,
-      jsonb_array_elements(instances) as ins
-    where
-      g.id = $1
-      and (ins ->> 'instance') = i.self_link;
-  EOQ
-
-  param "id" {}
-}
-
-edge "gcp_compute_instance_group_to_compute_instance_edge" {
-  title = "manages"
-
-  sql = <<-EOQ
-    select
-      g.id::text as from_id,
-      i.id::text as to_id
     from
       gcp_compute_instance as i,
       gcp_compute_instance_group as g,
@@ -486,6 +468,24 @@ edge "gcp_compute_instance_group_from_kubernetes_cluster_edge" {
   EOQ
 
   param "id" {}
+}
+
+// Edges :
+
+edge "gcp_compute_instance_group_to_compute_instance_edge" {
+  title = "manages"
+
+  sql = <<-EOQ
+    select
+      instance_group_id as from_id,
+      instance_id as to_id
+    from
+      unnest($1::text[]) as instance_group_id,
+      unnest($2::text[]) as instance_id;
+  EOQ
+
+  param "instance_group_ids" {}
+  param "instance_ids" {}
 }
 
 query "gcp_compute_instance_group_overview" {

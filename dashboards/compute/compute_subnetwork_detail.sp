@@ -58,28 +58,29 @@ dashboard "gcp_compute_subnetwork_detail" {
 
 
       nodes = [
-        node.gcp_compute_subnetwork_node,
+        node.gcp_compute_subnetwork_nodes,
         node.gcp_compute_subnetwork_from_compute_network_node,
-        node.gcp_compute_subnetwork_node_from_compute_instance_node,
-        node.gcp_compute_subnetwork_node_from_compute_instance_group_node,
-        node.gcp_compute_subnetwork_node_from_compute_instance_template_node,
-        node.gcp_compute_subnetwork_node_from_kubernetes_cluster_node,
-        node.gcp_compute_subnetwork_node_from_compute_address_node,
-        node.gcp_compute_subnetwork_node_from_compute_forwarding_rule_node,
+        node.gcp_compute_subnetwork_from_compute_instance_node,
+        node.gcp_compute_subnetwork_from_compute_instance_group_node,
+        node.gcp_compute_subnetwork_from_compute_instance_template_node,
+        node.gcp_compute_subnetwork_from_kubernetes_cluster_node,
+        node.gcp_compute_subnetwork_from_compute_address_node,
+        node.gcp_compute_subnetwork_from_compute_forwarding_rule_node,
       ]
 
       edges = [
         edge.gcp_compute_subnetwork_from_compute_network_edge,
-        edge.gcp_compute_subnetwork_node_from_compute_instance_edge,
-        edge.gcp_compute_subnetwork_node_from_compute_instance_group_edge,
-        edge.gcp_compute_subnetwork_node_from_compute_instance_template_edge,
-        edge.gcp_compute_subnetwork_node_from_kubernetes_cluster_edge,
-        edge.gcp_compute_subnetwork_node_from_compute_address_edge,
-        edge.gcp_compute_subnetwork_node_from_compute_forwarding_rule_edge
+        edge.gcp_compute_subnetwork_from_compute_instance_edge,
+        edge.gcp_compute_subnetwork_from_compute_instance_group_edge,
+        edge.gcp_compute_subnetwork_from_compute_instance_template_edge,
+        edge.gcp_compute_subnetwork_from_kubernetes_cluster_edge,
+        edge.gcp_compute_subnetwork_from_compute_address_edge,
+        edge.gcp_compute_subnetwork_from_compute_forwarding_rule_edge
       ]
 
       args = {
-        id = self.input.subnetwork_id.value
+        id         = self.input.subnetwork_id.value
+        subnet_ids = [self.input.subnetwork_id.value]
       }
     }
   }
@@ -189,7 +190,7 @@ query "gcp_compute_subnetwork_flow_logs" {
   param "id" {}
 }
 
-node "gcp_compute_subnetwork_node" {
+node "gcp_compute_subnetwork_nodes" {
   category = category.gcp_compute_subnetwork
 
   sql = <<-EOQ
@@ -206,10 +207,10 @@ node "gcp_compute_subnetwork_node" {
     from
       gcp_compute_subnetwork s
     where
-      s.id = $1;
+      s.id = any($1);
   EOQ
 
-  param "id" {}
+  param "subnet_ids" {}
 }
 
 node "gcp_compute_subnetwork_from_compute_network_node" {
@@ -253,7 +254,7 @@ edge "gcp_compute_subnetwork_from_compute_network_edge" {
   param "id" {}
 }
 
-node "gcp_compute_subnetwork_node_from_compute_instance_node" {
+node "gcp_compute_subnetwork_from_compute_instance_node" {
   category = category.gcp_compute_instance
 
   sql = <<-EOQ
@@ -278,7 +279,7 @@ node "gcp_compute_subnetwork_node_from_compute_instance_node" {
   param "id" {}
 }
 
-edge "gcp_compute_subnetwork_node_from_compute_instance_edge" {
+edge "gcp_compute_subnetwork_from_compute_instance_edge" {
   title = "compute instance"
 
   sql = <<-EOQ
@@ -297,7 +298,7 @@ edge "gcp_compute_subnetwork_node_from_compute_instance_edge" {
   param "id" {}
 }
 
-node "gcp_compute_subnetwork_node_from_compute_instance_group_node" {
+node "gcp_compute_subnetwork_from_compute_instance_group_node" {
   category = category.gcp_compute_instance_group
 
   sql = <<-EOQ
@@ -322,7 +323,7 @@ node "gcp_compute_subnetwork_node_from_compute_instance_group_node" {
   param "id" {}
 }
 
-edge "gcp_compute_subnetwork_node_from_compute_instance_group_edge" {
+edge "gcp_compute_subnetwork_from_compute_instance_group_edge" {
   title = "compute instance group"
 
   sql = <<-EOQ
@@ -340,7 +341,7 @@ edge "gcp_compute_subnetwork_node_from_compute_instance_group_edge" {
   param "id" {}
 }
 
-node "gcp_compute_subnetwork_node_from_compute_instance_template_node" {
+node "gcp_compute_subnetwork_from_compute_instance_template_node" {
   category = category.gcp_compute_instance_template
 
   sql = <<-EOQ
@@ -365,7 +366,7 @@ node "gcp_compute_subnetwork_node_from_compute_instance_template_node" {
   param "id" {}
 }
 
-edge "gcp_compute_subnetwork_node_from_compute_instance_template_edge" {
+edge "gcp_compute_subnetwork_from_compute_instance_template_edge" {
   title = "compute instance template"
 
   sql = <<-EOQ
@@ -384,7 +385,7 @@ edge "gcp_compute_subnetwork_node_from_compute_instance_template_edge" {
   param "id" {}
 }
 
-node "gcp_compute_subnetwork_node_from_kubernetes_cluster_node" {
+node "gcp_compute_subnetwork_from_kubernetes_cluster_node" {
   category = category.gcp_kubernetes_cluster
 
   sql = <<-EOQ
@@ -409,7 +410,7 @@ node "gcp_compute_subnetwork_node_from_kubernetes_cluster_node" {
   param "id" {}
 }
 
-edge "gcp_compute_subnetwork_node_from_kubernetes_cluster_edge" {
+edge "gcp_compute_subnetwork_from_kubernetes_cluster_edge" {
   title = "kubernetes cluster"
 
   sql = <<-EOQ
@@ -427,7 +428,7 @@ edge "gcp_compute_subnetwork_node_from_kubernetes_cluster_edge" {
   param "id" {}
 }
 
-node "gcp_compute_subnetwork_node_from_compute_address_node" {
+node "gcp_compute_subnetwork_from_compute_address_node" {
   category = category.gcp_compute_address
 
   sql = <<-EOQ
@@ -473,7 +474,7 @@ node "gcp_compute_subnetwork_node_from_compute_address_node" {
   param "id" {}
 }
 
-edge "gcp_compute_subnetwork_node_from_compute_address_edge" {
+edge "gcp_compute_subnetwork_from_compute_address_edge" {
   title = "compute address"
 
   sql = <<-EOQ
@@ -503,7 +504,7 @@ edge "gcp_compute_subnetwork_node_from_compute_address_edge" {
   param "id" {}
 }
 
-node "gcp_compute_subnetwork_node_from_compute_forwarding_rule_node" {
+node "gcp_compute_subnetwork_from_compute_forwarding_rule_node" {
   category = category.gcp_compute_forwarding_rule
 
   sql = <<-EOQ
@@ -549,7 +550,7 @@ node "gcp_compute_subnetwork_node_from_compute_forwarding_rule_node" {
   param "id" {}
 }
 
-edge "gcp_compute_subnetwork_node_from_compute_forwarding_rule_edge" {
+edge "gcp_compute_subnetwork_from_compute_forwarding_rule_edge" {
   title = "forwarding rule"
 
   sql = <<-EOQ
@@ -577,6 +578,24 @@ edge "gcp_compute_subnetwork_node_from_compute_forwarding_rule_edge" {
   EOQ
 
   param "id" {}
+}
+
+### Edges -
+
+edge "gcp_compute_subnetwork_to_compute_network_edge" {
+  title = "network"
+
+  sql = <<-EOQ
+    select
+      subnetwork_id as from_id,
+      network_name as to_id
+    from
+      unnest($1::text[]) as subnetwork_id,
+      unnest($2::text[]) as network_name;
+  EOQ
+
+  param "subnet_ids" {}
+  param "network_names" {}
 }
 
 query "gcp_compute_subnetwork_overview" {

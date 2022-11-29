@@ -76,7 +76,7 @@ dashboard "gcp_sql_database_instance_detail" {
       direction = "TD"
 
       nodes = [
-        node.gcp_sql_database_instance_node,
+        node.gcp_sql_database_instance_nodes,
         node.gcp_sql_database_instance_to_kms_key_node,
         node.gcp_sql_database_instance_to_sql_database_node,
         node.gcp_sql_database_instance_to_compute_network_node,
@@ -95,7 +95,8 @@ dashboard "gcp_sql_database_instance_detail" {
       ]
 
       args = {
-        name = self.input.database_instance_name.value
+        name                    = self.input.database_instance_name.value
+        database_instance_names = [self.input.database_instance_name.value]
       }
     }
   }
@@ -405,7 +406,7 @@ query "gcp_sql_database_instance_connection" {
   param "name" {}
 }
 
-node "gcp_sql_database_instance_node" {
+node "gcp_sql_database_instance_nodes" {
   category = category.gcp_sql_database_instance
 
   sql = <<-EOQ
@@ -423,10 +424,10 @@ node "gcp_sql_database_instance_node" {
     from
       gcp_sql_database_instance
     where
-      name = $1;
+      name = any($1);
   EOQ
 
-  param "name" {}
+  param "database_instance_names" {}
 }
 
 node "gcp_sql_database_instance_to_kms_key_node" {

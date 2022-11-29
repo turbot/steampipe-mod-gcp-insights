@@ -62,36 +62,35 @@ dashboard "gcp_compute_disk_detail" {
     graph {
       title     = "Relationships"
       type      = "graph"
-      direction = "TD"
+      direction = "top_down"
 
 
       nodes = [
-        node.gcp_compute_disk_node,
-        node.gcp_compute_disk_from_compute_instance_node,
-        node.gcp_compute_disk_from_compute_disk_node,
-        node.gcp_compute_disk_from_compute_snapshot_node,
-        node.gcp_compute_disk_from_compute_image_node,
-        node.gcp_compute_disk_to_kms_key_node,
-        node.gcp_compute_disk_to_compute_disk_node,
-        node.gcp_compute_disk_to_compute_snapshot_node,
+        node.gcp_compute_disk_nodes,
+        node.gcp_compute_instance_nodes,
+        node.gcp_kms_key_nodes,
         node.gcp_compute_disk_to_compute_image_node,
+        node.gcp_compute_disk_from_compute_image_node,
+        node.gcp_compute_disk_to_compute_snapshot_node,
+        node.gcp_compute_disk_from_compute_snapshot_node,
         node.gcp_compute_disk_to_compute_resource_policy_node
       ]
 
       edges = [
-        edge.gcp_compute_disk_from_compute_instance_edge,
-        edge.gcp_compute_disk_from_compute_disk_edge,
-        edge.gcp_compute_disk_from_compute_snapshot_edge,
-        edge.gcp_compute_disk_from_compute_image_edge,
         edge.gcp_compute_disk_to_kms_key_edge,
         edge.gcp_compute_disk_to_compute_disk_edge,
         edge.gcp_compute_disk_to_compute_snapshot_edge,
         edge.gcp_compute_disk_to_compute_image_edge,
-        edge.gcp_compute_disk_to_compute_resource_policy_edge
+        edge.gcp_compute_disk_to_compute_resource_policy_edge,
+        edge.gcp_compute_disk_from_compute_instance_edge,
+        edge.gcp_compute_disk_from_compute_disk_edge,
+        edge.gcp_compute_disk_from_compute_snapshot_edge,
+        edge.gcp_compute_disk_from_compute_image_edge
       ]
 
       args = {
-        id = self.input.disk_id.value
+        id       = self.input.disk_id.value
+        disk_ids = [self.input.disk_id.value]
       }
     }
   }
@@ -312,7 +311,7 @@ query "gcp_compute_disk_encryption_status" {
 
 ## Graph
 
-node "gcp_compute_disk_node" {
+node "gcp_compute_disk_nodes" {
   category = category.gcp_compute_disk
 
   sql = <<-EOQ
@@ -330,35 +329,10 @@ node "gcp_compute_disk_node" {
     from
       gcp_compute_disk
     where
-      id = $1;
+      id = any($1);
   EOQ
 
-  param "id" {}
-}
-
-node "gcp_compute_disk_from_compute_instance_node" {
-  category = category.gcp_compute_instance
-
-  sql = <<-EOQ
-    select
-      i.id::text,
-      i.title,
-      jsonb_build_object(
-        'ID', i.id::text,
-        'Name', i.name,
-        'Created Time', i.creation_timestamp,
-        'CPU Platform', cpu_platform
-      ) as properties
-    from
-      gcp_compute_disk d,
-      gcp_compute_instance i,
-      jsonb_array_elements(disks) as disk
-    where
-      d.id = $1
-      and d.self_link = (disk ->> 'source');
-  EOQ
-
-  param "id" {}
+  param "disk_ids" {}
 }
 
 edge "gcp_compute_disk_from_compute_instance_edge" {
@@ -379,31 +353,6 @@ edge "gcp_compute_disk_from_compute_instance_edge" {
     where
       d.id = $1
       and d.self_link = (disk ->> 'source');
-  EOQ
-
-  param "id" {}
-}
-
-node "gcp_compute_disk_to_kms_key_node" {
-  category = category.gcp_kms_key
-
-  sql = <<-EOQ
-    select
-      k.name as id,
-      k.title,
-      jsonb_build_object(
-        'Name', k.name,
-        'Created Time', k.create_time,
-        'Key Ring Name', key_ring_name,
-        'Location', k.location
-      ) as properties
-    from
-      gcp_compute_disk d,
-      gcp_kms_key k
-    where
-      d.id = $1
-      and d.disk_encryption_key is not null
-      and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.name;
   EOQ
 
   param "id" {}
@@ -727,6 +676,8 @@ edge "gcp_compute_disk_to_compute_resource_policy_edge" {
 
   param "id" {}
 }
+
+
 
 query "gcp_compute_disk_overview" {
   sql = <<-EOQ

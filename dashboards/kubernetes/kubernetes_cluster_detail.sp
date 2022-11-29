@@ -74,7 +74,7 @@ dashboard "gcp_kubernetes_cluster_detail" {
 
 
       nodes = [
-        node.gcp_kubernetes_cluster_node,
+        node.gcp_kubernetes_cluster_nodes,
         node.gcp_kubernetes_cluster_to_node_pool_node,
         node.gcp_kubernetes_cluster_to_compute_network_node,
         node.gcp_kubernetes_cluster_network_to_compute_subnetwork_node,
@@ -99,7 +99,8 @@ dashboard "gcp_kubernetes_cluster_detail" {
       ]
 
       args = {
-        name = self.input.cluster_name.value
+        name          = self.input.cluster_name.value
+        cluster_names = [self.input.cluster_name.value]
       }
     }
   }
@@ -306,7 +307,7 @@ query "gcp_kubernetes_cluster_auto_repair_disabled" {
 
 ## Graph
 
-node "gcp_kubernetes_cluster_node" {
+node "gcp_kubernetes_cluster_nodes" {
   category = category.gcp_kubernetes_cluster
 
   sql = <<-EOQ
@@ -323,10 +324,10 @@ node "gcp_kubernetes_cluster_node" {
     from
       gcp_kubernetes_cluster
     where
-      name = $1;
+      name = any($1);
   EOQ
 
-  param "name" {}
+  param "cluster_names" {}
 }
 
 node "gcp_kubernetes_cluster_to_node_pool_node" {

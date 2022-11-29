@@ -64,7 +64,7 @@ dashboard "gcp_kms_key_detail" {
       direction = "TD"
 
       nodes = [
-        node.gcp_kms_key_node,
+        node.gcp_kms_key_nodes,
         node.gcp_kms_key_from_storage_bucket_node,
         node.gcp_kms_key_from_pubsub_topic_node,
         node.gcp_kms_key_from_kms_key_ring_node,
@@ -93,7 +93,8 @@ dashboard "gcp_kms_key_detail" {
       ]
 
       args = {
-        key_name = self.input.key_name.value
+        key_name  = self.input.key_name.value
+        key_names = self.input.key_name.value
       }
     }
   }
@@ -142,7 +143,7 @@ query "gcp_kms_key_name_input" {
   EOQ
 }
 
-node "gcp_kms_key_node" {
+node "gcp_kms_key_nodes" {
   category = category.gcp_kms_key
 
   sql = <<-EOQ
@@ -157,10 +158,10 @@ node "gcp_kms_key_node" {
     from
       gcp_kms_key
     where
-      name = $1;
+      name = any($1);
   EOQ
 
-  param "key_name" {}
+  param "key_names" {}
 }
 
 node "gcp_kms_key_from_storage_bucket_node" {
@@ -403,7 +404,7 @@ node "gcp_kms_key_from_gcp_compute_image_node" {
 }
 
 edge "gcp_kms_key_from_gcp_compute_image_edge" {
-title = "encrypted with"
+  title = "encrypted with"
 
   sql = <<-EOQ
     select

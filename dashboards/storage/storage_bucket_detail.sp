@@ -74,7 +74,7 @@ dashboard "gcp_storage_bucket_detail" {
 
 
       nodes = [
-        node.gcp_storage_bucket_node,
+        node.gcp_storage_bucket_nodes,
         node.gcp_storage_bucket_to_kms_key_node,
         node.gcp_storage_bucket_to_logging_bucket_node,
         node.gcp_storage_bucket_from_compute_backend_bucket_node
@@ -87,7 +87,8 @@ dashboard "gcp_storage_bucket_detail" {
       ]
 
       args = {
-        id = self.input.bucket_id.value
+        id         = self.input.bucket_id.value
+        bucket_ids = [self.input.bucket_id.value]
       }
     }
   }
@@ -260,7 +261,7 @@ query "gcp_storage_bucket_uniform_bucket_level_access" {
 
 ## Graph
 
-node "gcp_storage_bucket_node" {
+node "gcp_storage_bucket_nodes" {
   category = category.gcp_storage_bucket
 
   sql = <<-EOQ
@@ -275,10 +276,10 @@ node "gcp_storage_bucket_node" {
     from
       gcp_storage_bucket
     where
-      id = $1;
+      id = any($1);
   EOQ
 
-  param "id" {}
+  param "bucket_ids" {}
 }
 
 node "gcp_storage_bucket_to_kms_key_node" {
