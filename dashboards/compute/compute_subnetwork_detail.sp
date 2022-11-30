@@ -582,7 +582,7 @@ edge "gcp_compute_subnetwork_from_compute_forwarding_rule_edge" {
 
 ### Edges -
 
-edge "gcp_compute_subnetwork_to_compute_network_edge" {
+edge "gcp_compute_subnetwork_to_compute_network_edges" {
   title = "network"
 
   sql = <<-EOQ

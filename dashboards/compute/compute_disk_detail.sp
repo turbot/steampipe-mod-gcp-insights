@@ -104,7 +104,7 @@ dashboard "gcp_compute_disk_detail" {
           from
             gcp_compute_disk d
           where
-            d.source_disk_id = $1::text;
+            d.source_disk_id = $1;
         EOQ
 
         args = [self.input.disk_id.value]
@@ -128,32 +128,32 @@ dashboard "gcp_compute_disk_detail" {
         node.gcp_compute_instance_nodes,
         node.gcp_kms_key_nodes,
 
-        node.gcp_compute_disk_to_compute_disk_node,
-        node.gcp_compute_disk_from_compute_disk_node,
+        node.gcp_compute_disk_to_compute_disk_nodes,
+        node.gcp_compute_disk_from_compute_disk_nodes,
 
-        node.gcp_compute_disk_to_compute_image_node,
-        node.gcp_compute_disk_from_compute_image_node,
+        node.gcp_compute_disk_to_compute_image_nodes,
+        node.gcp_compute_disk_from_compute_image_nodes,
 
-        node.gcp_compute_disk_to_compute_snapshot_node,
-        node.gcp_compute_disk_from_compute_snapshot_node,
+        node.gcp_compute_disk_to_compute_snapshot_nodes,
+        node.gcp_compute_disk_from_compute_snapshot_nodes,
 
-        node.gcp_compute_disk_to_compute_resource_policy_node
+        node.gcp_compute_disk_to_compute_resource_policy_nodes
       ]
 
       edges = [
-        edge.gcp_compute_instance_to_compute_disk_edge,
-        edge.gcp_compute_disk_to_kms_key_edge,
-        edge.gcp_compute_disk_to_compute_disk_edge,
-        edge.gcp_compute_disk_from_compute_disk_edge,
+        edge.gcp_compute_instance_to_compute_disk_edges,
+        edge.gcp_compute_disk_to_kms_key_edges,
+        edge.gcp_compute_disk_to_compute_disk_edges,
+        edge.gcp_compute_disk_from_compute_disk_edges,
 
 
-        edge.gcp_compute_disk_to_compute_image_edge,
-        edge.gcp_compute_disk_from_compute_image_edge,
+        edge.gcp_compute_disk_to_compute_image_edges,
+        edge.gcp_compute_disk_from_compute_image_edges,
 
-        edge.gcp_compute_disk_to_compute_snapshot_edge,
-        edge.gcp_compute_disk_from_compute_snapshot_edge,
+        edge.gcp_compute_disk_to_compute_snapshot_edges,
+        edge.gcp_compute_disk_from_compute_snapshot_edges,
 
-        edge.gcp_compute_disk_to_compute_resource_policy_edge
+        edge.gcp_compute_disk_to_compute_resource_policy_edges
       ]
 
       args = {
@@ -431,7 +431,7 @@ node "gcp_compute_snapshot_nodes" {
   param "snapshot_ids" {}
 }
 
-node "gcp_compute_disk_to_compute_disk_node" {
+node "gcp_compute_disk_to_compute_disk_nodes" {
   category = category.gcp_compute_disk
 
   sql = <<-EOQ
@@ -457,7 +457,7 @@ node "gcp_compute_disk_to_compute_disk_node" {
   param "disk_ids" {}
 }
 
-node "gcp_compute_disk_from_compute_disk_node" {
+node "gcp_compute_disk_from_compute_disk_nodes" {
   category = category.gcp_compute_disk
 
   sql = <<-EOQ
@@ -483,7 +483,7 @@ node "gcp_compute_disk_from_compute_disk_node" {
   param "disk_ids" {}
 }
 
-node "gcp_compute_disk_to_compute_snapshot_node" {
+node "gcp_compute_disk_to_compute_snapshot_nodes" {
   category = category.gcp_compute_snapshot
 
   sql = <<-EOQ
@@ -507,7 +507,7 @@ node "gcp_compute_disk_to_compute_snapshot_node" {
   param "disk_ids" {}
 }
 
-node "gcp_compute_disk_from_compute_snapshot_node" {
+node "gcp_compute_disk_from_compute_snapshot_nodes" {
   category = category.gcp_compute_snapshot
 
   sql = <<-EOQ
@@ -531,7 +531,7 @@ node "gcp_compute_disk_from_compute_snapshot_node" {
   param "disk_ids" {}
 }
 
-node "gcp_compute_disk_to_compute_image_node" {
+node "gcp_compute_disk_to_compute_image_nodes" {
   category = category.gcp_compute_image
 
   sql = <<-EOQ
@@ -556,7 +556,7 @@ node "gcp_compute_disk_to_compute_image_node" {
   param "disk_ids" {}
 }
 
-node "gcp_compute_disk_from_compute_image_node" {
+node "gcp_compute_disk_from_compute_image_nodes" {
   category = category.gcp_compute_snapshot
 
   sql = <<-EOQ
@@ -580,7 +580,7 @@ node "gcp_compute_disk_from_compute_image_node" {
   param "disk_ids" {}
 }
 
-node "gcp_compute_disk_to_compute_resource_policy_node" {
+node "gcp_compute_disk_to_compute_resource_policy_nodes" {
   category = category.gcp_compute_resource_policy
 
   sql = <<-EOQ
@@ -606,55 +606,55 @@ node "gcp_compute_disk_to_compute_resource_policy_node" {
 
 ### Edges -
 
-edge "gcp_compute_disk_to_kms_key_edge" {
+edge "gcp_compute_disk_to_kms_key_edges" {
   title = "encrypted with"
 
   sql = <<-EOQ
     select
-      disk_id as from_id,
-      key_name as to_id
+      disk_ids as from_id,
+      key_names as to_id
     from
-      unnest($1::text[]) as disk_id,
-      unnest($2::text[]) as key_name;
+      unnest($1::text[]) as disk_ids,
+      unnest($2::text[]) as key_names;
   EOQ
 
   param "disk_ids" {}
   param "key_names" {}
 }
 
-edge "gcp_compute_disk_to_compute_disk_edge" {
+edge "gcp_compute_disk_to_compute_disk_edges" {
   title = "cloned to"
 
   sql = <<-EOQ
     select
-      id as from_id,
-      to_disk_id as to_id
+      disk_ids as from_id,
+      to_disk_ids as to_id
     from
-      unnest($1::text[]) as id,
-      unnest($2::text[]) as to_disk_id;
+      unnest($1::text[]) as disk_ids,
+      unnest($2::text[]) as to_disk_ids;
   EOQ
 
   param "disk_ids" {}
   param "to_disk_ids" {}
 }
 
-edge "gcp_compute_disk_from_compute_disk_edge" {
+edge "gcp_compute_disk_from_compute_disk_edges" {
   title = "cloned to"
 
   sql = <<-EOQ
     select
-      from_disk_id as from_id,
-      id as to_id
+      from_disk_ids as from_id,
+      disk_ids as to_id
     from
-      unnest($1::text[]) as from_disk_id,
-      unnest($2::text[]) as id;
+      unnest($1::text[]) as from_disk_ids,
+      unnest($2::text[]) as disk_ids;
   EOQ
 
   param "from_disk_ids" {}
   param "disk_ids" {}
 }
 
-edge "gcp_compute_disk_to_compute_snapshot_edge" {
+edge "gcp_compute_disk_to_compute_snapshot_edges" {
   title = "snapshot"
 
   sql = <<-EOQ
@@ -672,7 +672,7 @@ edge "gcp_compute_disk_to_compute_snapshot_edge" {
   param "disk_ids" {}
 }
 
-edge "gcp_compute_disk_from_compute_snapshot_edge" {
+edge "gcp_compute_disk_from_compute_snapshot_edges" {
   title = "created from"
 
   sql = <<-EOQ
@@ -690,7 +690,7 @@ edge "gcp_compute_disk_from_compute_snapshot_edge" {
   param "disk_ids" {}
 }
 
-edge "gcp_compute_disk_to_compute_image_edge" {
+edge "gcp_compute_disk_to_compute_image_edges" {
   title = "image"
 
   sql = <<-EOQ
@@ -708,7 +708,7 @@ edge "gcp_compute_disk_to_compute_image_edge" {
   param "disk_ids" {}
 }
 
-edge "gcp_compute_disk_from_compute_image_edge" {
+edge "gcp_compute_disk_from_compute_image_edges" {
   title = "created from"
 
   sql = <<-EOQ
@@ -726,7 +726,7 @@ edge "gcp_compute_disk_from_compute_image_edge" {
   param "disk_ids" {}
 }
 
-edge "gcp_compute_disk_to_compute_resource_policy_edge" {
+edge "gcp_compute_disk_to_compute_resource_policy_edges" {
   title = "resource policy"
 
   sql = <<-EOQ

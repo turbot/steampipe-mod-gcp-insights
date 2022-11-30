@@ -75,14 +75,16 @@ dashboard "gcp_kubernetes_cluster_detail" {
 
       nodes = [
         node.gcp_kubernetes_cluster_nodes,
-        node.gcp_kubernetes_cluster_to_node_pool_node,
         node.gcp_kubernetes_cluster_to_compute_network_node,
         node.gcp_kubernetes_cluster_network_to_compute_subnetwork_node,
-        node.gcp_kubernetes_cluster_to_pubsub_topic_node,
         node.gcp_kubernetes_cluster_node_pool_to_compute_instance_group_node,
+        node.gcp_kubernetes_cluster_to_pubsub_topic_node,
         node.gcp_kubernetes_cluster_to_kms_key_node,
-        node.gcp_kubernetes_cluster_to_bigquery_dataset_node,
+
         node.gcp_kubernetes_cluster_node_pool_to_compute_instance_node,
+
+        node.gcp_kubernetes_cluster_to_node_pool_node,
+        node.gcp_kubernetes_cluster_to_bigquery_dataset_node,
         node.gcp_kubernetes_cluster_to_compute_firewall_node
       ]
 

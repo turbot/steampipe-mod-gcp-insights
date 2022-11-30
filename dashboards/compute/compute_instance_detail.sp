@@ -132,17 +132,17 @@ dashboard "gcp_compute_instance_detail" {
         node.gcp_compute_disk_nodes,
         node.gcp_compute_network_nodes,
         node.gcp_compute_subnetwork_nodes,
-        node.gcp_compute_instance_to_compute_firewall_node,
-        node.gcp_compute_instance_to_service_account_node
+        node.gcp_compute_instance_to_compute_firewall_nodes,
+        node.gcp_compute_instance_to_service_account_nodes
       ]
 
       edges = [
-        edge.gcp_compute_instance_group_to_compute_instance_edge,
-        edge.gcp_compute_subnetwork_to_compute_network_edge,
-        edge.gcp_compute_instance_to_compute_disk_edge,
-        edge.gcp_compute_instance_to_compute_subnetwork_edge,
-        edge.gcp_compute_instance_to_compute_firewall_edge,
-        edge.gcp_compute_instance_to_service_account_edge
+        edge.gcp_compute_instance_group_to_compute_instance_edges,
+        edge.gcp_compute_subnetwork_to_compute_network_edges,
+        edge.gcp_compute_instance_to_compute_disk_edges,
+        edge.gcp_compute_instance_to_compute_subnetwork_edges,
+        edge.gcp_compute_instance_to_compute_firewall_edges,
+        edge.gcp_compute_instance_to_service_account_edges
       ]
 
       args = {
@@ -349,7 +349,7 @@ node "gcp_compute_instance_nodes" {
   param "instance_ids" {}
 }
 
-node "gcp_compute_instance_to_compute_firewall_node" {
+node "gcp_compute_instance_to_compute_firewall_nodes" {
   category = category.gcp_compute_firewall
 
   sql = <<-EOQ
@@ -375,7 +375,7 @@ node "gcp_compute_instance_to_compute_firewall_node" {
   param "id" {}
 }
 
-node "gcp_compute_instance_to_service_account_node" {
+node "gcp_compute_instance_to_service_account_nodes" {
   category = category.gcp_service_account
 
   sql = <<-EOQ
@@ -402,39 +402,39 @@ node "gcp_compute_instance_to_service_account_node" {
 
 ### Edges -
 
-edge "gcp_compute_instance_to_compute_disk_edge" {
+edge "gcp_compute_instance_to_compute_disk_edges" {
   title = "mounts"
 
   sql = <<-EOQ
     select
-      instance_id as from_id,
-      disk_id as to_id
+      instance_ids as from_id,
+      disk_ids as to_id
     from
-      unnest($1::text[]) as instance_id,
-      unnest($2::text[]) as disk_id;
+      unnest($1::text[]) as instance_ids,
+      unnest($2::text[]) as disk_ids;
   EOQ
 
   param "instance_ids" {}
   param "disk_ids" {}
 }
 
-edge "gcp_compute_instance_to_compute_subnetwork_edge" {
+edge "gcp_compute_instance_to_compute_subnetwork_edges" {
   title = "subnetwork"
 
   sql = <<-EOQ
     select
-      instance_id as from_id,
-      subnetwork_id as to_id
+      instance_ids as from_id,
+      subnet_ids as to_id
     from
-      unnest($1::text[]) as instance_id,
-      unnest($2::text[]) as subnetwork_id;
+      unnest($1::text[]) as instance_ids,
+      unnest($2::text[]) as subnet_ids;
   EOQ
 
   param "instance_ids" {}
   param "subnet_ids" {}
 }
 
-edge "gcp_compute_instance_to_compute_firewall_edge" {
+edge "gcp_compute_instance_to_compute_firewall_edges" {
   title = "firewall"
 
   sql = <<-EOQ
@@ -453,7 +453,7 @@ edge "gcp_compute_instance_to_compute_firewall_edge" {
   param "id" {}
 }
 
-edge "gcp_compute_instance_to_service_account_edge" {
+edge "gcp_compute_instance_to_service_account_edges" {
   title = "service account"
 
   sql = <<-EOQ
