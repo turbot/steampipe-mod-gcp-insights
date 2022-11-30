@@ -28,35 +28,104 @@ dashboard "gcp_compute_instance_group_detail" {
   container {
 
     graph {
-      title     = "Relationships"
-      type      = "graph"
-      direction = "top_down"
+      title = "Relationships"
+      type  = "graph"
 
+      with "instances" {
+        sql = <<-EOQ
+          select
+            i.id::text as instance_id
+          from
+            gcp_compute_instance as i,
+            gcp_compute_instance_group as g,
+            jsonb_array_elements(instances) as ins
+          where
+            g.id = $1
+            and (ins ->> 'instance') = i.self_link;
+        EOQ
+
+        args = [self.input.group_id.value]
+      }
+
+      with "networks" {
+        sql = <<-EOQ
+          select
+            n.name as network_name
+          from
+            gcp_compute_instance_group g
+              left join gcp_compute_subnetwork s 
+              on g.subnetwork = s.self_link,
+            gcp_compute_network n
+          where
+            g.network = n.self_link
+            and g.id = $1;
+        EOQ
+
+        args = [self.input.group_id.value]
+      }
+
+      with "subnets" {
+        sql = <<-EOQ
+          select
+            s.id::text as subnet_id
+          from
+            gcp_compute_instance_group g,
+            gcp_compute_subnetwork s
+          where
+            g.subnetwork = s.self_link
+            and g.id = $1;
+        EOQ
+
+        args = [self.input.group_id.value]
+      }
+
+      with "kube_clusters" {
+        sql = <<-EOQ
+          select
+            c.name as cluster_name
+          from
+            gcp_kubernetes_cluster c,
+            gcp_compute_instance_group g,
+            jsonb_array_elements_text(instance_group_urls) ig
+          where
+            split_part(ig, 'instanceGroupManagers/', 2) = g.name
+            and g.id = $1;
+        EOQ
+
+        args = [self.input.group_id.value]
+      }
 
       nodes = [
         node.gcp_compute_instance_group_nodes,
-        node.gcp_compute_instance_group_from_compute_backend_service_node,
-        node.gcp_compute_instance_group_to_compute_instance_node,
-        node.gcp_compute_instance_group_to_compute_network_node,
-        node.gcp_compute_instance_group_compute_network_to_compute_subnetwork_node,
+        node.gcp_compute_instance_nodes,
+        node.gcp_compute_subnetwork_nodes,
+        node.gcp_compute_network_nodes,
+        node.gcp_kubernetes_cluster_nodes,
+
+
         node.gcp_compute_instance_group_to_compute_autoscaler_node,
         node.gcp_compute_instance_group_to_compute_firewall_node,
-        node.gcp_compute_instance_group_from_kubernetes_cluster_node
+        node.gcp_compute_instance_group_from_compute_backend_service_node
       ]
 
       edges = [
-        edge.gcp_compute_instance_group_from_compute_backend_service_edge,
+        edge.gcp_compute_subnetwork_to_compute_network_edge,
         edge.gcp_compute_instance_group_to_compute_instance_edge,
-        edge.gcp_compute_instance_group_to_compute_network_edge,
-        edge.gcp_compute_instance_group_compute_network_to_compute_subnetwork_edge,
+        edge.gcp_compute_instance_group_from_kubernetes_cluster_edge,
+        edge.gcp_compute_instance_group_to_compute_subnetwork_edge,
+
         edge.gcp_compute_instance_group_to_compute_autoscaler_edge,
         edge.gcp_compute_instance_group_to_compute_firewall_edge,
-        edge.gcp_compute_instance_group_from_kubernetes_cluster_edge
+        edge.gcp_compute_instance_group_from_compute_backend_service_edge
       ]
 
       args = {
         id                 = self.input.group_id.value
         instance_group_ids = [self.input.group_id.value]
+        instance_ids       = with.instances.rows[*].instance_id
+        network_names      = with.networks.rows[*].network_name
+        cluster_names      = with.kube_clusters.rows[*].cluster_name
+        subnet_ids         = with.subnets.rows[*].subnet_id
       }
     }
   }
@@ -155,7 +224,7 @@ query "gcp_compute_instance_group_size" {
 
 }
 
-## Graph
+## Graph - start
 
 node "gcp_compute_instance_group_nodes" {
   category = category.gcp_compute_instance_group
@@ -180,75 +249,6 @@ node "gcp_compute_instance_group_nodes" {
   param "instance_group_ids" {}
 }
 
-node "gcp_compute_instance_group_to_compute_instance_node" {
-  category = category.gcp_compute_instance
-
-  sql = <<-EOQ
-    select
-      i.id::text as id,
-      i.title,
-      jsonb_build_object(
-        'ID', i.id::text,
-        'Name', i.name,
-        'Created Time', i.creation_timestamp,
-        'CPU Platform', i.cpu_platform,
-        'Status', i.status
-      ) as properties
-    from
-      gcp_compute_instance as i,
-      gcp_compute_instance_group as g,
-      jsonb_array_elements(instances) as ins
-    where
-      g.id = $1
-      and (ins ->> 'instance') = i.self_link;
-  EOQ
-
-  param "id" {}
-}
-
-node "gcp_compute_instance_group_to_compute_network_node" {
-  category = category.gcp_compute_network
-
-  sql = <<-EOQ
-    select
-      n.id::text as id,
-      n.title,
-      jsonb_build_object(
-        'ID', n.id,
-        'Name', n.name,
-        'Created Time', n.creation_timestamp
-      ) as properties
-    from
-      gcp_compute_instance_group g,
-      gcp_compute_network n
-    where
-      g.network = n.self_link
-      and g.id = $1;
-  EOQ
-
-  param "id" {}
-}
-
-edge "gcp_compute_instance_group_to_compute_network_edge" {
-  title = "network"
-
-  sql = <<-EOQ
-    select
-      case when g.subnetwork = '' then (g.id::text) else (s.id::text) end as from_id,
-      n.id::text as to_id
-    from
-      gcp_compute_instance_group g
-        left join gcp_compute_subnetwork s 
-        on g.subnetwork = s.self_link,
-      gcp_compute_network n
-    where
-      g.network = n.self_link
-      and g.id = $1;
-  EOQ
-
-  param "id" {}
-}
-
 node "gcp_compute_instance_group_compute_network_to_compute_subnetwork_node" {
   category = category.gcp_compute_subnetwork
 
@@ -268,26 +268,6 @@ node "gcp_compute_instance_group_compute_network_to_compute_subnetwork_node" {
       gcp_compute_subnetwork s
     where
       g.subnetwork = s.self_link
-      and g.id = $1;
-  EOQ
-
-  param "id" {}
-}
-
-edge "gcp_compute_instance_group_compute_network_to_compute_subnetwork_edge" {
-  title = "subnetwork"
-
-  sql = <<-EOQ
-    select
-      g.id::text as from_id,
-      s.id::text as to_id
-    from
-      gcp_compute_instance_group g,
-      gcp_compute_network n,
-      gcp_compute_subnetwork s
-    where
-      g.network = n.self_link
-      and g.subnetwork = s.self_link
       and g.id = $1;
   EOQ
 
@@ -319,24 +299,6 @@ node "gcp_compute_instance_group_to_compute_autoscaler_node" {
   param "id" {}
 }
 
-edge "gcp_compute_instance_group_to_compute_autoscaler_edge" {
-  title = "autoscaler"
-
-  sql = <<-EOQ
-    select
-      g.id::text as from_id,
-      a.id::text as to_id
-    from
-      gcp_compute_instance_group g,
-      gcp_compute_autoscaler a
-    where
-      g.name = split_part(a.target, 'instanceGroupManagers/', 2)
-      and g.id = $1;
-  EOQ
-
-  param "id" {}
-}
-
 node "gcp_compute_instance_group_to_compute_firewall_node" {
   category = category.gcp_compute_firewall
 
@@ -351,24 +313,6 @@ node "gcp_compute_instance_group_to_compute_firewall_node" {
         'Action', f.action,
         'Priority', f.priority
       ) as properties
-    from
-      gcp_compute_instance_group g,
-      gcp_compute_firewall f
-    where
-      g.network = f.network
-      and g.id = $1;
-  EOQ
-
-  param "id" {}
-}
-
-edge "gcp_compute_instance_group_to_compute_firewall_edge" {
-  title = "firewall"
-
-  sql = <<-EOQ
-    select
-      g.id::text as from_id,
-      f.id::text as to_id
     from
       gcp_compute_instance_group g,
       gcp_compute_firewall f
@@ -406,6 +350,108 @@ node "gcp_compute_instance_group_from_compute_backend_service_node" {
   param "id" {}
 }
 
+// Edges :
+
+edge "gcp_compute_instance_group_to_compute_instance_edge" {
+  title = "manages"
+
+  sql = <<-EOQ
+    select
+      instance_group_id as from_id,
+      instance_id as to_id
+    from
+      unnest($1::text[]) as instance_group_id,
+      unnest($2::text[]) as instance_id;
+  EOQ
+
+  param "instance_group_ids" {}
+  param "instance_ids" {}
+}
+
+// edge "gcp_compute_instance_group_to_compute_network_edge" {
+//   title = "network"
+
+//   sql = <<-EOQ
+//     select
+//       instance_group_id as from_id,
+//       network_name as to_id
+//     from
+//       unnest($1::text[]) as instance_group_id,
+//       unnest($2::text[]) as network_name;
+//   EOQ
+
+//   param "instance_group_ids" {}
+//   param "network_names" {}
+// }
+
+edge "gcp_compute_instance_group_to_compute_subnetwork_edge" {
+  title = "subnetwork"
+
+  sql = <<-EOQ
+    select
+      instance_group_id as from_id,
+      subnet_id as to_id
+    from
+      unnest($1::text[]) as instance_group_id,
+      unnest($2::text[]) as subnet_id;
+  EOQ
+
+  param "instance_group_ids" {}
+  param "subnet_ids" {}
+}
+
+edge "gcp_compute_instance_group_from_kubernetes_cluster_edge" {
+  title = "instance group"
+
+  sql = <<-EOQ
+    select
+      cluster_name as from_id,
+      instance_group_id as to_id
+    from
+      unnest($1::text[]) as cluster_name,
+      unnest($2::text[]) as instance_group_id;
+  EOQ
+
+  param "cluster_names" {}
+  param "instance_group_ids" {}
+}
+
+edge "gcp_compute_instance_group_to_compute_autoscaler_edge" {
+  title = "autoscaler"
+
+  sql = <<-EOQ
+    select
+      g.id::text as from_id,
+      a.id::text as to_id
+    from
+      gcp_compute_instance_group g,
+      gcp_compute_autoscaler a
+    where
+      g.name = split_part(a.target, 'instanceGroupManagers/', 2)
+      and g.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
+edge "gcp_compute_instance_group_to_compute_firewall_edge" {
+  title = "firewall"
+
+  sql = <<-EOQ
+    select
+      g.id::text as from_id,
+      f.id::text as to_id
+    from
+      gcp_compute_instance_group g,
+      gcp_compute_firewall f
+    where
+      g.network = f.network
+      and g.id = $1;
+  EOQ
+
+  param "id" {}
+}
+
 edge "gcp_compute_instance_group_from_compute_backend_service_edge" {
   title = "instance group"
 
@@ -425,68 +471,7 @@ edge "gcp_compute_instance_group_from_compute_backend_service_edge" {
   param "id" {}
 }
 
-node "gcp_compute_instance_group_from_kubernetes_cluster_node" {
-  category = category.gcp_kubernetes_cluster
-
-  sql = <<-EOQ
-    select
-      c.name as id,
-      c.title,
-      jsonb_build_object(
-        'Name', c.name,
-        'Created Time', c.create_time,
-        'Endpoint', c.endpoint,
-        'Services IPv4 CIDR', c.services_ipv4_cidr,
-        'Status', c.status
-      ) as properties
-    from
-      gcp_kubernetes_cluster c,
-      gcp_compute_instance_group g,
-      jsonb_array_elements_text(instance_group_urls) ig
-    where
-      split_part(ig, 'instanceGroupManagers/', 2) = g.name
-      and g.id = $1;
-  EOQ
-
-  param "id" {}
-}
-
-edge "gcp_compute_instance_group_from_kubernetes_cluster_edge" {
-  title = "instance group"
-
-  sql = <<-EOQ
-    select
-      c.name as from_id,
-      g.id::text as to_id
-    from
-      gcp_kubernetes_cluster c,
-      gcp_compute_instance_group g,
-      jsonb_array_elements_text(instance_group_urls) ig
-    where
-      split_part(ig, 'instanceGroupManagers/', 2) = g.name
-      and g.id = $1;
-  EOQ
-
-  param "id" {}
-}
-
-// Edges :
-
-edge "gcp_compute_instance_group_to_compute_instance_edge" {
-  title = "manages"
-
-  sql = <<-EOQ
-    select
-      instance_group_id as from_id,
-      instance_id as to_id
-    from
-      unnest($1::text[]) as instance_group_id,
-      unnest($2::text[]) as instance_id;
-  EOQ
-
-  param "instance_group_ids" {}
-  param "instance_ids" {}
-}
+## Graph - end
 
 query "gcp_compute_instance_group_overview" {
   sql = <<-EOQ
