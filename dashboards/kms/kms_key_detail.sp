@@ -94,7 +94,7 @@ dashboard "gcp_kms_key_detail" {
 
       args = {
         key_name  = self.input.key_name.value
-        key_names = self.input.key_name.value
+        key_names = [self.input.key_name.value]
       }
     }
   }
