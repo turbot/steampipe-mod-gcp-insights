@@ -101,8 +101,8 @@ dashboard "kubernetes_cluster_detail" {
       ]
 
       args = {
-        name          = self.input.cluster_name.value
-        cluster_names = [self.input.cluster_name.value]
+        name                     = self.input.cluster_name.value
+        kubernetes_cluster_names = [self.input.cluster_name.value]
       }
     }
   }
@@ -329,7 +329,7 @@ node "kubernetes_cluster" {
       name = any($1);
   EOQ
 
-  param "cluster_names" {}
+  param "kubernetes_cluster_names" {}
 }
 
 node "kubernetes_cluster_to_node_pool" {

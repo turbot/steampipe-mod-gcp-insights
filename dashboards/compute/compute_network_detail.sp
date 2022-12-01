@@ -100,8 +100,8 @@ dashboard "compute_network_detail" {
       ]
 
       args = {
-        name          = self.input.network_name.value
-        network_names = [self.input.network_name.value]
+        name                  = self.input.network_name.value
+        compute_network_names = [self.input.network_name.value]
       }
     }
   }
@@ -269,7 +269,7 @@ node "compute_network" {
       n.name = any($1);
   EOQ
 
-  param "network_names" {}
+  param "compute_network_names" {}
 }
 
 node "compute_network_to_compute_subnetwork" {

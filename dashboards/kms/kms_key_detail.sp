@@ -93,8 +93,8 @@ dashboard "kms_key_detail" {
       ]
 
       args = {
-        key_name  = self.input.key_name.value
-        key_names = [self.input.key_name.value]
+        key_name      = self.input.key_name.value
+        kms_key_names = [self.input.key_name.value]
       }
     }
   }
@@ -161,7 +161,7 @@ node "kms_key" {
       name = any($1);
   EOQ
 
-  param "key_names" {}
+  param "kms_key_names" {}
 }
 
 node "kms_key_from_storage_bucket" {

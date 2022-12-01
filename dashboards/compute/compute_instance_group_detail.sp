@@ -31,7 +31,7 @@ dashboard "compute_instance_group_detail" {
       title = "Relationships"
       type  = "graph"
 
-      with "instances" {
+      with "compute_instances" {
         sql = <<-EOQ
           select
             i.id::text as instance_id
@@ -47,7 +47,7 @@ dashboard "compute_instance_group_detail" {
         args = [self.input.group_id.value]
       }
 
-      with "networks" {
+      with "compute_networks" {
         sql = <<-EOQ
           select
             n.name as network_name
@@ -64,7 +64,7 @@ dashboard "compute_instance_group_detail" {
         args = [self.input.group_id.value]
       }
 
-      with "subnets" {
+      with "compute_subnets" {
         sql = <<-EOQ
           select
             s.id::text as subnet_id
@@ -79,7 +79,7 @@ dashboard "compute_instance_group_detail" {
         args = [self.input.group_id.value]
       }
 
-      with "kube_clusters" {
+      with "kubernetes_clusters" {
         sql = <<-EOQ
           select
             c.name as cluster_name
@@ -120,12 +120,12 @@ dashboard "compute_instance_group_detail" {
       ]
 
       args = {
-        id                 = self.input.group_id.value
-        instance_group_ids = [self.input.group_id.value]
-        instance_ids       = with.instances.rows[*].instance_id
-        network_names      = with.networks.rows[*].network_name
-        cluster_names      = with.kube_clusters.rows[*].cluster_name
-        subnet_ids         = with.subnets.rows[*].subnet_id
+        id                         = self.input.group_id.value
+        compute_instance_group_ids = [self.input.group_id.value]
+        compute_instance_ids       = with.compute_instances.rows[*].instance_id
+        compute_network_names      = with.compute_networks.rows[*].network_name
+        kubernetes_cluster_names   = with.kubernetes_clusters.rows[*].cluster_name
+        compute_subnet_ids         = with.compute_subnets.rows[*].subnet_id
       }
     }
   }
@@ -246,7 +246,7 @@ node "compute_instance_group" {
       id = any($1);
   EOQ
 
-  param "instance_group_ids" {}
+  param "compute_instance_group_ids" {}
 }
 
 node "compute_instance_group_compute_network_to_compute_subnetwork" {
@@ -357,15 +357,15 @@ edge "compute_instance_group_to_compute_instance" {
 
   sql = <<-EOQ
     select
-      instance_group_ids as from_id,
-      instance_ids as to_id
+      instance_group_id as from_id,
+      instance_id as to_id
     from
-      unnest($1::text[]) as instance_group_ids,
-      unnest($2::text[]) as instance_ids;
+      unnest($1::text[]) as instance_group_id,
+      unnest($2::text[]) as instance_id;
   EOQ
 
-  param "instance_group_ids" {}
-  param "instance_ids" {}
+  param "compute_instance_group_ids" {}
+  param "compute_instance_ids" {}
 }
 
 // edge "compute_instance_group_to_compute_network" {
@@ -380,8 +380,8 @@ edge "compute_instance_group_to_compute_instance" {
 //       unnest($2::text[]) as network_name;
 //   EOQ
 
-//   param "instance_group_ids" {}
-//   param "network_names" {}
+//   param "compute_instance_group_ids" {}
+//   param "compute_network_names" {}
 // }
 
 edge "compute_instance_group_to_compute_subnetwork" {
@@ -389,15 +389,15 @@ edge "compute_instance_group_to_compute_subnetwork" {
 
   sql = <<-EOQ
     select
-      instance_group_ids as from_id,
-      subnet_ids as to_id
+      instance_group_id as from_id,
+      subnet_id as to_id
     from
-      unnest($1::text[]) as instance_group_ids,
-      unnest($2::text[]) as subnet_ids;
+      unnest($1::text[]) as instance_group_id,
+      unnest($2::text[]) as subnet_id;
   EOQ
 
-  param "instance_group_ids" {}
-  param "subnet_ids" {}
+  param "compute_instance_group_ids" {}
+  param "compute_subnet_ids" {}
 }
 
 edge "compute_instance_group_from_kubernetes_cluster" {
@@ -405,15 +405,15 @@ edge "compute_instance_group_from_kubernetes_cluster" {
 
   sql = <<-EOQ
     select
-      cluster_names as from_id,
-      instance_group_ids as to_id
+      cluster_name as from_id,
+      instance_group_id as to_id
     from
-      unnest($1::text[]) as cluster_names,
-      unnest($2::text[]) as instance_group_ids;
+      unnest($1::text[]) as cluster_name,
+      unnest($2::text[]) as instance_group_id;
   EOQ
 
-  param "cluster_names" {}
-  param "instance_group_ids" {}
+  param "kubernetes_cluster_names" {}
+  param "compute_instance_group_ids" {}
 }
 
 edge "compute_instance_group_to_compute_autoscaler" {

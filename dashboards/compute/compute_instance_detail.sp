@@ -62,7 +62,7 @@ dashboard "compute_instance_detail" {
       title = "Relationships"
       type  = "graph"
 
-      with "instance_groups" {
+      with "compute_instance_groups" {
         sql = <<-EOQ
           select
             g.id::text as group_id
@@ -78,7 +78,7 @@ dashboard "compute_instance_detail" {
         args = [self.input.instance_id.value]
       }
 
-      with "disks" {
+      with "compute_disks" {
         sql = <<-EOQ
           select
             d.id::text as disk_id
@@ -87,14 +87,14 @@ dashboard "compute_instance_detail" {
             gcp_compute_disk d,
             jsonb_array_elements(disks) as disk
           where
-            i.id = $1
-            and d.self_link = (disk ->> 'source');
+            d.self_link = (disk ->> 'source')
+            and i.id = $1;
         EOQ
 
         args = [self.input.instance_id.value]
       }
 
-      with "subnets" {
+      with "compute_subnets" {
         sql = <<-EOQ
           select
             s.id::text as subnet_id
@@ -110,7 +110,7 @@ dashboard "compute_instance_detail" {
         args = [self.input.instance_id.value]
       }
 
-      with "network" {
+      with "compute_networks" {
         sql = <<-EOQ
           select
             n.name as network_name
@@ -146,12 +146,12 @@ dashboard "compute_instance_detail" {
       ]
 
       args = {
-        id                 = self.input.instance_id.value
-        instance_ids       = [self.input.instance_id.value]
-        instance_group_ids = with.instance_groups.rows[*].group_id
-        disk_ids           = with.disks.rows[*].disk_id
-        subnet_ids         = with.subnets.rows[*].subnet_id
-        network_names      = with.network.rows[*].network_name
+        id                         = self.input.instance_id.value
+        compute_instance_ids       = [self.input.instance_id.value]
+        compute_instance_group_ids = with.compute_instance_groups.rows[*].group_id
+        compute_disk_ids           = with.compute_disks.rows[*].disk_id
+        compute_subnet_ids         = with.compute_subnets.rows[*].subnet_id
+        compute_network_names      = with.compute_networks.rows[*].network_name
       }
     }
   }
@@ -346,7 +346,7 @@ node "compute_instance" {
       id = any($1);
   EOQ
 
-  param "instance_ids" {}
+  param "compute_instance_ids" {}
 }
 
 node "compute_instance_to_compute_firewall" {
@@ -407,15 +407,15 @@ edge "compute_instance_to_compute_disk" {
 
   sql = <<-EOQ
     select
-      instance_ids as from_id,
-      disk_ids as to_id
+      instance_id as from_id,
+      disk_id as to_id
     from
-      unnest($1::text[]) as instance_ids,
-      unnest($2::text[]) as disk_ids;
+      unnest($1::text[]) as instance_id,
+      unnest($2::text[]) as disk_id;
   EOQ
 
-  param "instance_ids" {}
-  param "disk_ids" {}
+  param "compute_instance_ids" {}
+  param "compute_disk_ids" {}
 }
 
 edge "compute_instance_to_compute_subnetwork" {
@@ -423,15 +423,15 @@ edge "compute_instance_to_compute_subnetwork" {
 
   sql = <<-EOQ
     select
-      instance_ids as from_id,
-      subnet_ids as to_id
+      instance_id as from_id,
+      subnet_id as to_id
     from
-      unnest($1::text[]) as instance_ids,
-      unnest($2::text[]) as subnet_ids;
+      unnest($1::text[]) as instance_id,
+      unnest($2::text[]) as subnet_id;
   EOQ
 
-  param "instance_ids" {}
-  param "subnet_ids" {}
+  param "compute_instance_ids" {}
+  param "compute_subnet_ids" {}
 }
 
 edge "compute_instance_to_compute_firewall" {

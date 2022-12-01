@@ -79,8 +79,8 @@ dashboard "compute_subnetwork_detail" {
       ]
 
       args = {
-        id         = self.input.subnetwork_id.value
-        subnet_ids = [self.input.subnetwork_id.value]
+        id                 = self.input.subnetwork_id.value
+        compute_subnet_ids = [self.input.subnetwork_id.value]
       }
     }
   }
@@ -210,7 +210,7 @@ node "compute_subnetwork" {
       s.id = any($1);
   EOQ
 
-  param "subnet_ids" {}
+  param "compute_subnet_ids" {}
 }
 
 node "compute_subnetwork_from_compute_network" {
@@ -594,7 +594,7 @@ edge "compute_subnetwork_to_compute_network" {
       unnest($2::text[]) as network_name;
   EOQ
 
-  param "subnet_ids" {}
+  param "compute_subnet_ids" {}
   param "network_names" {}
 }
 

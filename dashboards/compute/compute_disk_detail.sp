@@ -63,7 +63,7 @@ dashboard "compute_disk_detail" {
       title = "Relationships"
       type  = "graph"
 
-      with "instances" {
+      with "compute_instances" {
         sql = <<-EOQ
           select
             i.id::text as instance_id
@@ -157,12 +157,12 @@ dashboard "compute_disk_detail" {
       ]
 
       args = {
-        disk_ids = [self.input.disk_id.value]
-        // disk_ids      = [self.input.disk_id.value, with.to_disks.rows[*].disk_id, with.from_disks.rows[*].disk_id]
-        to_disk_ids   = with.to_disks.rows[*].disk_id
-        from_disk_ids = with.from_disks.rows[*].disk_id
-        instance_ids  = with.instances.rows[*].instance_id
-        key_names     = with.kms_keys.rows[*].key_name
+        compute_disk_ids = [self.input.disk_id.value]
+        // compute_disk_ids      = [self.input.disk_id.value, with.to_disks.rows[*].disk_id, with.from_disks.rows[*].disk_id]
+        to_disk_ids          = with.to_disks.rows[*].disk_id
+        from_disk_ids        = with.from_disks.rows[*].disk_id
+        compute_instance_ids = with.compute_instances.rows[*].instance_id
+        kms_key_names        = with.kms_keys.rows[*].key_name
       }
     }
   }
@@ -406,7 +406,7 @@ node "compute_disk" {
       id = any($1);
   EOQ
 
-  param "disk_ids" {}
+  param "compute_disk_ids" {}
 }
 
 node "compute_snapshot" {
@@ -454,7 +454,7 @@ node "compute_disk_to_compute_disk" {
       and d.id::text = cd.source_disk_id;
   EOQ
 
-  param "disk_ids" {}
+  param "compute_disk_ids" {}
 }
 
 node "compute_disk_from_compute_disk" {
@@ -480,7 +480,7 @@ node "compute_disk_from_compute_disk" {
       and d.source_disk_id = cd.id::text;
   EOQ
 
-  param "disk_ids" {}
+  param "compute_disk_ids" {}
 }
 
 node "compute_disk_to_compute_snapshot" {
@@ -504,7 +504,7 @@ node "compute_disk_to_compute_snapshot" {
       and d.self_link = s.source_disk;
   EOQ
 
-  param "disk_ids" {}
+  param "compute_disk_ids" {}
 }
 
 node "compute_disk_from_compute_snapshot" {
@@ -528,7 +528,7 @@ node "compute_disk_from_compute_snapshot" {
       and d.source_snapshot = s.self_link;
   EOQ
 
-  param "disk_ids" {}
+  param "compute_disk_ids" {}
 }
 
 node "compute_disk_to_compute_image" {
@@ -553,7 +553,7 @@ node "compute_disk_to_compute_image" {
       and d.self_link = i.source_disk;
   EOQ
 
-  param "disk_ids" {}
+  param "compute_disk_ids" {}
 }
 
 node "compute_disk_from_compute_image" {
@@ -577,7 +577,7 @@ node "compute_disk_from_compute_image" {
       and d.source_image = i.self_link;
   EOQ
 
-  param "disk_ids" {}
+  param "compute_disk_ids" {}
 }
 
 node "compute_disk_to_compute_resource_policy" {
@@ -601,7 +601,7 @@ node "compute_disk_to_compute_resource_policy" {
       and rp = r.self_link
   EOQ
 
-  param "disk_ids" {}
+  param "compute_disk_ids" {}
 }
 
 ### Edges -
@@ -611,15 +611,15 @@ edge "compute_disk_to_kms_key" {
 
   sql = <<-EOQ
     select
-      disk_ids as from_id,
-      key_names as to_id
+      disk_id as from_id,
+      key_name as to_id
     from
-      unnest($1::text[]) as disk_ids,
-      unnest($2::text[]) as key_names;
+      unnest($1::text[]) as disk_id,
+      unnest($2::text[]) as key_name;
   EOQ
 
-  param "disk_ids" {}
-  param "key_names" {}
+  param "compute_disk_ids" {}
+  param "kms_key_names" {}
 }
 
 edge "compute_disk_to_compute_disk" {
@@ -627,14 +627,14 @@ edge "compute_disk_to_compute_disk" {
 
   sql = <<-EOQ
     select
-      disk_ids as from_id,
+      disk_id as from_id,
       to_disk_ids as to_id
     from
-      unnest($1::text[]) as disk_ids,
+      unnest($1::text[]) as disk_id,
       unnest($2::text[]) as to_disk_ids;
   EOQ
 
-  param "disk_ids" {}
+  param "compute_disk_ids" {}
   param "to_disk_ids" {}
 }
 
@@ -644,14 +644,14 @@ edge "compute_disk_from_compute_disk" {
   sql = <<-EOQ
     select
       from_disk_ids as from_id,
-      disk_ids as to_id
+      disk_id as to_id
     from
       unnest($1::text[]) as from_disk_ids,
-      unnest($2::text[]) as disk_ids;
+      unnest($2::text[]) as disk_id;
   EOQ
 
   param "from_disk_ids" {}
-  param "disk_ids" {}
+  param "compute_disk_ids" {}
 }
 
 edge "compute_disk_to_compute_snapshot" {
@@ -669,7 +669,7 @@ edge "compute_disk_to_compute_snapshot" {
       and d.self_link = s.source_disk;
   EOQ
 
-  param "disk_ids" {}
+  param "compute_disk_ids" {}
 }
 
 edge "compute_disk_from_compute_snapshot" {
@@ -687,7 +687,7 @@ edge "compute_disk_from_compute_snapshot" {
       and d.source_snapshot = s.self_link;
   EOQ
 
-  param "disk_ids" {}
+  param "compute_disk_ids" {}
 }
 
 edge "compute_disk_to_compute_image" {
@@ -705,7 +705,7 @@ edge "compute_disk_to_compute_image" {
       and d.self_link = i.source_disk;
   EOQ
 
-  param "disk_ids" {}
+  param "compute_disk_ids" {}
 }
 
 edge "compute_disk_from_compute_image" {
@@ -723,7 +723,7 @@ edge "compute_disk_from_compute_image" {
       and d.source_image = i.self_link;
   EOQ
 
-  param "disk_ids" {}
+  param "compute_disk_ids" {}
 }
 
 edge "compute_disk_to_compute_resource_policy" {
@@ -742,7 +742,7 @@ edge "compute_disk_to_compute_resource_policy" {
       and rp = r.self_link;
   EOQ
 
-  param "disk_ids" {}
+  param "compute_disk_ids" {}
 }
 
 ## Graph - end
