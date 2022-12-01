@@ -95,37 +95,83 @@ dashboard "compute_instance_group_detail" {
         args = [self.input.group_id.value]
       }
 
+      with "compute_firewalls" {
+        sql = <<-EOQ
+          select
+            f.id::text as firewall_id
+          from
+            gcp_compute_instance_group g,
+            gcp_compute_firewall f
+          where
+            g.network = f.network
+            and g.id = $1;
+        EOQ
+
+        args = [self.input.group_id.value]
+      }
+
+      with "compute_backend_services" {
+        sql = <<-EOQ
+          select
+            bs.id::text as service_id
+          from
+            gcp_compute_instance_group g,
+            gcp_compute_backend_service bs,
+            jsonb_array_elements(bs.backends) b
+          where
+            b ->> 'group' = g.self_link
+            and g.id = $1;
+        EOQ
+
+        args = [self.input.group_id.value]
+      }
+
+      with "compute_autoscalers" {
+        sql = <<-EOQ
+          select
+            a.id::text as autoscaler_id
+          from
+            gcp_compute_instance_group g,
+            gcp_compute_autoscaler a
+          where
+            g.name = split_part(a.target, 'instanceGroupManagers/', 2)
+            and g.id = $1;
+        EOQ
+
+        args = [self.input.group_id.value]
+      }
+
       nodes = [
         node.compute_instance_group,
         node.compute_instance,
-        node.compute_subnetwork,
+        node.compute_firewall,
         node.compute_network,
+        node.compute_subnetwork,
         node.kubernetes_cluster,
-
-
-        node.compute_instance_group_to_compute_autoscaler,
-        node.compute_instance_group_to_compute_firewall,
-        node.compute_instance_group_from_compute_backend_service
+        node.compute_backend_service,
+        node.compute_autoscaler
       ]
 
       edges = [
+        edge.compute_backend_service_to_compute_instance_group,
         edge.kubernetes_cluster_to_compute_instance_group,
         edge.compute_subnetwork_to_compute_network,
         edge.compute_instance_group_to_compute_instance,
         edge.compute_instance_group_to_compute_subnetwork,
-
-        edge.compute_instance_group_to_compute_autoscaler,
         edge.compute_instance_group_to_compute_firewall,
-        edge.compute_instance_group_from_compute_backend_service,
+        edge.compute_instance_group_to_compute_autoscaler
       ]
 
       args = {
-        id                         = self.input.group_id.value
-        compute_instance_group_ids = [self.input.group_id.value]
-        compute_instance_ids       = with.compute_instances.rows[*].instance_id
-        compute_network_names      = with.compute_networks.rows[*].network_name
-        kubernetes_cluster_names   = with.kubernetes_clusters.rows[*].cluster_name
-        compute_subnet_ids         = with.compute_subnets.rows[*].subnet_id
+        id                          = self.input.group_id.value
+        compute_instance_group_ids  = [self.input.group_id.value]
+        compute_instance_ids        = with.compute_instances.rows[*].instance_id
+        compute_network_names       = with.compute_networks.rows[*].network_name
+        kubernetes_cluster_names    = with.kubernetes_clusters.rows[*].cluster_name
+        compute_subnet_ids          = with.compute_subnets.rows[*].subnet_id
+        compute_firewall_ids        = with.compute_firewalls.rows[*].firewall_id
+        compute_backend_service_ids = with.compute_backend_services.rows[*].service_id
+        compute_autoscaler_ids      = with.compute_autoscalers.rows[*].autoscaler_id
       }
     }
   }
@@ -223,13 +269,6 @@ query "compute_instance_group_size" {
   param "id" {}
 
 }
-
-## Graph - start
-
-// Edges :
-
-
-## Graph - end
 
 query "compute_instance_group_overview" {
   sql = <<-EOQ

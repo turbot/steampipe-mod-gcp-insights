@@ -178,18 +178,15 @@ edge "compute_instance_to_compute_firewall" {
 
   sql = <<-EOQ
     select
-      i.id::text as from_id,
-      f.id::text as to_id
+      instance_id as from_id,
+      firewall_id as to_id
     from
-      gcp_compute_instance i,
-      gcp_compute_firewall f,
-      jsonb_array_elements(network_interfaces) as ni
-    where
-      ni ->> 'network' = f.network
-      and i.id = $1;
+      unnest($1::text[]) as instance_id,
+      unnest($2::text[]) as firewall_id;
   EOQ
 
-  param "id" {}
+  param "compute_instance_ids" {}
+  param "compute_firewall_ids" {}
 }
 
 edge "compute_instance_to_service_account" {
@@ -197,18 +194,15 @@ edge "compute_instance_to_service_account" {
 
   sql = <<-EOQ
     select
-      i.id::text as from_id,
-      s.name as to_id
+      instance_id as from_id,
+      account_name as to_id
     from
-      gcp_compute_instance i,
-      gcp_service_account s,
-      jsonb_array_elements(service_accounts) as sa
-    where
-      sa ->> 'email' = s.email
-      and i.id = $1;
+      unnest($1::text[]) as instance_id,
+      unnest($2::text[]) as account_name;
   EOQ
 
-  param "id" {}
+  param "compute_instance_ids" {}
+  param "service_account_names" {}
 }
 
 ## Compute Instance Group
@@ -266,17 +260,15 @@ edge "compute_instance_group_to_compute_autoscaler" {
 
   sql = <<-EOQ
     select
-      g.id::text as from_id,
-      a.id::text as to_id
+      instance_group_id as from_id,
+      autoscaler_id as to_id
     from
-      gcp_compute_instance_group g,
-      gcp_compute_autoscaler a
-    where
-      g.name = split_part(a.target, 'instanceGroupManagers/', 2)
-      and g.id = $1;
+      unnest($1::text[]) as instance_group_id,
+      unnest($2::text[]) as autoscaler_id;
   EOQ
 
-  param "id" {}
+  param "compute_instance_group_ids" {}
+  param "compute_autoscaler_ids" {}
 }
 
 edge "compute_instance_group_to_compute_firewall" {
@@ -284,34 +276,29 @@ edge "compute_instance_group_to_compute_firewall" {
 
   sql = <<-EOQ
     select
-      g.id::text as from_id,
-      f.id::text as to_id
+      instance_group_id as from_id,
+      firewall_id as to_id
     from
-      gcp_compute_instance_group g,
-      gcp_compute_firewall f
-    where
-      g.network = f.network
-      and g.id = $1;
+      unnest($1::text[]) as instance_group_id,
+      unnest($2::text[]) as firewall_id;
   EOQ
 
-  param "id" {}
+  param "compute_instance_group_ids" {}
+  param "compute_firewall_ids" {}
 }
 
-edge "compute_instance_group_from_compute_backend_service" {
+edge "compute_backend_service_to_compute_instance_group" {
   title = "instance group"
 
   sql = <<-EOQ
     select
-      bs.id::text as from_id,
-      g.id::text as to_id
+      service_id as from_id,
+      instance_group_id as to_id
     from
-      gcp_compute_instance_group g,
-      gcp_compute_backend_service bs,
-      jsonb_array_elements(bs.backends) b
-    where
-      b ->> 'group' = g.self_link
-      and g.id = $1;
+      unnest($1::text[]) as instance_group_id,
+      unnest($2::text[]) as service_id;
   EOQ
 
-  param "id" {}
+  param "compute_instance_group_ids" {}
+  param "compute_backend_service_ids" {}
 }

@@ -24,7 +24,7 @@ node "pubsub_subscription" {
 
   sql = <<-EOQ
   select
-      k.name as id,
+      k.name || 'subscription' as id,
       k.title,
       jsonb_build_object(
         'Name', k.name,
@@ -46,7 +46,7 @@ node "pubsub_snapshot" {
 
   sql = <<-EOQ
   select
-      k.name as id,
+      k.name || 'snapshot' as id,
       k.title,
       jsonb_build_object(
         'Name', k.name,

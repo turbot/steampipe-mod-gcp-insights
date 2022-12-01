@@ -14,7 +14,7 @@ node "iam_role" {
         'Description', i.description
       ) as properties
     from
-      iam_role as i
+      gcp_iam_role as i
     where
       i.role_id = any($1);
   EOQ

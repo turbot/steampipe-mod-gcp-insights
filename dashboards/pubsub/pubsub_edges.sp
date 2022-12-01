@@ -36,7 +36,7 @@ edge "pubsub_topic_to_pubsub_snapshot" {
   sql = <<-EOQ
     select
       topic_name as from_id,
-      snapshot_name as to_id
+      snapshot_name || 'snapshot' as to_id
     from
       unnest($1::text[]) as topic_name,
       unnest($2::text[]) as snapshot_name;
@@ -52,7 +52,7 @@ edge "pubsub_topic_to_pubsub_subscription" {
   sql = <<-EOQ
     select
       topic_name as from_id,
-      subscription_name as to_id
+      subscription_name || 'subscription' as to_id
     from
       unnest($1::text[]) as topic_name,
       unnest($2::text[]) as subscription_name;

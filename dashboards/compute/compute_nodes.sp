@@ -267,31 +267,6 @@ node "compute_instance_to_compute_firewall" {
   param "id" {}
 }
 
-node "compute_instance_to_service_account" {
-  category = category.service_account
-
-  sql = <<-EOQ
-    select
-      s.name as id,
-      s.title,
-      jsonb_build_object(
-        'ID', s.unique_id,
-        'Enabled', not s.disabled,
-        'Region', s.location,
-        'OAuth 2.0 client ID', s.oauth2_client_id
-      ) as properties
-    from
-      gcp_compute_instance i,
-      gcp_service_account s,
-      jsonb_array_elements(service_accounts) as sa
-    where
-      sa ->> 'email' = s.email
-      and i.id = $1;
-  EOQ
-
-  param "id" {}
-}
-
 node "compute_instance_group" {
   category = category.compute_instance_group
 
@@ -315,32 +290,7 @@ node "compute_instance_group" {
   param "compute_instance_group_ids" {}
 }
 
-node "compute_instance_group_compute_network_to_compute_subnetwork" {
-  category = category.compute_subnetwork
-
-  sql = <<-EOQ
-    select
-      s.id::text as id,
-      s.title,
-      jsonb_build_object(
-        'ID', s.id::text,
-        'Name', s.name,
-        'Created Time', s.creation_timestamp,
-        'Location', s.location,
-        'IP Cidr Range', s.ip_cidr_range
-      ) as properties
-    from
-      gcp_compute_instance_group g,
-      gcp_compute_subnetwork s
-    where
-      g.subnetwork = s.self_link
-      and g.id = $1;
-  EOQ
-
-  param "id" {}
-}
-
-node "compute_instance_group_to_compute_autoscaler" {
+node "compute_autoscaler" {
   category = category.compute_autoscaler
 
   sql = <<-EOQ
@@ -355,42 +305,15 @@ node "compute_instance_group_to_compute_autoscaler" {
         'Location', a.location
       ) as properties
     from
-      gcp_compute_instance_group g,
       gcp_compute_autoscaler a
     where
-      g.name = split_part(a.target, 'instanceGroupManagers/', 2)
-      and g.id = $1;
+      a.id = any($1);
   EOQ
 
-  param "id" {}
+  param "compute_autoscaler_ids" {}
 }
 
-node "compute_instance_group_to_compute_firewall" {
-  category = category.compute_firewall
-
-  sql = <<-EOQ
-    select
-      f.id::text,
-      f.title,
-      jsonb_build_object(
-        'ID', f.id,
-        'Direction', f.direction,
-        'Enabled', not f.disabled,
-        'Action', f.action,
-        'Priority', f.priority
-      ) as properties
-    from
-      gcp_compute_instance_group g,
-      gcp_compute_firewall f
-    where
-      g.network = f.network
-      and g.id = $1;
-  EOQ
-
-  param "id" {}
-}
-
-node "compute_instance_group_from_compute_backend_service" {
+node "compute_backend_service" {
   category = category.compute_backend_service
 
   sql = <<-EOQ
@@ -405,15 +328,12 @@ node "compute_instance_group_from_compute_backend_service" {
         'Location', bs.location
       ) as properties
     from
-      gcp_compute_instance_group g,
-      gcp_compute_backend_service bs,
-      jsonb_array_elements(bs.backends) b
+      gcp_compute_backend_service bs
     where
-      b ->> 'group' = g.self_link
-      and g.id = $1;
+      bs.id = any($1);
   EOQ
 
-  param "id" {}
+  param "compute_backend_service_ids" {}
 }
 
 node "compute_snapshot" {
@@ -436,4 +356,26 @@ node "compute_snapshot" {
   EOQ
 
   param "snapshot_ids" {}
+}
+
+node "service_account" {
+  category = category.service_account
+
+  sql = <<-EOQ
+    select
+      s.name as id,
+      s.title,
+      jsonb_build_object(
+        'ID', s.unique_id,
+        'Enabled', not s.disabled,
+        'Region', s.location,
+        'OAuth 2.0 client ID', s.oauth2_client_id
+      ) as properties
+    from
+      gcp_service_account s
+    where
+      s.name = any($1);
+  EOQ
+
+  param "service_account_names" {}
 }

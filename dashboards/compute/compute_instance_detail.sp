@@ -94,6 +94,21 @@ dashboard "compute_instance_detail" {
         args = [self.input.instance_id.value]
       }
 
+      with "compute_firewalls" {
+        sql = <<-EOQ
+          select
+            f.id::text as firewall_id
+          from
+            gcp_compute_instance_group g,
+            gcp_compute_firewall f
+          where
+            g.network = f.network
+            and g.id = $1;
+        EOQ
+
+        args = [self.input.instance_id.value]
+      }
+
       with "compute_subnets" {
         sql = <<-EOQ
           select
@@ -126,14 +141,30 @@ dashboard "compute_instance_detail" {
         args = [self.input.instance_id.value]
       }
 
+      with "service_accounts" {
+        sql = <<-EOQ
+          select
+            s.name as account_name
+          from
+            gcp_compute_instance i,
+            gcp_service_account s,
+            jsonb_array_elements(service_accounts) as sa
+          where
+            sa ->> 'email' = s.email
+            and i.id = $1;
+        EOQ
+
+        args = [self.input.instance_id.value]
+      }
+
       nodes = [
+        node.compute_disk,
+        node.compute_firewall,
         node.compute_instance,
         node.compute_instance_group,
-        node.compute_disk,
         node.compute_network,
         node.compute_subnetwork,
-        node.compute_instance_to_compute_firewall,
-        node.compute_instance_to_service_account
+        node.service_account
       ]
 
       edges = [
@@ -150,8 +181,10 @@ dashboard "compute_instance_detail" {
         compute_instance_ids       = [self.input.instance_id.value]
         compute_instance_group_ids = with.compute_instance_groups.rows[*].group_id
         compute_disk_ids           = with.compute_disks.rows[*].disk_id
+        compute_firewall_ids       = with.compute_firewalls.rows[*].firewall_id
         compute_subnet_ids         = with.compute_subnets.rows[*].subnet_id
         compute_network_names      = with.compute_networks.rows[*].network_name
+        service_account_names      = with.service_accounts.rows[*].account_name
       }
     }
   }
@@ -321,14 +354,6 @@ query "compute_instance_confidential_vm_service" {
 
   param "id" {}
 }
-
-## Graph
-
-### Nodes -
-
-### Edges -
-
-
 
 query "compute_instance_overview" {
   sql = <<-EOQ
