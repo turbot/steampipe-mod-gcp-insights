@@ -35,31 +35,105 @@ dashboard "pubsub_topic_detail" {
   container {
 
     graph {
-      title     = "Relationships"
-      type      = "graph"
-      direction = "TD"
+      title = "Relationships"
+      type  = "graph"
 
+      with "kms_keys" {
+        sql = <<-EOQ
+          select
+            split_part(p.kms_key_name, 'cryptoKeys/', 2) as key_name
+          from
+            gcp_pubsub_topic p
+          where
+            p.name = $1;
+        EOQ
+
+        args = [self.input.name.value]
+      }
+
+      with "iam_roles" {
+        sql = <<-EOQ
+          select
+            i.role_id as role_id
+          from
+            gcp_iam_role i,
+            gcp_pubsub_topic t,
+            jsonb_array_elements(t.iam_policy->'bindings') as roles
+          where
+            roles ->> 'role' = i.name
+            and t.name = $1;
+        EOQ
+
+        args = [self.input.name.value]
+      }
+
+      with "kubernetes_clusters" {
+        sql = <<-EOQ
+          select
+            c.name as cluster_name
+          from
+            gcp_kubernetes_cluster c,
+            gcp_pubsub_topic t
+          where
+            t.name = $1
+            and c.notification_config is not null
+            and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
+        EOQ
+
+        args = [self.input.name.value]
+      }
+
+      with "pubsub_snapshots" {
+        sql = <<-EOQ
+          select
+            s.name as snapshot_name
+          from
+            gcp_pubsub_snapshot s
+          where
+            s.topic_name = $1;
+        EOQ
+
+        args = [self.input.name.value]
+      }
+
+      with "pubsub_subscriptions" {
+        sql = <<-EOQ
+          select
+            s.name as subscription_name
+          from
+            gcp_pubsub_subscription s
+          where
+            s.topic_name = $1;
+        EOQ
+
+        args = [self.input.name.value]
+      }
 
       nodes = [
-        node.pubsub_topic,
-        node.pubsub_topic_to_kms_key,
-        node.pubsub_topic_from_kubernetes_cluster,
-        node.pubsub_topic_to_iam_role,
-        node.pubsub_topic_to_pubsub_subscription,
-        node.pubsub_topic_to_pubsub_snapshot
+        node.iam_role,
+        node.kms_key,
+        node.kubernetes_cluster,
+        node.pubsub_snapshot,
+        node.pubsub_subscription,
+        node.pubsub_topic
       ]
 
       edges = [
-        edge.pubsub_topic_to_kms_key,
-        edge.pubsub_topic_to_kubernetes_cluster,
+        edge.kubernetes_cluster_to_pubsub_topic,
         edge.pubsub_topic_to_iam_role,
-        edge.pubsub_topic_to_pubsub_subscription,
-        edge.pubsub_topic_to_pubsub_snapshot
+        edge.pubsub_topic_to_kms_key,
+        edge.pubsub_topic_to_pubsub_snapshot,
+        edge.pubsub_topic_to_pubsub_subscription
       ]
 
       args = {
-        name               = self.input.name.value
-        pubsub_topic_names = [self.input.name.value]
+        name                      = self.input.name.value
+        pubsub_topic_names        = [self.input.name.value]
+        iam_role_ids              = with.iam_roles.rows[*].role_id
+        kms_key_names             = with.kms_keys.rows[*].key_name
+        kubernetes_cluster_names  = with.kubernetes_clusters.rows[*].cluster_name
+        pubsub_snapshot_names     = with.pubsub_snapshots.rows[*].snapshot_name
+        pubsub_subscription_names = with.pubsub_subscriptions.rows[*].subscription_name
       }
     }
   }
@@ -227,259 +301,6 @@ query "pubsub_topic_subscription_details" {
     where
       p.name = k.topic_name
       and p.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-node "pubsub_topic" {
-  category = category.pubsub_topic
-
-  sql = <<-EOQ
-    select
-      name as id,
-      title,
-      jsonb_build_object(
-        'Name', name,
-        'Location', location,
-        'KMS Key', kms_key_name
-      ) as properties
-    from
-      gcp_pubsub_topic
-    where
-      name = any($1);
-  EOQ
-
-  param "pubsub_topic_names" {}
-}
-
-node "pubsub_topic_to_kms_key" {
-  category = category.kms_key
-
-  sql = <<-EOQ
-    select
-      concat(k.name, '_key') as id,
-      k.title,
-      jsonb_build_object(
-        'Name', k.name,
-        'Location', k.location,
-        'Project', k.project,
-        'Self Link', k.self_link
-      ) as properties
-    from
-      gcp_pubsub_topic p,
-      gcp_kms_key k
-    where
-      split_part(p.kms_key_name, 'cryptoKeys/', 2) = k.name
-      and p.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-edge "pubsub_topic_to_kms_key" {
-  title = "encrypted with"
-
-  sql = <<-EOQ
-    select
-      p.name as from_id,
-      concat(k.name, '_key') as to_id
-    from
-      gcp_pubsub_topic p,
-      gcp_kms_key k
-    where
-      k.name = split_part(p.kms_key_name, 'cryptoKeys/', 2)
-      and p.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-node "pubsub_topic_from_kubernetes_cluster" {
-  category = category.kubernetes_cluster
-
-  sql = <<-EOQ
-    select
-      c.name as id,
-      c.title,
-      jsonb_build_object(
-        'Name', c.name,
-        'Location', c.location
-      ) as properties
-    from
-      gcp_kubernetes_cluster c,
-      gcp_pubsub_topic t
-    where
-      t.name = $1
-      and c.notification_config is not null
-      and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
-  EOQ
-
-  param "name" {}
-}
-
-edge "pubsub_topic_to_kubernetes_cluster" {
-  title = "notifies"
-
-  sql = <<-EOQ
-    select
-      c.name as from_id,
-      t.name as to_id
-    from
-      gcp_kubernetes_cluster c,
-      gcp_pubsub_topic t
-    where
-      t.name = $1
-      and c.notification_config is not null
-      and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
-  EOQ
-
-  param "name" {}
-}
-
-node "pubsub_topic_to_iam_role" {
-  category = category.iam_role
-
-  sql = <<-EOQ
-  with iam_role as (
-    select
-      t.name,
-      roles->>'role' as role
-    from
-      gcp_pubsub_topic t,
-      jsonb_array_elements(t.iam_policy->'bindings') as roles
-  )
-    select
-      i.role_id as id,
-      i.title,
-      jsonb_build_object(
-        'Name', i.name,
-        'Role ID', i.role_id,
-        'Location', i.location,
-        'Project', i.project,
-        'Stage', i.stage,
-        'Description', i.description
-      ) as properties
-    from
-      iam_role as t join gcp_iam_role i on t.role = i.name
-    where
-      t.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-edge "pubsub_topic_to_iam_role" {
-  title = "assumes"
-
-  sql = <<-EOQ
-  with iam_role as (
-    select
-      t.name,
-      roles->>'role' as role
-    from
-      gcp_pubsub_topic t,
-      jsonb_array_elements(t.iam_policy->'bindings') as roles
-  )
-    select
-      t.name as from_id,
-      i.role_id as to_id,
-      jsonb_build_object(
-        'Name', i.name,
-        'Role ID', i.role_id,
-        'Location', i.location,
-        'Project', i.project,
-        'Stage', i.stage,
-        'Description', i.description
-      ) as properties
-    from
-      iam_role as t join gcp_iam_role i on t.role = i.name
-    where
-      t.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-node "pubsub_topic_to_pubsub_subscription" {
-  category = category.pubsub_subscription
-
-  sql = <<-EOQ
-  select
-      k.name as id,
-      k.title,
-      jsonb_build_object(
-        'Name', k.name,
-        'Location', k.location,
-        'Project', k.project,
-        'Self Link', k.self_link
-      ) as properties
-    from
-      gcp_pubsub_topic p,
-      gcp_pubsub_subscription k
-    where
-      p.name = k.topic_name
-      and p.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-edge "pubsub_topic_to_pubsub_subscription" {
-  title = "subscribed to"
-
-  sql = <<-EOQ
-  select
-      s.name as to_id,
-      t.name as from_id
-    from
-      gcp_pubsub_topic t,
-      gcp_pubsub_subscription s
-    where
-      t.name = s.topic_name
-      and t.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-node "pubsub_topic_to_pubsub_snapshot" {
-  category = category.pubsub_subscription
-
-  sql = <<-EOQ
-  select
-      k.name as id,
-      k.title,
-      jsonb_build_object(
-        'Name', k.name,
-        'Location', k.location,
-        'Project', k.project,
-        'Self Link', k.self_link
-      ) as properties
-    from
-      gcp_pubsub_topic p,
-      gcp_pubsub_snapshot k
-    where
-      k.topic_name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-edge "pubsub_topic_to_pubsub_snapshot" {
-  title = "snapshot"
-
-  sql = <<-EOQ
-  select
-      s.name as from_id,
-      k.name as to_id
-    from
-      gcp_pubsub_topic t,
-      gcp_pubsub_snapshot k,
-      gcp_pubsub_subscription s
-    where
-      t.name = $1
-      and t.name = $1;
   EOQ
 
   param "name" {}
