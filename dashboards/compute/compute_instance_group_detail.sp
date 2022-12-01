@@ -1,4 +1,4 @@
-dashboard "gcp_compute_instance_group_detail" {
+dashboard "compute_instance_group_detail" {
 
   title         = "GCP Compute Instance Group Detail"
   documentation = file("./dashboards/compute/docs/compute_instance_group_detail.md")
@@ -9,7 +9,7 @@ dashboard "gcp_compute_instance_group_detail" {
 
   input "group_id" {
     title = "Select an instance group:"
-    query = query.gcp_compute_instance_group_input
+    query = query.compute_instance_group_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "gcp_compute_instance_group_detail" {
 
     card {
       width = 2
-      query = query.gcp_compute_instance_group_size
+      query = query.compute_instance_group_size
       args = {
         id = self.input.group_id.value
       }
@@ -96,27 +96,27 @@ dashboard "gcp_compute_instance_group_detail" {
       }
 
       nodes = [
-        node.gcp_compute_instance_group_nodes,
-        node.gcp_compute_instance_nodes,
-        node.gcp_compute_subnetwork_nodes,
-        node.gcp_compute_network_nodes,
-        node.gcp_kubernetes_cluster_nodes,
+        node.compute_instance_group,
+        node.compute_instance,
+        node.compute_subnetwork,
+        node.compute_network,
+        node.kubernetes_cluster,
 
 
-        node.gcp_compute_instance_group_to_compute_autoscaler_nodes,
-        node.gcp_compute_instance_group_to_compute_firewall_nodes,
-        node.gcp_compute_instance_group_from_compute_backend_service_nodes
+        node.compute_instance_group_to_compute_autoscaler,
+        node.compute_instance_group_to_compute_firewall,
+        node.compute_instance_group_from_compute_backend_service
       ]
 
       edges = [
-        edge.gcp_compute_subnetwork_to_compute_network_edges,
-        edge.gcp_compute_instance_group_to_compute_instance_edges,
-        edge.gcp_compute_instance_group_from_kubernetes_cluster_edges,
-        edge.gcp_compute_instance_group_to_compute_subnetwork_edges,
+        edge.compute_subnetwork_to_compute_network,
+        edge.compute_instance_group_to_compute_instance,
+        edge.compute_instance_group_from_kubernetes_cluster,
+        edge.compute_instance_group_to_compute_subnetwork,
 
-        edge.gcp_compute_instance_group_to_compute_autoscaler_edges,
-        edge.gcp_compute_instance_group_to_compute_firewall_edges,
-        edge.gcp_compute_instance_group_from_compute_backend_service_edges,
+        edge.compute_instance_group_to_compute_autoscaler,
+        edge.compute_instance_group_to_compute_firewall,
+        edge.compute_instance_group_from_compute_backend_service,
       ]
 
       args = {
@@ -138,7 +138,7 @@ dashboard "gcp_compute_instance_group_detail" {
       table {
         title = "Overview"
         type  = "line"
-        query = query.gcp_compute_instance_group_overview
+        query = query.compute_instance_group_overview
         args = {
           id = self.input.group_id.value
         }
@@ -151,7 +151,7 @@ dashboard "gcp_compute_instance_group_detail" {
 
       table {
         title = "Attached Instances"
-        query = query.gcp_compute_instance_group_attached_instances
+        query = query.compute_instance_group_attached_instances
         args = {
           id = self.input.group_id.value
         }
@@ -167,7 +167,7 @@ dashboard "gcp_compute_instance_group_detail" {
 
       table {
         title = "Network Detail"
-        query = query.gcp_compute_instance_group_network_detail
+        query = query.compute_instance_group_network_detail
         args = {
           id = self.input.group_id.value
         }
@@ -180,7 +180,7 @@ dashboard "gcp_compute_instance_group_detail" {
 
       table {
         title = "Firewall Details"
-        query = query.gcp_compute_instance_firewall_detail
+        query = query.compute_instance_firewall_detail
         args = {
           id = self.input.group_id.value
         }
@@ -192,7 +192,7 @@ dashboard "gcp_compute_instance_group_detail" {
 
 }
 
-query "gcp_compute_instance_group_input" {
+query "compute_instance_group_input" {
   sql = <<-EOQ
     select
       name as label,
@@ -209,7 +209,7 @@ query "gcp_compute_instance_group_input" {
   EOQ
 }
 
-query "gcp_compute_instance_group_size" {
+query "compute_instance_group_size" {
   sql = <<-EOQ
     select
       'Size' as label,
@@ -226,8 +226,8 @@ query "gcp_compute_instance_group_size" {
 
 ## Graph - start
 
-node "gcp_compute_instance_group_nodes" {
-  category = category.gcp_compute_instance_group
+node "compute_instance_group" {
+  category = category.compute_instance_group
 
   sql = <<-EOQ
     select
@@ -249,8 +249,8 @@ node "gcp_compute_instance_group_nodes" {
   param "instance_group_ids" {}
 }
 
-node "gcp_compute_instance_group_compute_network_to_compute_subnetwork_nodes" {
-  category = category.gcp_compute_subnetwork
+node "compute_instance_group_compute_network_to_compute_subnetwork" {
+  category = category.compute_subnetwork
 
   sql = <<-EOQ
     select
@@ -274,8 +274,8 @@ node "gcp_compute_instance_group_compute_network_to_compute_subnetwork_nodes" {
   param "id" {}
 }
 
-node "gcp_compute_instance_group_to_compute_autoscaler_nodes" {
-  category = category.gcp_compute_autoscaler
+node "compute_instance_group_to_compute_autoscaler" {
+  category = category.compute_autoscaler
 
   sql = <<-EOQ
     select
@@ -299,8 +299,8 @@ node "gcp_compute_instance_group_to_compute_autoscaler_nodes" {
   param "id" {}
 }
 
-node "gcp_compute_instance_group_to_compute_firewall_nodes" {
-  category = category.gcp_compute_firewall
+node "compute_instance_group_to_compute_firewall" {
+  category = category.compute_firewall
 
   sql = <<-EOQ
     select
@@ -324,8 +324,8 @@ node "gcp_compute_instance_group_to_compute_firewall_nodes" {
   param "id" {}
 }
 
-node "gcp_compute_instance_group_from_compute_backend_service_nodes" {
-  category = category.gcp_compute_backend_service
+node "compute_instance_group_from_compute_backend_service" {
+  category = category.compute_backend_service
 
   sql = <<-EOQ
     select
@@ -352,7 +352,7 @@ node "gcp_compute_instance_group_from_compute_backend_service_nodes" {
 
 // Edges :
 
-edge "gcp_compute_instance_group_to_compute_instance_edges" {
+edge "compute_instance_group_to_compute_instance" {
   title = "manages"
 
   sql = <<-EOQ
@@ -368,7 +368,7 @@ edge "gcp_compute_instance_group_to_compute_instance_edges" {
   param "instance_ids" {}
 }
 
-// edge "gcp_compute_instance_group_to_compute_network_edges" {
+// edge "compute_instance_group_to_compute_network" {
 //   title = "network"
 
 //   sql = <<-EOQ
@@ -384,7 +384,7 @@ edge "gcp_compute_instance_group_to_compute_instance_edges" {
 //   param "network_names" {}
 // }
 
-edge "gcp_compute_instance_group_to_compute_subnetwork_edges" {
+edge "compute_instance_group_to_compute_subnetwork" {
   title = "subnetwork"
 
   sql = <<-EOQ
@@ -400,7 +400,7 @@ edge "gcp_compute_instance_group_to_compute_subnetwork_edges" {
   param "subnet_ids" {}
 }
 
-edge "gcp_compute_instance_group_from_kubernetes_cluster_edges" {
+edge "compute_instance_group_from_kubernetes_cluster" {
   title = "instance group"
 
   sql = <<-EOQ
@@ -416,7 +416,7 @@ edge "gcp_compute_instance_group_from_kubernetes_cluster_edges" {
   param "instance_group_ids" {}
 }
 
-edge "gcp_compute_instance_group_to_compute_autoscaler_edges" {
+edge "compute_instance_group_to_compute_autoscaler" {
   title = "autoscaler"
 
   sql = <<-EOQ
@@ -434,7 +434,7 @@ edge "gcp_compute_instance_group_to_compute_autoscaler_edges" {
   param "id" {}
 }
 
-edge "gcp_compute_instance_group_to_compute_firewall_edges" {
+edge "compute_instance_group_to_compute_firewall" {
   title = "firewall"
 
   sql = <<-EOQ
@@ -452,7 +452,7 @@ edge "gcp_compute_instance_group_to_compute_firewall_edges" {
   param "id" {}
 }
 
-edge "gcp_compute_instance_group_from_compute_backend_service_edges" {
+edge "compute_instance_group_from_compute_backend_service" {
   title = "instance group"
 
   sql = <<-EOQ
@@ -473,7 +473,7 @@ edge "gcp_compute_instance_group_from_compute_backend_service_edges" {
 
 ## Graph - end
 
-query "gcp_compute_instance_group_overview" {
+query "compute_instance_group_overview" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -492,7 +492,7 @@ query "gcp_compute_instance_group_overview" {
   param "id" {}
 }
 
-query "gcp_compute_instance_group_attached_instances" {
+query "compute_instance_group_attached_instances" {
   sql = <<-EOQ
     select
       i.id as "ID",
@@ -512,7 +512,7 @@ query "gcp_compute_instance_group_attached_instances" {
   param "id" {}
 }
 
-query "gcp_compute_instance_group_network_detail" {
+query "compute_instance_group_network_detail" {
   sql = <<-EOQ
     select
       n.name as "Network",
@@ -532,7 +532,7 @@ query "gcp_compute_instance_group_network_detail" {
   param "id" {}
 }
 
-query "gcp_compute_instance_firewall_detail" {
+query "compute_instance_firewall_detail" {
   sql = <<-EOQ
     select
       f.id as "ID",

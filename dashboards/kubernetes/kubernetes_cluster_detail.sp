@@ -1,4 +1,4 @@
-dashboard "gcp_kubernetes_cluster_detail" {
+dashboard "kubernetes_cluster_detail" {
 
   title         = "GCP Kubernetes Cluster Detail"
   documentation = file("./dashboards/kubernetes/docs/kubernetes_cluster_detail.md")
@@ -9,14 +9,14 @@ dashboard "gcp_kubernetes_cluster_detail" {
 
   input "cluster_name" {
     title = "Select a cluster:"
-    query = query.gcp_kubernetes_cluster_input
+    query = query.kubernetes_cluster_input
     width = 4
   }
 
   container {
 
     card {
-      query = query.gcp_kubernetes_cluster_node
+      query = query.kubernetes_cluster_node
       width = 2
       args = {
         name = self.input.cluster_name.value
@@ -24,7 +24,7 @@ dashboard "gcp_kubernetes_cluster_detail" {
     }
 
     card {
-      query = query.gcp_kubernetes_cluster_autopilot_enabled
+      query = query.kubernetes_cluster_autopilot_enabled
       width = 2
       args = {
         name = self.input.cluster_name.value
@@ -32,7 +32,7 @@ dashboard "gcp_kubernetes_cluster_detail" {
     }
 
     card {
-      query = query.gcp_kubernetes_cluster_database_encryption
+      query = query.kubernetes_cluster_database_encryption
       width = 2
       args = {
         name = self.input.cluster_name.value
@@ -40,7 +40,7 @@ dashboard "gcp_kubernetes_cluster_detail" {
     }
 
     card {
-      query = query.gcp_kubernetes_cluster_degraded
+      query = query.kubernetes_cluster_degraded
       width = 2
       args = {
         name = self.input.cluster_name.value
@@ -48,7 +48,7 @@ dashboard "gcp_kubernetes_cluster_detail" {
     }
 
     card {
-      query = query.gcp_kubernetes_cluster_shielded_nodes_disabled
+      query = query.kubernetes_cluster_shielded_nodes_disabled
       width = 2
       args = {
         name = self.input.cluster_name.value
@@ -56,7 +56,7 @@ dashboard "gcp_kubernetes_cluster_detail" {
     }
 
     card {
-      query = query.gcp_kubernetes_cluster_auto_repair_disabled
+      query = query.kubernetes_cluster_auto_repair_disabled
       width = 2
       args = {
         name = self.input.cluster_name.value
@@ -74,30 +74,30 @@ dashboard "gcp_kubernetes_cluster_detail" {
 
 
       nodes = [
-        node.gcp_kubernetes_cluster_nodes,
-        node.gcp_kubernetes_cluster_to_compute_network_node,
-        node.gcp_kubernetes_cluster_network_to_compute_subnetwork_node,
-        node.gcp_kubernetes_cluster_node_pool_to_compute_instance_group_node,
-        node.gcp_kubernetes_cluster_to_pubsub_topic_node,
-        node.gcp_kubernetes_cluster_to_kms_key_node,
+        node.kubernetes_cluster,
+        node.kubernetes_cluster_to_compute_network,
+        node.kubernetes_cluster_network_to_compute_subnetwork,
+        node.kubernetes_cluster_node_pool_to_compute_instance_group,
+        node.kubernetes_cluster_to_pubsub_topic,
+        node.kubernetes_cluster_to_kms_key,
 
-        node.gcp_kubernetes_cluster_node_pool_to_compute_instance_node,
+        node.kubernetes_cluster_node_pool_to_compute_instance,
 
-        node.gcp_kubernetes_cluster_to_node_pool_node,
-        node.gcp_kubernetes_cluster_to_bigquery_dataset_node,
-        node.gcp_kubernetes_cluster_to_compute_firewall_node
+        node.kubernetes_cluster_to_node_pool,
+        node.kubernetes_cluster_to_bigquery_dataset,
+        node.kubernetes_cluster_to_compute_firewall
       ]
 
       edges = [
-        edge.gcp_kubernetes_cluster_to_node_pool_edge,
-        edge.gcp_kubernetes_cluster_to_compute_network_edge,
-        edge.gcp_kubernetes_cluster_network_to_compute_subnetwork_edge,
-        edge.gcp_kubernetes_cluster_to_pubsub_topic_edge,
-        edge.gcp_kubernetes_cluster_node_pool_to_compute_instance_group_edge,
-        edge.gcp_kubernetes_cluster_to_kms_key_edge,
-        edge.gcp_kubernetes_cluster_to_bigquery_dataset_edge,
-        edge.gcp_kubernetes_cluster_node_pool_to_compute_instance_edge,
-        edge.gcp_kubernetes_cluster_to_compute_firewall_edge
+        edge.kubernetes_cluster_to_node_pool,
+        edge.kubernetes_cluster_to_compute_network,
+        edge.kubernetes_cluster_network_to_compute_subnetwork,
+        edge.kubernetes_cluster_to_pubsub_topic,
+        edge.kubernetes_cluster_node_pool_to_compute_instance_group,
+        edge.kubernetes_cluster_to_kms_key,
+        edge.kubernetes_cluster_to_bigquery_dataset,
+        edge.kubernetes_cluster_node_pool_to_compute_instance,
+        edge.kubernetes_cluster_to_compute_firewall
       ]
 
       args = {
@@ -114,7 +114,7 @@ dashboard "gcp_kubernetes_cluster_detail" {
       title = "Overview"
       type  = "line"
       width = 6
-      query = query.gcp_kubernetes_cluster_overview
+      query = query.kubernetes_cluster_overview
       args = {
         name = self.input.cluster_name.value
       }
@@ -123,7 +123,7 @@ dashboard "gcp_kubernetes_cluster_detail" {
     table {
       title = "Tags"
       width = 6
-      query = query.gcp_kubernetes_cluster_tags
+      query = query.kubernetes_cluster_tags
       args = {
         name = self.input.cluster_name.value
       }
@@ -136,7 +136,7 @@ dashboard "gcp_kubernetes_cluster_detail" {
 
     table {
       title = "IP Allocation Policy"
-      query = query.gcp_kubernetes_cluster_ip_allocation_policy
+      query = query.kubernetes_cluster_ip_allocation_policy
       args = {
         name = self.input.cluster_name.value
       }
@@ -144,7 +144,7 @@ dashboard "gcp_kubernetes_cluster_detail" {
 
     table {
       title = "Network Configuration"
-      query = query.gcp_kubernetes_cluster_network_config
+      query = query.kubernetes_cluster_network_config
       args = {
         name = self.input.cluster_name.value
       }
@@ -157,7 +157,7 @@ dashboard "gcp_kubernetes_cluster_detail" {
     table {
       title = "Notification Configuration"
       width = 6
-      query = query.gcp_kubernetes_cluster_notification_config
+      query = query.kubernetes_cluster_notification_config
       args = {
         name = self.input.cluster_name.value
       }
@@ -166,7 +166,7 @@ dashboard "gcp_kubernetes_cluster_detail" {
     table {
       title = "Logging & Monitoring"
       width = 6
-      query = query.gcp_kubernetes_cluster_lm
+      query = query.kubernetes_cluster_lm
       args = {
         name = self.input.cluster_name.value
       }
@@ -178,7 +178,7 @@ dashboard "gcp_kubernetes_cluster_detail" {
 
     table {
       title = "Node Configuration"
-      query = query.gcp_kubernetes_cluster_node_detail
+      query = query.kubernetes_cluster_node_detail
       args = {
         name = self.input.cluster_name.value
       }
@@ -186,7 +186,7 @@ dashboard "gcp_kubernetes_cluster_detail" {
 
     table {
       title = "Private Cluster Configuration"
-      query = query.gcp_kubernetes_cluster_private_cluster_config
+      query = query.kubernetes_cluster_private_cluster_config
       args = {
         name = self.input.cluster_name.value
       }
@@ -194,7 +194,7 @@ dashboard "gcp_kubernetes_cluster_detail" {
 
     table {
       title = "Add-ons Configuration"
-      query = query.gcp_kubernetes_cluster_addons_config
+      query = query.kubernetes_cluster_addons_config
       args = {
         name = self.input.cluster_name.value
       }
@@ -204,7 +204,7 @@ dashboard "gcp_kubernetes_cluster_detail" {
 
 }
 
-query "gcp_kubernetes_cluster_input" {
+query "kubernetes_cluster_input" {
   sql = <<-EOQ
     select
       name as label,
@@ -220,7 +220,7 @@ query "gcp_kubernetes_cluster_input" {
   EOQ
 }
 
-query "gcp_kubernetes_cluster_node" {
+query "kubernetes_cluster_node" {
   sql = <<-EOQ
     select
       sum (current_node_count) as "Total Nodes"
@@ -233,7 +233,7 @@ query "gcp_kubernetes_cluster_node" {
   param "name" {}
 }
 
-query "gcp_kubernetes_cluster_autopilot_enabled" {
+query "kubernetes_cluster_autopilot_enabled" {
   sql = <<-EOQ
     select
       case when autopilot_enabled then 'Enabled' else 'Disabled' end as "Autopilot"
@@ -246,7 +246,7 @@ query "gcp_kubernetes_cluster_autopilot_enabled" {
   param "name" {}
 }
 
-query "gcp_kubernetes_cluster_database_encryption" {
+query "kubernetes_cluster_database_encryption" {
   sql = <<-EOQ
     select
       case when database_encryption_key_name = '' then 'Disabled' else 'Enabled' end as value,
@@ -261,7 +261,7 @@ query "gcp_kubernetes_cluster_database_encryption" {
   param "name" {}
 }
 
-query "gcp_kubernetes_cluster_degraded" {
+query "kubernetes_cluster_degraded" {
   sql = <<-EOQ
     select
       initcap(status) as value,
@@ -276,7 +276,7 @@ query "gcp_kubernetes_cluster_degraded" {
   param "name" {}
 }
 
-query "gcp_kubernetes_cluster_shielded_nodes_disabled" {
+query "kubernetes_cluster_shielded_nodes_disabled" {
   sql = <<-EOQ
     select
       case when shielded_nodes_enabled then 'Enabled' else 'Disabled' end as value,
@@ -291,7 +291,7 @@ query "gcp_kubernetes_cluster_shielded_nodes_disabled" {
   param "name" {}
 }
 
-query "gcp_kubernetes_cluster_auto_repair_disabled" {
+query "kubernetes_cluster_auto_repair_disabled" {
   sql = <<-EOQ
     select
       case when np -> 'management' -> 'autoRepair' = 'true' then 'Enabled' else 'Disabled' end as value,
@@ -309,8 +309,8 @@ query "gcp_kubernetes_cluster_auto_repair_disabled" {
 
 ## Graph
 
-node "gcp_kubernetes_cluster_nodes" {
-  category = category.gcp_kubernetes_cluster
+node "kubernetes_cluster" {
+  category = category.kubernetes_cluster
 
   sql = <<-EOQ
     select
@@ -332,8 +332,8 @@ node "gcp_kubernetes_cluster_nodes" {
   param "cluster_names" {}
 }
 
-node "gcp_kubernetes_cluster_to_node_pool_node" {
-  category = category.gcp_kubernetes_node_pool
+node "kubernetes_cluster_to_node_pool" {
+  category = category.kubernetes_node_pool
 
   sql = <<-EOQ
     select
@@ -354,7 +354,7 @@ node "gcp_kubernetes_cluster_to_node_pool_node" {
   param "name" {}
 }
 
-edge "gcp_kubernetes_cluster_to_node_pool_edge" {
+edge "kubernetes_cluster_to_node_pool" {
   title = "node pool"
 
   sql = <<-EOQ
@@ -370,8 +370,8 @@ edge "gcp_kubernetes_cluster_to_node_pool_edge" {
   param "name" {}
 }
 
-node "gcp_kubernetes_cluster_node_pool_to_compute_instance_group_node" {
-  category = category.gcp_compute_instance_group
+node "kubernetes_cluster_node_pool_to_compute_instance_group" {
+  category = category.compute_instance_group
 
   sql = <<-EOQ
     select
@@ -396,7 +396,7 @@ node "gcp_kubernetes_cluster_node_pool_to_compute_instance_group_node" {
   param "name" {}
 }
 
-edge "gcp_kubernetes_cluster_node_pool_to_compute_instance_group_edge" {
+edge "kubernetes_cluster_node_pool_to_compute_instance_group" {
   title = "instance group"
 
   sql = <<-EOQ
@@ -415,8 +415,8 @@ edge "gcp_kubernetes_cluster_node_pool_to_compute_instance_group_edge" {
   param "name" {}
 }
 
-node "gcp_kubernetes_cluster_node_pool_to_compute_instance_node" {
-  category = category.gcp_compute_instance
+node "kubernetes_cluster_node_pool_to_compute_instance" {
+  category = category.compute_instance
 
   sql = <<-EOQ
     select
@@ -444,7 +444,7 @@ node "gcp_kubernetes_cluster_node_pool_to_compute_instance_node" {
   param "name" {}
 }
 
-edge "gcp_kubernetes_cluster_node_pool_to_compute_instance_edge" {
+edge "kubernetes_cluster_node_pool_to_compute_instance" {
   title = "node"
 
   sql = <<-EOQ
@@ -466,8 +466,8 @@ edge "gcp_kubernetes_cluster_node_pool_to_compute_instance_edge" {
   param "name" {}
 }
 
-node "gcp_kubernetes_cluster_to_compute_network_node" {
-  category = category.gcp_compute_network
+node "kubernetes_cluster_to_compute_network" {
+  category = category.compute_network
 
   sql = <<-EOQ
     select
@@ -489,7 +489,7 @@ node "gcp_kubernetes_cluster_to_compute_network_node" {
   param "name" {}
 }
 
-edge "gcp_kubernetes_cluster_to_compute_network_edge" {
+edge "kubernetes_cluster_to_compute_network" {
   title = "network"
 
   sql = <<-EOQ
@@ -509,8 +509,8 @@ edge "gcp_kubernetes_cluster_to_compute_network_edge" {
   param "name" {}
 }
 
-node "gcp_kubernetes_cluster_network_to_compute_subnetwork_node" {
-  category = category.gcp_compute_subnetwork
+node "kubernetes_cluster_network_to_compute_subnetwork" {
+  category = category.compute_subnetwork
 
   sql = <<-EOQ
     select
@@ -534,7 +534,7 @@ node "gcp_kubernetes_cluster_network_to_compute_subnetwork_node" {
   param "name" {}
 }
 
-edge "gcp_kubernetes_cluster_network_to_compute_subnetwork_edge" {
+edge "kubernetes_cluster_network_to_compute_subnetwork" {
   title = "subnetwork"
 
   sql = <<-EOQ
@@ -554,8 +554,8 @@ edge "gcp_kubernetes_cluster_network_to_compute_subnetwork_edge" {
   param "name" {}
 }
 
-node "gcp_kubernetes_cluster_to_pubsub_topic_node" {
-  category = category.gcp_pubsub_topic
+node "kubernetes_cluster_to_pubsub_topic" {
+  category = category.pubsub_topic
 
   sql = <<-EOQ
     select
@@ -578,7 +578,7 @@ node "gcp_kubernetes_cluster_to_pubsub_topic_node" {
   param "name" {}
 }
 
-edge "gcp_kubernetes_cluster_to_pubsub_topic_edge" {
+edge "kubernetes_cluster_to_pubsub_topic" {
   title = "notifies"
 
   sql = <<-EOQ
@@ -600,8 +600,8 @@ edge "gcp_kubernetes_cluster_to_pubsub_topic_edge" {
   param "name" {}
 }
 
-node "gcp_kubernetes_cluster_to_kms_key_node" {
-  category = category.gcp_kms_key
+node "kubernetes_cluster_to_kms_key" {
+  category = category.kms_key
 
   sql = <<-EOQ
     select
@@ -625,7 +625,7 @@ node "gcp_kubernetes_cluster_to_kms_key_node" {
   param "name" {}
 }
 
-edge "gcp_kubernetes_cluster_to_kms_key_edge" {
+edge "kubernetes_cluster_to_kms_key" {
   title = "encrypted with"
 
   sql = <<-EOQ
@@ -647,8 +647,8 @@ edge "gcp_kubernetes_cluster_to_kms_key_edge" {
   param "name" {}
 }
 
-node "gcp_kubernetes_cluster_to_bigquery_dataset_node" {
-  category = category.gcp_bigquery_dataset
+node "kubernetes_cluster_to_bigquery_dataset" {
+  category = category.bigquery_dataset
 
   sql = <<-EOQ
     select
@@ -672,7 +672,7 @@ node "gcp_kubernetes_cluster_to_bigquery_dataset_node" {
   param "name" {}
 }
 
-edge "gcp_kubernetes_cluster_to_bigquery_dataset_edge" {
+edge "kubernetes_cluster_to_bigquery_dataset" {
   title = "usage metering"
 
   sql = <<-EOQ
@@ -690,8 +690,8 @@ edge "gcp_kubernetes_cluster_to_bigquery_dataset_edge" {
   param "name" {}
 }
 
-node "gcp_kubernetes_cluster_to_compute_firewall_node" {
-  category = category.gcp_compute_firewall
+node "kubernetes_cluster_to_compute_firewall" {
+  category = category.compute_firewall
 
   sql = <<-EOQ
     select
@@ -717,7 +717,7 @@ node "gcp_kubernetes_cluster_to_compute_firewall_node" {
   param "name" {}
 }
 
-edge "gcp_kubernetes_cluster_to_compute_firewall_edge" {
+edge "kubernetes_cluster_to_compute_firewall" {
   title = "firewall"
 
   sql = <<-EOQ
@@ -737,7 +737,7 @@ edge "gcp_kubernetes_cluster_to_compute_firewall_edge" {
   param "name" {}
 }
 
-query "gcp_kubernetes_cluster_overview" {
+query "kubernetes_cluster_overview" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -755,7 +755,7 @@ query "gcp_kubernetes_cluster_overview" {
   param "name" {}
 }
 
-query "gcp_kubernetes_cluster_tags" {
+query "kubernetes_cluster_tags" {
   sql = <<-EOQ
     with jsondata as (
       select
@@ -778,7 +778,7 @@ query "gcp_kubernetes_cluster_tags" {
   param "name" {}
 }
 
-query "gcp_kubernetes_cluster_ip_allocation_policy" {
+query "kubernetes_cluster_ip_allocation_policy" {
   sql = <<-EOQ
     select
       ip_allocation_policy ->> 'clusterIpv4Cidr' as "Cluster IPv4 CIDR",
@@ -795,7 +795,7 @@ query "gcp_kubernetes_cluster_ip_allocation_policy" {
   param "name" {}
 }
 
-query "gcp_kubernetes_cluster_addons_config" {
+query "kubernetes_cluster_addons_config" {
   sql = <<-EOQ
     select
       case when addons_config -> 'dnsCacheConfig' ->> 'enabled' = 'true' then 'Enabled' else 'Disabled' end as "DNS Cache Config",
@@ -813,7 +813,7 @@ query "gcp_kubernetes_cluster_addons_config" {
   param "name" {}
 }
 
-query "gcp_kubernetes_cluster_network_config" {
+query "kubernetes_cluster_network_config" {
   sql = <<-EOQ
     select
       network_config ->> 'network' as "Network",
@@ -829,7 +829,7 @@ query "gcp_kubernetes_cluster_network_config" {
   param "name" {}
 }
 
-query "gcp_kubernetes_cluster_lm" {
+query "kubernetes_cluster_lm" {
   sql = <<-EOQ
     select
       case when logging_service = 'none' then 'Disabled' else 'Enabled' end as "Logging Service",
@@ -843,7 +843,7 @@ query "gcp_kubernetes_cluster_lm" {
   param "name" {}
 }
 
-query "gcp_kubernetes_cluster_notification_config" {
+query "kubernetes_cluster_notification_config" {
   sql = <<-EOQ
     select
       notification_config -> 'pubsub' ->> 'enabled' as "Enabled",
@@ -857,7 +857,7 @@ query "gcp_kubernetes_cluster_notification_config" {
   param "name" {}
 }
 
-query "gcp_kubernetes_cluster_private_cluster_config" {
+query "kubernetes_cluster_private_cluster_config" {
   sql = <<-EOQ
     select
       private_cluster_config ->> 'enablePrivateNodes' as "Enable Private Nodes",
@@ -874,7 +874,7 @@ query "gcp_kubernetes_cluster_private_cluster_config" {
   param "name" {}
 }
 
-query "gcp_kubernetes_cluster_node_detail" {
+query "kubernetes_cluster_node_detail" {
   sql = <<-EOQ
     select
       current_node_version as "Current Node Version",

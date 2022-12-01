@@ -4,7 +4,7 @@ locals {
   }
 }
 
-category "gcp_iam_role" {
+category "iam_role" {
   color = local.iam_color
   icon  = "user-plus"
   title = "IAM Role"

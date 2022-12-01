@@ -1,4 +1,4 @@
-dashboard "gcp_project_report" {
+dashboard "project_report" {
 
   title         = "GCP Project Report"
   documentation = file("./dashboards/gcp/docs/gcp_project_report.md")
@@ -11,19 +11,19 @@ dashboard "gcp_project_report" {
   container {
 
     card {
-      query = query.gcp_project_count
+      query = query.project_count
       width = 2
     }
 
   }
 
   table {
-    query = query.gcp_project_table
+    query = query.project_table
   }
 
 }
 
-query "gcp_project_count" {
+query "project_count" {
   sql = <<-EOQ
     select
       count(*) as "Projects"
@@ -32,7 +32,7 @@ query "gcp_project_count" {
   EOQ
 }
 
-query "gcp_project_table" {
+query "project_table" {
   sql = <<-EOQ
     select
       name as "Name",

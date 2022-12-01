@@ -1,4 +1,4 @@
-dashboard "gcp_kms_key_detail" {
+dashboard "kms_key_detail" {
 
   title         = "GCP KMS Key Detail"
   documentation = file("./dashboards/kms/docs/kms_key_detail.md")
@@ -9,7 +9,7 @@ dashboard "gcp_kms_key_detail" {
 
   input "key_name" {
     title = "Select a key:"
-    query = query.gcp_kms_key_name_input
+    query = query.kms_key_name_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "gcp_kms_key_detail" {
 
     card {
       width = 2
-      query = query.gcp_kms_key_purpose
+      query = query.kms_key_purpose
       args = {
         key_name = self.input.key_name.value
       }
@@ -25,7 +25,7 @@ dashboard "gcp_kms_key_detail" {
 
     card {
       width = 2
-      query = query.gcp_kms_key_rotation_period
+      query = query.kms_key_rotation_period
       args = {
         key_name = self.input.key_name.value
       }
@@ -33,7 +33,7 @@ dashboard "gcp_kms_key_detail" {
 
     card {
       width = 2
-      query = query.gcp_kms_key_key_ring_name
+      query = query.kms_key_key_ring_name
       args = {
         key_name = self.input.key_name.value
       }
@@ -41,7 +41,7 @@ dashboard "gcp_kms_key_detail" {
 
     card {
       width = 2
-      query = query.gcp_kms_key_protection_level
+      query = query.kms_key_protection_level
       args = {
         key_name = self.input.key_name.value
       }
@@ -49,7 +49,7 @@ dashboard "gcp_kms_key_detail" {
 
     card {
       width = 2
-      query = query.gcp_kms_key_algorithm
+      query = query.kms_key_algorithm
       args = {
         key_name = self.input.key_name.value
       }
@@ -64,32 +64,32 @@ dashboard "gcp_kms_key_detail" {
       direction = "TD"
 
       nodes = [
-        node.gcp_kms_key_nodes,
-        node.gcp_kms_key_from_storage_bucket_node,
-        node.gcp_kms_key_from_pubsub_topic_node,
-        node.gcp_kms_key_from_kms_key_ring_node,
-        node.gcp_kms_key_from_compute_disk_node,
-        node.gcp_kms_key_from_gcp_compute_image_node,
-        node.gcp_kms_key_from_compute_snapshot_node,
-        node.gcp_kms_key_from_sql_database_instance_node,
-        node.gcp_kms_key_from_bigquery_dataset_node,
-        node.gcp_kms_key_from_bigquery_table_node,
-        node.gcp_kms_key_to_kms_key_version_node,
-        node.gcp_kms_key_from_kubernetes_cluster_node
+        node.kms_key,
+        node.kms_key_from_storage_bucket,
+        node.kms_key_from_pubsub_topic,
+        node.kms_key_from_kms_key_ring,
+        node.kms_key_from_compute_disk,
+        node.kms_key_from_gcp_compute_image,
+        node.kms_key_from_compute_snapshot,
+        node.kms_key_from_sql_database_instance,
+        node.kms_key_from_bigquery_dataset,
+        node.kms_key_from_bigquery_table,
+        node.kms_key_to_kms_key_version,
+        node.kms_key_from_kubernetes_cluster
       ]
 
       edges = [
-        edge.gcp_kms_key_from_storage_bucket_edge,
-        edge.gcp_kms_key_from_pubsub_topic_edge,
-        edge.gcp_kms_key_from_kms_key_ring_edge,
-        edge.gcp_kms_key_from_compute_disk_edge,
-        edge.gcp_kms_key_from_gcp_compute_image_edge,
-        edge.gcp_kms_key_from_compute_snapshot_edge,
-        edge.gcp_kms_key_from_sql_database_instance_edge,
-        edge.gcp_kms_key_from_bigquery_dataset_edge,
-        edge.gcp_kms_key_from_bigquery_table_edge,
-        edge.gcp_kms_key_to_kms_key_version_edge,
-        edge.gcp_kms_key_from_kubernetes_cluster_edge
+        edge.kms_key_from_storage_bucket_edge,
+        edge.kms_key_from_pubsub_topic_edge,
+        edge.kms_key_from_kms_key_ring_edge,
+        edge.kms_key_from_compute_disk_edge,
+        edge.kms_key_from_gcp_compute_image_edge,
+        edge.kms_key_from_compute_snapshot_edge,
+        edge.kms_key_from_sql_database_instance_edge,
+        edge.kms_key_from_bigquery_dataset_edge,
+        edge.kms_key_from_bigquery_table_edge,
+        edge.kms_key_to_kms_key_version_edge,
+        edge.kms_key_from_kubernetes_cluster_edge
       ]
 
       args = {
@@ -109,7 +109,7 @@ dashboard "gcp_kms_key_detail" {
         title = "Overview"
         type  = "line"
         width = 6
-        query = query.gcp_kms_key_name_overview
+        query = query.kms_key_name_overview
         args = {
           key_name = self.input.key_name.value
         }
@@ -118,7 +118,7 @@ dashboard "gcp_kms_key_detail" {
       table {
         title = "Tags"
         width = 6
-        query = query.gcp_kms_key_name_tags
+        query = query.kms_key_name_tags
         args = {
           key_name = self.input.key_name.value
         }
@@ -128,7 +128,7 @@ dashboard "gcp_kms_key_detail" {
   }
 }
 
-query "gcp_kms_key_name_input" {
+query "kms_key_name_input" {
   sql = <<-EOQ
     select
       title as label,
@@ -143,8 +143,8 @@ query "gcp_kms_key_name_input" {
   EOQ
 }
 
-node "gcp_kms_key_nodes" {
-  category = category.gcp_kms_key
+node "kms_key" {
+  category = category.kms_key
 
   sql = <<-EOQ
     select
@@ -164,8 +164,8 @@ node "gcp_kms_key_nodes" {
   param "key_names" {}
 }
 
-node "gcp_kms_key_from_storage_bucket_node" {
-  category = category.gcp_storage_bucket
+node "kms_key_from_storage_bucket" {
+  category = category.storage_bucket
 
   sql = <<-EOQ
     select
@@ -187,7 +187,7 @@ node "gcp_kms_key_from_storage_bucket_node" {
   param "key_name" {}
 }
 
-edge "gcp_kms_key_from_storage_bucket_edge" {
+edge "kms_key_from_storage_bucket_edge" {
   title = "encrypted with"
 
   sql = <<-EOQ
@@ -206,8 +206,8 @@ edge "gcp_kms_key_from_storage_bucket_edge" {
   param "key_name" {}
 }
 
-node "gcp_kms_key_from_pubsub_topic_node" {
-  category = category.gcp_pubsub_topic
+node "kms_key_from_pubsub_topic" {
+  category = category.pubsub_topic
 
   sql = <<-EOQ
     select
@@ -230,7 +230,7 @@ node "gcp_kms_key_from_pubsub_topic_node" {
   param "key_name" {}
 }
 
-edge "gcp_kms_key_from_pubsub_topic_edge" {
+edge "kms_key_from_pubsub_topic_edge" {
   title = "encrypted with"
 
   sql = <<-EOQ
@@ -248,8 +248,8 @@ edge "gcp_kms_key_from_pubsub_topic_edge" {
   param "key_name" {}
 }
 
-node "gcp_kms_key_from_kms_key_ring_node" {
-  category = category.gcp_kms_key_ring
+node "kms_key_from_kms_key_ring" {
+  category = category.kms_key_ring
 
   sql = <<-EOQ
     select
@@ -272,7 +272,7 @@ node "gcp_kms_key_from_kms_key_ring_node" {
   param "key_name" {}
 }
 
-edge "gcp_kms_key_from_kms_key_ring_edge" {
+edge "kms_key_from_kms_key_ring_edge" {
   title = "organizes"
 
   sql = <<-EOQ
@@ -290,8 +290,8 @@ edge "gcp_kms_key_from_kms_key_ring_edge" {
   param "key_name" {}
 }
 
-node "gcp_kms_key_from_compute_disk_node" {
-  category = category.gcp_compute_disk
+node "kms_key_from_compute_disk" {
+  category = category.compute_disk
 
   sql = <<-EOQ
     select
@@ -316,7 +316,7 @@ node "gcp_kms_key_from_compute_disk_node" {
   param "key_name" {}
 }
 
-edge "gcp_kms_key_from_compute_disk_edge" {
+edge "kms_key_from_compute_disk_edge" {
   title = "encrypted with"
 
   sql = <<-EOQ
@@ -335,8 +335,8 @@ edge "gcp_kms_key_from_compute_disk_edge" {
   param "key_name" {}
 }
 
-node "gcp_kms_key_from_sql_database_instance_node" {
-  category = category.gcp_sql_database_instance
+node "kms_key_from_sql_database_instance" {
+  category = category.sql_database_instance
 
   sql = <<-EOQ
     select
@@ -361,7 +361,7 @@ node "gcp_kms_key_from_sql_database_instance_node" {
   param "key_name" {}
 }
 
-edge "gcp_kms_key_from_sql_database_instance_edge" {
+edge "kms_key_from_sql_database_instance_edge" {
   title = "encrypted with"
 
   sql = <<-EOQ
@@ -379,8 +379,8 @@ edge "gcp_kms_key_from_sql_database_instance_edge" {
   param "key_name" {}
 }
 
-node "gcp_kms_key_from_gcp_compute_image_node" {
-  category = category.gcp_compute_image
+node "kms_key_from_gcp_compute_image" {
+  category = category.compute_image
 
   sql = <<-EOQ
     select
@@ -403,7 +403,7 @@ node "gcp_kms_key_from_gcp_compute_image_node" {
   param "key_name" {}
 }
 
-edge "gcp_kms_key_from_gcp_compute_image_edge" {
+edge "kms_key_from_gcp_compute_image_edge" {
   title = "encrypted with"
 
   sql = <<-EOQ
@@ -421,8 +421,8 @@ edge "gcp_kms_key_from_gcp_compute_image_edge" {
   param "key_name" {}
 }
 
-node "gcp_kms_key_from_compute_snapshot_node" {
-  category = category.gcp_compute_snapshot
+node "kms_key_from_compute_snapshot" {
+  category = category.compute_snapshot
 
   sql = <<-EOQ
     select
@@ -446,7 +446,7 @@ node "gcp_kms_key_from_compute_snapshot_node" {
   param "key_name" {}
 }
 
-edge "gcp_kms_key_from_compute_snapshot_edge" {
+edge "kms_key_from_compute_snapshot_edge" {
   title = "encrypted with"
 
   sql = <<-EOQ
@@ -465,8 +465,8 @@ edge "gcp_kms_key_from_compute_snapshot_edge" {
   param "key_name" {}
 }
 
-node "gcp_kms_key_from_bigquery_dataset_node" {
-  category = category.gcp_bigquery_dataset
+node "kms_key_from_bigquery_dataset" {
+  category = category.bigquery_dataset
 
   sql = <<-EOQ
     select
@@ -490,7 +490,7 @@ node "gcp_kms_key_from_bigquery_dataset_node" {
   param "key_name" {}
 }
 
-edge "gcp_kms_key_from_bigquery_dataset_edge" {
+edge "kms_key_from_bigquery_dataset_edge" {
   title = "encrypted with"
 
   sql = <<-EOQ
@@ -508,8 +508,8 @@ edge "gcp_kms_key_from_bigquery_dataset_edge" {
   param "key_name" {}
 }
 
-node "gcp_kms_key_from_bigquery_table_node" {
-  category = category.gcp_bigquery_table
+node "kms_key_from_bigquery_table" {
+  category = category.bigquery_table
 
   sql = <<-EOQ
     select
@@ -534,7 +534,7 @@ node "gcp_kms_key_from_bigquery_table_node" {
   param "key_name" {}
 }
 
-edge "gcp_kms_key_from_bigquery_table_edge" {
+edge "kms_key_from_bigquery_table_edge" {
   title = "encrypted with"
 
   sql = <<-EOQ
@@ -552,8 +552,8 @@ edge "gcp_kms_key_from_bigquery_table_edge" {
   param "key_name" {}
 }
 
-node "gcp_kms_key_from_sql_backup_node" {
-  category = category.gcp_sql_backup
+node "kms_key_from_sql_backup" {
+  category = category.sql_backup
 
   sql = <<-EOQ
     select
@@ -577,7 +577,7 @@ node "gcp_kms_key_from_sql_backup_node" {
   param "key_name" {}
 }
 
-edge "gcp_kms_key_from_sql_backup_edge" {
+edge "kms_key_from_sql_backup_edge" {
   title = "encrypted with"
 
   sql = <<-EOQ
@@ -594,8 +594,8 @@ edge "gcp_kms_key_from_sql_backup_edge" {
   param "key_name" {}
 }
 
-node "gcp_kms_key_to_kms_key_version_node" {
-  category = category.gcp_kms_key_version
+node "kms_key_to_kms_key_version" {
+  category = category.kms_key_version
 
   sql = <<-EOQ
     select
@@ -619,7 +619,7 @@ node "gcp_kms_key_to_kms_key_version_node" {
   param "key_name" {}
 }
 
-edge "gcp_kms_key_to_kms_key_version_edge" {
+edge "kms_key_to_kms_key_version_edge" {
   title = "version"
 
   sql = <<-EOQ
@@ -635,8 +635,8 @@ edge "gcp_kms_key_to_kms_key_version_edge" {
   param "key_name" {}
 }
 
-node "gcp_kms_key_from_kubernetes_cluster_node" {
-  category = category.gcp_kubernetes_cluster
+node "kms_key_from_kubernetes_cluster" {
+  category = category.kubernetes_cluster
 
   sql = <<-EOQ
     select
@@ -661,7 +661,7 @@ node "gcp_kms_key_from_kubernetes_cluster_node" {
   param "key_name" {}
 }
 
-edge "gcp_kms_key_from_kubernetes_cluster_edge" {
+edge "kms_key_from_kubernetes_cluster_edge" {
   title = "encrypted with"
 
   sql = <<-EOQ
@@ -680,7 +680,7 @@ edge "gcp_kms_key_from_kubernetes_cluster_edge" {
   param "key_name" {}
 }
 
-query "gcp_kms_key_purpose" {
+query "kms_key_purpose" {
   sql = <<-EOQ
     select
       'Purpose' as label,
@@ -694,7 +694,7 @@ query "gcp_kms_key_purpose" {
   param "key_name" {}
 }
 
-query "gcp_kms_key_rotation_period" {
+query "kms_key_rotation_period" {
   sql = <<-EOQ
   select
       'Rotation Period in days' as label,
@@ -708,7 +708,7 @@ query "gcp_kms_key_rotation_period" {
   param "key_name" {}
 }
 
-query "gcp_kms_key_key_ring_name" {
+query "kms_key_key_ring_name" {
   sql = <<-EOQ
     select
       'Key Ring Name' as label,
@@ -722,7 +722,7 @@ query "gcp_kms_key_key_ring_name" {
   param "key_name" {}
 }
 
-query "gcp_kms_key_protection_level" {
+query "kms_key_protection_level" {
   sql = <<-EOQ
     select
       'Protection Level' as label,
@@ -736,7 +736,7 @@ query "gcp_kms_key_protection_level" {
   param "key_name" {}
 }
 
-query "gcp_kms_key_algorithm" {
+query "kms_key_algorithm" {
   sql = <<-EOQ
     select
       'Algorithm' as label,
@@ -750,7 +750,7 @@ query "gcp_kms_key_algorithm" {
   param "key_name" {}
 }
 
-query "gcp_kms_key_name_overview" {
+query "kms_key_name_overview" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -767,7 +767,7 @@ query "gcp_kms_key_name_overview" {
   param "key_name" {}
 }
 
-query "gcp_kms_key_name_tags" {
+query "kms_key_name_tags" {
   sql = <<-EOQ
   select
     jsonb_object_keys(tags) as "Key",

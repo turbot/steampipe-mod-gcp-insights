@@ -1,4 +1,4 @@
-mod "gcp_insights" {
+mod "insights" {
   # hub metadata
   title         = "GCP Insights"
   description   = "Create dashboards and reports for your GCP resources using Steampipe."

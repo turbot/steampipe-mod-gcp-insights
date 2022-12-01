@@ -1,4 +1,4 @@
-dashboard "gcp_compute_instance_detail" {
+dashboard "compute_instance_detail" {
 
   title         = "GCP Compute Instance Detail"
   documentation = file("./dashboards/compute/docs/compute_instance_detail.md")
@@ -9,7 +9,7 @@ dashboard "gcp_compute_instance_detail" {
 
   input "instance_id" {
     title = "Select an instance:"
-    query = query.gcp_compute_instance_input
+    query = query.compute_instance_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "gcp_compute_instance_detail" {
 
     card {
       width = 2
-      query = query.gcp_compute_instance_status
+      query = query.compute_instance_status
       args = {
         id = self.input.instance_id.value
       }
@@ -25,7 +25,7 @@ dashboard "gcp_compute_instance_detail" {
 
     card {
       width = 2
-      query = query.gcp_compute_instance_type
+      query = query.compute_instance_type
       args = {
         id = self.input.instance_id.value
       }
@@ -33,7 +33,7 @@ dashboard "gcp_compute_instance_detail" {
 
     card {
       width = 2
-      query = query.gcp_compute_instance_deletion_protection
+      query = query.compute_instance_deletion_protection
       args = {
         id = self.input.instance_id.value
       }
@@ -41,7 +41,7 @@ dashboard "gcp_compute_instance_detail" {
 
     card {
       width = 2
-      query = query.gcp_compute_instance_public_access
+      query = query.compute_instance_public_access
       args = {
         id = self.input.instance_id.value
       }
@@ -49,7 +49,7 @@ dashboard "gcp_compute_instance_detail" {
 
     card {
       width = 2
-      query = query.gcp_compute_instance_confidential_vm_service
+      query = query.compute_instance_confidential_vm_service
       args = {
         id = self.input.instance_id.value
       }
@@ -127,22 +127,22 @@ dashboard "gcp_compute_instance_detail" {
       }
 
       nodes = [
-        node.gcp_compute_instance_nodes,
-        node.gcp_compute_instance_group_nodes,
-        node.gcp_compute_disk_nodes,
-        node.gcp_compute_network_nodes,
-        node.gcp_compute_subnetwork_nodes,
-        node.gcp_compute_instance_to_compute_firewall_nodes,
-        node.gcp_compute_instance_to_service_account_nodes
+        node.compute_instance,
+        node.compute_instance_group,
+        node.compute_disk,
+        node.compute_network,
+        node.compute_subnetwork,
+        node.compute_instance_to_compute_firewall,
+        node.compute_instance_to_service_account
       ]
 
       edges = [
-        edge.gcp_compute_instance_group_to_compute_instance_edges,
-        edge.gcp_compute_subnetwork_to_compute_network_edges,
-        edge.gcp_compute_instance_to_compute_disk_edges,
-        edge.gcp_compute_instance_to_compute_subnetwork_edges,
-        edge.gcp_compute_instance_to_compute_firewall_edges,
-        edge.gcp_compute_instance_to_service_account_edges
+        edge.compute_instance_group_to_compute_instance,
+        edge.compute_subnetwork_to_compute_network,
+        edge.compute_instance_to_compute_disk,
+        edge.compute_instance_to_compute_subnetwork,
+        edge.compute_instance_to_compute_firewall,
+        edge.compute_instance_to_service_account
       ]
 
       args = {
@@ -165,7 +165,7 @@ dashboard "gcp_compute_instance_detail" {
         title = "Overview"
         type  = "line"
         width = 6
-        query = query.gcp_compute_instance_overview
+        query = query.compute_instance_overview
         args = {
           id = self.input.instance_id.value
         }
@@ -175,7 +175,7 @@ dashboard "gcp_compute_instance_detail" {
       table {
         title = "Tags"
         width = 6
-        query = query.gcp_compute_instance_tags
+        query = query.compute_instance_tags
         args = {
           id = self.input.instance_id.value
         }
@@ -186,7 +186,7 @@ dashboard "gcp_compute_instance_detail" {
 
       table {
         title = "Attached Disks"
-        query = query.gcp_compute_instance_attached_disks
+        query = query.compute_instance_attached_disks
         args = {
           id = self.input.instance_id.value
         }
@@ -200,7 +200,7 @@ dashboard "gcp_compute_instance_detail" {
 
     table {
       title = "Network Interfaces"
-      query = query.gcp_compute_instance_network_interfaces
+      query = query.compute_instance_network_interfaces
       args = {
         id = self.input.instance_id.value
       }
@@ -213,7 +213,7 @@ dashboard "gcp_compute_instance_detail" {
 
     table {
       title = "Shielded VM Configuration"
-      query = query.gcp_compute_instance_shielded_vm
+      query = query.compute_instance_shielded_vm
       args = {
         id = self.input.instance_id.value
       }
@@ -223,7 +223,7 @@ dashboard "gcp_compute_instance_detail" {
 
 }
 
-query "gcp_compute_instance_input" {
+query "compute_instance_input" {
   sql = <<-EOQ
     select
       name as label,
@@ -240,7 +240,7 @@ query "gcp_compute_instance_input" {
   EOQ
 }
 
-query "gcp_compute_instance_status" {
+query "compute_instance_status" {
   sql = <<-EOQ
     select
       'Status' as label,
@@ -255,7 +255,7 @@ query "gcp_compute_instance_status" {
 
 }
 
-query "gcp_compute_instance_type" {
+query "compute_instance_type" {
   sql = <<-EOQ
     select
       'Type' as label,
@@ -269,7 +269,7 @@ query "gcp_compute_instance_type" {
   param "id" {}
 }
 
-query "gcp_compute_instance_deletion_protection" {
+query "compute_instance_deletion_protection" {
   sql = <<-EOQ
     select
       'Deletion Protection' as label,
@@ -284,7 +284,7 @@ query "gcp_compute_instance_deletion_protection" {
   param "id" {}
 }
 
-query "gcp_compute_instance_public_access" {
+query "compute_instance_public_access" {
   sql = <<-EOQ
     select
       'Public Access' as label,
@@ -307,7 +307,7 @@ query "gcp_compute_instance_public_access" {
   param "id" {}
 }
 
-query "gcp_compute_instance_confidential_vm_service" {
+query "compute_instance_confidential_vm_service" {
   sql = <<-EOQ
     select
       'Confidential VM' as label,
@@ -326,8 +326,8 @@ query "gcp_compute_instance_confidential_vm_service" {
 
 ### Nodes -
 
-node "gcp_compute_instance_nodes" {
-  category = category.gcp_compute_instance
+node "compute_instance" {
+  category = category.compute_instance
 
   sql = <<-EOQ
     select
@@ -349,8 +349,8 @@ node "gcp_compute_instance_nodes" {
   param "instance_ids" {}
 }
 
-node "gcp_compute_instance_to_compute_firewall_nodes" {
-  category = category.gcp_compute_firewall
+node "compute_instance_to_compute_firewall" {
+  category = category.compute_firewall
 
   sql = <<-EOQ
     select
@@ -375,8 +375,8 @@ node "gcp_compute_instance_to_compute_firewall_nodes" {
   param "id" {}
 }
 
-node "gcp_compute_instance_to_service_account_nodes" {
-  category = category.gcp_service_account
+node "compute_instance_to_service_account" {
+  category = category.service_account
 
   sql = <<-EOQ
     select
@@ -402,7 +402,7 @@ node "gcp_compute_instance_to_service_account_nodes" {
 
 ### Edges -
 
-edge "gcp_compute_instance_to_compute_disk_edges" {
+edge "compute_instance_to_compute_disk" {
   title = "mounts"
 
   sql = <<-EOQ
@@ -418,7 +418,7 @@ edge "gcp_compute_instance_to_compute_disk_edges" {
   param "disk_ids" {}
 }
 
-edge "gcp_compute_instance_to_compute_subnetwork_edges" {
+edge "compute_instance_to_compute_subnetwork" {
   title = "subnetwork"
 
   sql = <<-EOQ
@@ -434,7 +434,7 @@ edge "gcp_compute_instance_to_compute_subnetwork_edges" {
   param "subnet_ids" {}
 }
 
-edge "gcp_compute_instance_to_compute_firewall_edges" {
+edge "compute_instance_to_compute_firewall" {
   title = "firewall"
 
   sql = <<-EOQ
@@ -453,7 +453,7 @@ edge "gcp_compute_instance_to_compute_firewall_edges" {
   param "id" {}
 }
 
-edge "gcp_compute_instance_to_service_account_edges" {
+edge "compute_instance_to_service_account" {
   title = "service account"
 
   sql = <<-EOQ
@@ -472,7 +472,7 @@ edge "gcp_compute_instance_to_service_account_edges" {
   param "id" {}
 }
 
-query "gcp_compute_instance_overview" {
+query "compute_instance_overview" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -490,7 +490,7 @@ query "gcp_compute_instance_overview" {
   param "id" {}
 }
 
-query "gcp_compute_instance_tags" {
+query "compute_instance_tags" {
   sql = <<-EOQ
     with jsondata as (
       select
@@ -513,7 +513,7 @@ query "gcp_compute_instance_tags" {
   param "id" {}
 }
 
-query "gcp_compute_instance_attached_disks" {
+query "compute_instance_attached_disks" {
   sql = <<-EOQ
     select
       d ->> 'deviceName' as "Device Name",
@@ -532,7 +532,7 @@ query "gcp_compute_instance_attached_disks" {
   param "id" {}
 }
 
-query "gcp_compute_instance_shielded_vm" {
+query "compute_instance_shielded_vm" {
   sql = <<-EOQ
     select
       case when (shielded_instance_config -> 'enableIntegrityMonitoring')::bool then 'Enabled' else 'Disabled' end as "Integrity Monitoring",
@@ -547,7 +547,7 @@ query "gcp_compute_instance_shielded_vm" {
   param "id" {}
 }
 
-query "gcp_compute_instance_network_interfaces" {
+query "compute_instance_network_interfaces" {
   sql = <<-EOQ
     select
       nic ->> 'name' as "Name",

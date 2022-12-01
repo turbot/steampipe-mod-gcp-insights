@@ -1,4 +1,4 @@
-dashboard "gcp_compute_disk_dashboard" {
+dashboard "compute_disk_dashboard" {
 
   title         = "GCP Compute Disk Dashboard"
   documentation = file("./dashboards/compute/docs/compute_disk_dashboard.md")
@@ -11,18 +11,18 @@ dashboard "gcp_compute_disk_dashboard" {
 
     # Analysis
     card {
-      query = query.gcp_compute_disk_count
+      query = query.compute_disk_count
       width = 2
     }
 
     card {
-      query = query.gcp_compute_disk_storage_total
+      query = query.compute_disk_storage_total
       width = 2
     }
 
     # Assessments
     card {
-      query = query.gcp_compute_disk_unattached_count
+      query = query.compute_disk_unattached_count
       width = 2
     }
 
@@ -34,7 +34,7 @@ dashboard "gcp_compute_disk_dashboard" {
 
     chart {
       title = "Attachment Status"
-      query = query.gcp_compute_disk_unattached
+      query = query.compute_disk_unattached
       type  = "donut"
       width = 3
 
@@ -56,42 +56,42 @@ dashboard "gcp_compute_disk_dashboard" {
 
     chart {
       title = "Disks by Project"
-      query = query.gcp_compute_disk_by_project
+      query = query.compute_disk_by_project
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Disks by Location"
-      query = query.gcp_compute_disk_by_location
+      query = query.compute_disk_by_location
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Disks by State"
-      query = query.gcp_compute_disk_by_state
+      query = query.compute_disk_by_state
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Disks by Age"
-      query = query.gcp_compute_disk_by_creation_month
+      query = query.compute_disk_by_creation_month
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Disks by Encryption Type"
-      query = query.gcp_compute_disk_by_encryption_type
+      query = query.compute_disk_by_encryption_type
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Disks by Type"
-      query = query.gcp_compute_disk_by_type
+      query = query.compute_disk_by_type
       type  = "column"
       width = 4
     }
@@ -102,7 +102,7 @@ dashboard "gcp_compute_disk_dashboard" {
 
     chart {
       title = "Storage by Project (GB)"
-      query = query.gcp_compute_disk_storage_by_project
+      query = query.compute_disk_storage_by_project
       type  = "column"
       width = 4
 
@@ -113,7 +113,7 @@ dashboard "gcp_compute_disk_dashboard" {
 
     chart {
       title = "Storage by Location (GB)"
-      query = query.gcp_compute_disk_storage_by_location
+      query = query.compute_disk_storage_by_location
       type  = "column"
       width = 4
 
@@ -124,7 +124,7 @@ dashboard "gcp_compute_disk_dashboard" {
 
     chart {
       title = "Storage by State (GB)"
-      query = query.gcp_compute_disk_storage_by_state
+      query = query.compute_disk_storage_by_state
       type  = "column"
       width = 4
 
@@ -135,7 +135,7 @@ dashboard "gcp_compute_disk_dashboard" {
 
     chart {
       title = "Storage by Age (GB)"
-      query = query.gcp_compute_disk_storage_by_creation_month
+      query = query.compute_disk_storage_by_creation_month
       type  = "column"
       width = 4
 
@@ -146,7 +146,7 @@ dashboard "gcp_compute_disk_dashboard" {
 
     chart {
       title = "Storage by Encryption Type (GB)"
-      query = query.gcp_compute_disk_storage_by_encryption_type
+      query = query.compute_disk_storage_by_encryption_type
       type  = "column"
       width = 4
 
@@ -157,7 +157,7 @@ dashboard "gcp_compute_disk_dashboard" {
 
     chart {
       title = "Storage by Type (GB)"
-      query = query.gcp_compute_disk_storage_by_type
+      query = query.compute_disk_storage_by_type
       type  = "column"
       width = 4
 
@@ -170,18 +170,18 @@ dashboard "gcp_compute_disk_dashboard" {
 
   container {
 
-    title  = "Performance & Utilization"
+    title = "Performance & Utilization"
 
     chart {
       title = "Top 10 Average Read IOPS - Last 7 days"
-      query = query.gcp_compute_disk_top_10_read_ops_avg
+      query = query.compute_disk_top_10_read_ops_avg
       type  = "line"
       width = 6
     }
 
     chart {
       title = "Top 10 Average Write IOPS - Last 7 days"
-      query = query.gcp_compute_disk_top_10_write_ops_avg
+      query = query.compute_disk_top_10_write_ops_avg
       type  = "line"
       width = 6
     }
@@ -192,13 +192,13 @@ dashboard "gcp_compute_disk_dashboard" {
 
 # Card Queries
 
-query "gcp_compute_disk_count" {
+query "compute_disk_count" {
   sql = <<-EOQ
     select count(*) as "Disks" from gcp_compute_disk;
   EOQ
 }
 
-query "gcp_compute_disk_storage_total" {
+query "compute_disk_storage_total" {
   sql = <<-EOQ
     select
       sum(size_gb) as "Total Storage (GB)"
@@ -207,7 +207,7 @@ query "gcp_compute_disk_storage_total" {
   EOQ
 }
 
-query "gcp_compute_disk_unattached_count" {
+query "compute_disk_unattached_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -222,7 +222,7 @@ query "gcp_compute_disk_unattached_count" {
 
 # Assessment Queries
 
-query "gcp_compute_disk_unattached" {
+query "compute_disk_unattached" {
   sql = <<-EOQ
     with disks as (
       select
@@ -245,7 +245,7 @@ query "gcp_compute_disk_unattached" {
 
 # Analysis Queries
 
-query "gcp_compute_disk_by_project" {
+query "compute_disk_by_project" {
   sql = <<-EOQ
     select
       p.title as "project",
@@ -261,7 +261,7 @@ query "gcp_compute_disk_by_project" {
   EOQ
 }
 
-query "gcp_compute_disk_by_location" {
+query "compute_disk_by_location" {
   sql = <<-EOQ
     select
       location,
@@ -273,7 +273,7 @@ query "gcp_compute_disk_by_location" {
   EOQ
 }
 
-query "gcp_compute_disk_by_state" {
+query "compute_disk_by_state" {
   sql = <<-EOQ
     select
       status,
@@ -285,7 +285,7 @@ query "gcp_compute_disk_by_state" {
   EOQ
 }
 
-query "gcp_compute_disk_by_creation_month" {
+query "compute_disk_by_creation_month" {
   sql = <<-EOQ
     with disks as (
       select
@@ -330,7 +330,7 @@ query "gcp_compute_disk_by_creation_month" {
   EOQ
 }
 
-query "gcp_compute_disk_by_encryption_type" {
+query "compute_disk_by_encryption_type" {
   sql = <<-EOQ
     select 
       disk_encryption_key_type as "Encryption Type", 
@@ -344,7 +344,7 @@ query "gcp_compute_disk_by_encryption_type" {
   EOQ
 }
 
-query "gcp_compute_disk_by_type" {
+query "compute_disk_by_type" {
   sql = <<-EOQ
     select 
       type_name as "Type", 
@@ -360,7 +360,7 @@ query "gcp_compute_disk_by_type" {
 
 # Analyis Queries For Storage (Delete me)
 
-query "gcp_compute_disk_storage_by_project" {
+query "compute_disk_storage_by_project" {
   sql = <<-EOQ
     select
       p.title as "project",
@@ -376,7 +376,7 @@ query "gcp_compute_disk_storage_by_project" {
   EOQ
 }
 
-query "gcp_compute_disk_storage_by_location" {
+query "compute_disk_storage_by_location" {
   sql = <<-EOQ
     select
       location,
@@ -388,7 +388,7 @@ query "gcp_compute_disk_storage_by_location" {
   EOQ
 }
 
-query "gcp_compute_disk_storage_by_state" {
+query "compute_disk_storage_by_state" {
   sql = <<-EOQ
     select
       status,
@@ -400,7 +400,7 @@ query "gcp_compute_disk_storage_by_state" {
   EOQ
 }
 
-query "gcp_compute_disk_storage_by_creation_month" {
+query "compute_disk_storage_by_creation_month" {
   sql = <<-EOQ
     with disks as (
       select
@@ -446,7 +446,7 @@ query "gcp_compute_disk_storage_by_creation_month" {
   EOQ
 }
 
-query "gcp_compute_disk_storage_by_encryption_type" {
+query "compute_disk_storage_by_encryption_type" {
   sql = <<-EOQ
     select 
       disk_encryption_key_type as "Encryption Type", 
@@ -460,7 +460,7 @@ query "gcp_compute_disk_storage_by_encryption_type" {
   EOQ
 }
 
-query "gcp_compute_disk_storage_by_type" {
+query "compute_disk_storage_by_type" {
   sql = <<-EOQ
     select 
       type_name as "Type", 
@@ -476,7 +476,7 @@ query "gcp_compute_disk_storage_by_type" {
 
 # Performance Queries
 
-query "gcp_compute_disk_top_10_read_ops_avg" {
+query "compute_disk_top_10_read_ops_avg" {
   sql = <<-EOQ
     with top_n as (
       select
@@ -504,7 +504,7 @@ query "gcp_compute_disk_top_10_read_ops_avg" {
   EOQ
 }
 
-query "gcp_compute_disk_top_10_write_ops_avg" {
+query "compute_disk_top_10_write_ops_avg" {
   sql = <<-EOQ
     with top_n as (
       select

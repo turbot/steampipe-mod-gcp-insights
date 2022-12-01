@@ -1,4 +1,4 @@
-dashboard "gcp_compute_disk_detail" {
+dashboard "compute_disk_detail" {
 
   title         = "GCP Compute Disk Detail"
   documentation = file("./dashboards/compute/docs/compute_disk_detail.md")
@@ -9,7 +9,7 @@ dashboard "gcp_compute_disk_detail" {
 
   input "disk_id" {
     title = "Select a disk:"
-    query = query.gcp_compute_disk_input
+    query = query.compute_disk_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "gcp_compute_disk_detail" {
 
     card {
       width = 2
-      query = query.gcp_compute_disk_storage
+      query = query.compute_disk_storage
       args = {
         id = self.input.disk_id.value
       }
@@ -25,7 +25,7 @@ dashboard "gcp_compute_disk_detail" {
 
     card {
       width = 2
-      query = query.gcp_compute_disk_status
+      query = query.compute_disk_status
       args = {
         id = self.input.disk_id.value
       }
@@ -33,7 +33,7 @@ dashboard "gcp_compute_disk_detail" {
 
     card {
       width = 2
-      query = query.gcp_compute_disk_type
+      query = query.compute_disk_type
       args = {
         id = self.input.disk_id.value
       }
@@ -41,7 +41,7 @@ dashboard "gcp_compute_disk_detail" {
 
     card {
       width = 2
-      query = query.gcp_compute_disk_encryption
+      query = query.compute_disk_encryption
       args = {
         id = self.input.disk_id.value
       }
@@ -49,7 +49,7 @@ dashboard "gcp_compute_disk_detail" {
 
     card {
       width = 2
-      query = query.gcp_compute_disk_attached_instances_count
+      query = query.compute_disk_attached_instances_count
       args = {
         id = self.input.disk_id.value
       }
@@ -124,36 +124,36 @@ dashboard "gcp_compute_disk_detail" {
       }
 
       nodes = [
-        node.gcp_compute_disk_nodes,
-        node.gcp_compute_instance_nodes,
-        node.gcp_kms_key_nodes,
+        node.compute_disk,
+        node.compute_instance,
+        node.kms_key,
 
-        node.gcp_compute_disk_to_compute_disk_nodes,
-        node.gcp_compute_disk_from_compute_disk_nodes,
+        node.compute_disk_to_compute_disk,
+        node.compute_disk_from_compute_disk,
 
-        node.gcp_compute_disk_to_compute_image_nodes,
-        node.gcp_compute_disk_from_compute_image_nodes,
+        node.compute_disk_to_compute_image,
+        node.compute_disk_from_compute_image,
 
-        node.gcp_compute_disk_to_compute_snapshot_nodes,
-        node.gcp_compute_disk_from_compute_snapshot_nodes,
+        node.compute_disk_to_compute_snapshot,
+        node.compute_disk_from_compute_snapshot,
 
-        node.gcp_compute_disk_to_compute_resource_policy_nodes
+        node.compute_disk_to_compute_resource_policy
       ]
 
       edges = [
-        edge.gcp_compute_instance_to_compute_disk_edges,
-        edge.gcp_compute_disk_to_kms_key_edges,
-        edge.gcp_compute_disk_to_compute_disk_edges,
-        edge.gcp_compute_disk_from_compute_disk_edges,
+        edge.compute_instance_to_compute_disk,
+        edge.compute_disk_to_kms_key,
+        edge.compute_disk_to_compute_disk,
+        edge.compute_disk_from_compute_disk,
 
 
-        edge.gcp_compute_disk_to_compute_image_edges,
-        edge.gcp_compute_disk_from_compute_image_edges,
+        edge.compute_disk_to_compute_image,
+        edge.compute_disk_from_compute_image,
 
-        edge.gcp_compute_disk_to_compute_snapshot_edges,
-        edge.gcp_compute_disk_from_compute_snapshot_edges,
+        edge.compute_disk_to_compute_snapshot,
+        edge.compute_disk_from_compute_snapshot,
 
-        edge.gcp_compute_disk_to_compute_resource_policy_edges
+        edge.compute_disk_to_compute_resource_policy
       ]
 
       args = {
@@ -177,7 +177,7 @@ dashboard "gcp_compute_disk_detail" {
         title = "Overview"
         type  = "line"
         width = 6
-        query = query.gcp_compute_disk_overview
+        query = query.compute_disk_overview
         args = {
           id = self.input.disk_id.value
         }
@@ -186,7 +186,7 @@ dashboard "gcp_compute_disk_detail" {
       table {
         title = "Tags"
         width = 6
-        query = query.gcp_compute_disk_tags
+        query = query.compute_disk_tags
         args = {
           id = self.input.disk_id.value
         }
@@ -199,19 +199,19 @@ dashboard "gcp_compute_disk_detail" {
 
       table {
         title = "Attached To"
-        query = query.gcp_compute_disk_attached_instances
+        query = query.compute_disk_attached_instances
         args = {
           id = self.input.disk_id.value
         }
 
         column "Name" {
-          href = "${dashboard.gcp_compute_instance_detail.url_path}?input.instance_id={{.'Instance ID' | @uri}}"
+          href = "${dashboard.compute_instance_detail.url_path}?input.instance_id={{.'Instance ID' | @uri}}"
         }
       }
 
       table {
         title = "Encryption Details"
-        query = query.gcp_compute_disk_encryption_status
+        query = query.compute_disk_encryption_status
         args = {
           id = self.input.disk_id.value
         }
@@ -227,7 +227,7 @@ dashboard "gcp_compute_disk_detail" {
       title = "Read Throughput (IOPS) - Last 7 Days"
       type  = "line"
       width = 6
-      query = query.gcp_compute_disk_read_throughput
+      query = query.compute_disk_read_throughput
       args = {
         id = self.input.disk_id.value
       }
@@ -237,7 +237,7 @@ dashboard "gcp_compute_disk_detail" {
       title = "Write Throughput (IOPS) - Last 7 Days"
       type  = "line"
       width = 6
-      query = query.gcp_compute_disk_write_throughput
+      query = query.compute_disk_write_throughput
       args = {
         id = self.input.disk_id.value
       }
@@ -247,7 +247,7 @@ dashboard "gcp_compute_disk_detail" {
 
 }
 
-query "gcp_compute_disk_input" {
+query "compute_disk_input" {
   sql = <<-EOQ
     select
       name as label,
@@ -264,7 +264,7 @@ query "gcp_compute_disk_input" {
   EOQ
 }
 
-query "gcp_compute_disk_storage" {
+query "compute_disk_storage" {
   sql = <<-EOQ
     select
       'Storage (GB)' as label,
@@ -278,7 +278,7 @@ query "gcp_compute_disk_storage" {
   param "id" {}
 }
 
-query "gcp_compute_disk_status" {
+query "compute_disk_status" {
   sql = <<-EOQ
     select
       'Status' as label,
@@ -292,7 +292,7 @@ query "gcp_compute_disk_status" {
   param "id" {}
 }
 
-query "gcp_compute_disk_type" {
+query "compute_disk_type" {
   sql = <<-EOQ
     select
       'Type' as label,
@@ -306,7 +306,7 @@ query "gcp_compute_disk_type" {
   param "id" {}
 }
 
-query "gcp_compute_disk_attached_instances_count" {
+query "compute_disk_attached_instances_count" {
   sql = <<-EOQ
     select
       'Attached Instances' as label,
@@ -327,7 +327,7 @@ query "gcp_compute_disk_attached_instances_count" {
   param "id" {}
 }
 
-query "gcp_compute_disk_encryption" {
+query "compute_disk_encryption" {
   sql = <<-EOQ
     select
       'Encryption' as label,
@@ -341,7 +341,7 @@ query "gcp_compute_disk_encryption" {
   param "id" {}
 }
 
-query "gcp_compute_disk_attached_instances" {
+query "compute_disk_attached_instances" {
   sql = <<-EOQ
     with disks as (
       select
@@ -363,7 +363,7 @@ query "gcp_compute_disk_attached_instances" {
   param "id" {}
 }
 
-query "gcp_compute_disk_encryption_status" {
+query "compute_disk_encryption_status" {
   sql = <<-EOQ
     select
       case
@@ -385,8 +385,8 @@ query "gcp_compute_disk_encryption_status" {
 
 ### Nodes -
 
-node "gcp_compute_disk_nodes" {
-  category = category.gcp_compute_disk
+node "compute_disk" {
+  category = category.compute_disk
 
   sql = <<-EOQ
     select
@@ -409,8 +409,8 @@ node "gcp_compute_disk_nodes" {
   param "disk_ids" {}
 }
 
-node "gcp_compute_snapshot_nodes" {
-  category = category.gcp_compute_snapshot
+node "compute_snapshot" {
+  category = category.compute_snapshot
 
   sql = <<-EOQ
     select
@@ -431,8 +431,8 @@ node "gcp_compute_snapshot_nodes" {
   param "snapshot_ids" {}
 }
 
-node "gcp_compute_disk_to_compute_disk_nodes" {
-  category = category.gcp_compute_disk
+node "compute_disk_to_compute_disk" {
+  category = category.compute_disk
 
   sql = <<-EOQ
     select
@@ -457,8 +457,8 @@ node "gcp_compute_disk_to_compute_disk_nodes" {
   param "disk_ids" {}
 }
 
-node "gcp_compute_disk_from_compute_disk_nodes" {
-  category = category.gcp_compute_disk
+node "compute_disk_from_compute_disk" {
+  category = category.compute_disk
 
   sql = <<-EOQ
     select
@@ -483,8 +483,8 @@ node "gcp_compute_disk_from_compute_disk_nodes" {
   param "disk_ids" {}
 }
 
-node "gcp_compute_disk_to_compute_snapshot_nodes" {
-  category = category.gcp_compute_snapshot
+node "compute_disk_to_compute_snapshot" {
+  category = category.compute_snapshot
 
   sql = <<-EOQ
     select
@@ -507,8 +507,8 @@ node "gcp_compute_disk_to_compute_snapshot_nodes" {
   param "disk_ids" {}
 }
 
-node "gcp_compute_disk_from_compute_snapshot_nodes" {
-  category = category.gcp_compute_snapshot
+node "compute_disk_from_compute_snapshot" {
+  category = category.compute_snapshot
 
   sql = <<-EOQ
     select
@@ -531,8 +531,8 @@ node "gcp_compute_disk_from_compute_snapshot_nodes" {
   param "disk_ids" {}
 }
 
-node "gcp_compute_disk_to_compute_image_nodes" {
-  category = category.gcp_compute_image
+node "compute_disk_to_compute_image" {
+  category = category.compute_image
 
   sql = <<-EOQ
     select
@@ -556,8 +556,8 @@ node "gcp_compute_disk_to_compute_image_nodes" {
   param "disk_ids" {}
 }
 
-node "gcp_compute_disk_from_compute_image_nodes" {
-  category = category.gcp_compute_snapshot
+node "compute_disk_from_compute_image" {
+  category = category.compute_snapshot
 
   sql = <<-EOQ
     select
@@ -580,8 +580,8 @@ node "gcp_compute_disk_from_compute_image_nodes" {
   param "disk_ids" {}
 }
 
-node "gcp_compute_disk_to_compute_resource_policy_nodes" {
-  category = category.gcp_compute_resource_policy
+node "compute_disk_to_compute_resource_policy" {
+  category = category.compute_resource_policy
 
   sql = <<-EOQ
    select
@@ -606,7 +606,7 @@ node "gcp_compute_disk_to_compute_resource_policy_nodes" {
 
 ### Edges -
 
-edge "gcp_compute_disk_to_kms_key_edges" {
+edge "compute_disk_to_kms_key" {
   title = "encrypted with"
 
   sql = <<-EOQ
@@ -622,7 +622,7 @@ edge "gcp_compute_disk_to_kms_key_edges" {
   param "key_names" {}
 }
 
-edge "gcp_compute_disk_to_compute_disk_edges" {
+edge "compute_disk_to_compute_disk" {
   title = "cloned to"
 
   sql = <<-EOQ
@@ -638,7 +638,7 @@ edge "gcp_compute_disk_to_compute_disk_edges" {
   param "to_disk_ids" {}
 }
 
-edge "gcp_compute_disk_from_compute_disk_edges" {
+edge "compute_disk_from_compute_disk" {
   title = "cloned to"
 
   sql = <<-EOQ
@@ -654,7 +654,7 @@ edge "gcp_compute_disk_from_compute_disk_edges" {
   param "disk_ids" {}
 }
 
-edge "gcp_compute_disk_to_compute_snapshot_edges" {
+edge "compute_disk_to_compute_snapshot" {
   title = "snapshot"
 
   sql = <<-EOQ
@@ -672,7 +672,7 @@ edge "gcp_compute_disk_to_compute_snapshot_edges" {
   param "disk_ids" {}
 }
 
-edge "gcp_compute_disk_from_compute_snapshot_edges" {
+edge "compute_disk_from_compute_snapshot" {
   title = "created from"
 
   sql = <<-EOQ
@@ -690,7 +690,7 @@ edge "gcp_compute_disk_from_compute_snapshot_edges" {
   param "disk_ids" {}
 }
 
-edge "gcp_compute_disk_to_compute_image_edges" {
+edge "compute_disk_to_compute_image" {
   title = "image"
 
   sql = <<-EOQ
@@ -708,7 +708,7 @@ edge "gcp_compute_disk_to_compute_image_edges" {
   param "disk_ids" {}
 }
 
-edge "gcp_compute_disk_from_compute_image_edges" {
+edge "compute_disk_from_compute_image" {
   title = "created from"
 
   sql = <<-EOQ
@@ -726,7 +726,7 @@ edge "gcp_compute_disk_from_compute_image_edges" {
   param "disk_ids" {}
 }
 
-edge "gcp_compute_disk_to_compute_resource_policy_edges" {
+edge "compute_disk_to_compute_resource_policy" {
   title = "resource policy"
 
   sql = <<-EOQ
@@ -747,7 +747,7 @@ edge "gcp_compute_disk_to_compute_resource_policy_edges" {
 
 ## Graph - end
 
-query "gcp_compute_disk_overview" {
+query "compute_disk_overview" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -765,7 +765,7 @@ query "gcp_compute_disk_overview" {
   param "id" {}
 }
 
-query "gcp_compute_disk_tags" {
+query "compute_disk_tags" {
   sql = <<-EOQ
     with jsondata as (
       select
@@ -788,7 +788,7 @@ query "gcp_compute_disk_tags" {
   param "id" {}
 }
 
-query "gcp_compute_disk_read_throughput" {
+query "compute_disk_read_throughput" {
   sql = <<-EOQ
     select
       timestamp,
@@ -805,7 +805,7 @@ query "gcp_compute_disk_read_throughput" {
   param "id" {}
 }
 
-query "gcp_compute_disk_write_throughput" {
+query "compute_disk_write_throughput" {
   sql = <<-EOQ
     select
       timestamp,

@@ -1,4 +1,4 @@
-dashboard "gcp_pubsub_topic_detail" {
+dashboard "pubsub_topic_detail" {
 
   title         = "GCP Pub/Sub Topic Detail"
   documentation = file("./dashboards/pubsub/docs/pubsub_topic_detail.md")
@@ -9,7 +9,7 @@ dashboard "gcp_pubsub_topic_detail" {
 
   input "name" {
     title = "Select a topic:"
-    query = query.gcp_pubsub_topic_input
+    query = query.pubsub_topic_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "gcp_pubsub_topic_detail" {
 
     card {
       width = 2
-      query = query.gcp_pubsub_topic_encryption
+      query = query.pubsub_topic_encryption
       args = {
         name = self.input.name.value
       }
@@ -25,7 +25,7 @@ dashboard "gcp_pubsub_topic_detail" {
 
     card {
       width = 2
-      query = query.gcp_pubsub_topic_labeled
+      query = query.pubsub_topic_labeled
       args = {
         name = self.input.name.value
       }
@@ -41,20 +41,20 @@ dashboard "gcp_pubsub_topic_detail" {
 
 
       nodes = [
-        node.gcp_pubsub_topic_nodes,
-        node.gcp_pubsub_topic_to_kms_key_node,
-        node.gcp_pubsub_topic_from_kubernetes_cluster_node,
-        node.gcp_pubsub_topic_to_iam_role_node,
-        node.gcp_pubsub_topic_to_pubsub_subscription_node,
-        node.gcp_pubsub_topic_to_pubsub_snapshot_node
+        node.pubsub_topic,
+        node.pubsub_topic_to_kms_key,
+        node.pubsub_topic_from_kubernetes_cluster,
+        node.pubsub_topic_to_iam_role,
+        node.pubsub_topic_to_pubsub_subscription,
+        node.pubsub_topic_to_pubsub_snapshot
       ]
 
       edges = [
-        edge.gcp_pubsub_topic_to_kms_key_edge,
-        edge.gcp_pubsub_topic_to_kubernetes_cluster_edge,
-        edge.gcp_pubsub_topic_to_iam_role_edge,
-        edge.gcp_pubsub_topic_to_pubsub_subscription_edge,
-        edge.gcp_pubsub_topic_to_pubsub_snapshot_edge
+        edge.pubsub_topic_to_kms_key,
+        edge.pubsub_topic_to_kubernetes_cluster,
+        edge.pubsub_topic_to_iam_role,
+        edge.pubsub_topic_to_pubsub_subscription,
+        edge.pubsub_topic_to_pubsub_snapshot
       ]
 
       args = {
@@ -73,7 +73,7 @@ dashboard "gcp_pubsub_topic_detail" {
         title = "Overview"
         type  = "line"
         width = 6
-        query = query.gcp_pubsub_topic_overview
+        query = query.pubsub_topic_overview
         args = {
           name = self.input.name.value
         }
@@ -83,7 +83,7 @@ dashboard "gcp_pubsub_topic_detail" {
       table {
         title = "Tags"
         width = 6
-        query = query.gcp_pubsub_topic_tags
+        query = query.pubsub_topic_tags
         param "name" {}
         args = {
           name = self.input.name.value
@@ -96,7 +96,7 @@ dashboard "gcp_pubsub_topic_detail" {
 
       table {
         title = "Subscription Details"
-        query = query.gcp_pubsub_topic_subscription_details
+        query = query.pubsub_topic_subscription_details
         param "name" {}
         args = {
           name = self.input.name.value
@@ -105,7 +105,7 @@ dashboard "gcp_pubsub_topic_detail" {
 
       table {
         title = "Encryption Details"
-        query = query.gcp_pubsub_topic_encryption_details
+        query = query.pubsub_topic_encryption_details
         param "name" {}
         args = {
           name = self.input.name.value
@@ -117,7 +117,7 @@ dashboard "gcp_pubsub_topic_detail" {
 
 }
 
-query "gcp_pubsub_topic_input" {
+query "pubsub_topic_input" {
   sql = <<-EOQ
     select
       title as label,
@@ -132,7 +132,7 @@ query "gcp_pubsub_topic_input" {
   EOQ
 }
 
-query "gcp_pubsub_topic_encryption" {
+query "pubsub_topic_encryption" {
   sql = <<-EOQ
     select
       'Encryption' as label,
@@ -148,7 +148,7 @@ query "gcp_pubsub_topic_encryption" {
 
 }
 
-query "gcp_pubsub_topic_labeled" {
+query "pubsub_topic_labeled" {
   sql = <<-EOQ
     select
       'Labeling' as label,
@@ -164,7 +164,7 @@ query "gcp_pubsub_topic_labeled" {
 
 }
 
-query "gcp_pubsub_topic_overview" {
+query "pubsub_topic_overview" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -179,7 +179,7 @@ query "gcp_pubsub_topic_overview" {
   param "name" {}
 }
 
-query "gcp_pubsub_topic_tags" {
+query "pubsub_topic_tags" {
   sql = <<-EOQ
     select
       jsonb_object_keys(tags) as "Key",
@@ -193,7 +193,7 @@ query "gcp_pubsub_topic_tags" {
   param "name" {}
 }
 
-query "gcp_pubsub_topic_encryption_details" {
+query "pubsub_topic_encryption_details" {
   sql = <<-EOQ
     select
       k.name as "KMS Key Name",
@@ -213,7 +213,7 @@ query "gcp_pubsub_topic_encryption_details" {
   param "name" {}
 }
 
-query "gcp_pubsub_topic_subscription_details" {
+query "pubsub_topic_subscription_details" {
   sql = <<-EOQ
     select
       k.name as "Name",
@@ -232,8 +232,8 @@ query "gcp_pubsub_topic_subscription_details" {
   param "name" {}
 }
 
-node "gcp_pubsub_topic_nodes" {
-  category = category.gcp_pubsub_topic
+node "pubsub_topic" {
+  category = category.pubsub_topic
 
   sql = <<-EOQ
     select
@@ -253,8 +253,8 @@ node "gcp_pubsub_topic_nodes" {
   param "topic_names" {}
 }
 
-node "gcp_pubsub_topic_to_kms_key_node" {
-  category = category.gcp_kms_key
+node "pubsub_topic_to_kms_key" {
+  category = category.kms_key
 
   sql = <<-EOQ
     select
@@ -277,7 +277,7 @@ node "gcp_pubsub_topic_to_kms_key_node" {
   param "name" {}
 }
 
-edge "gcp_pubsub_topic_to_kms_key_edge" {
+edge "pubsub_topic_to_kms_key" {
   title = "encrypted with"
 
   sql = <<-EOQ
@@ -295,8 +295,8 @@ edge "gcp_pubsub_topic_to_kms_key_edge" {
   param "name" {}
 }
 
-node "gcp_pubsub_topic_from_kubernetes_cluster_node" {
-  category = category.gcp_kubernetes_cluster
+node "pubsub_topic_from_kubernetes_cluster" {
+  category = category.kubernetes_cluster
 
   sql = <<-EOQ
     select
@@ -318,7 +318,7 @@ node "gcp_pubsub_topic_from_kubernetes_cluster_node" {
   param "name" {}
 }
 
-edge "gcp_pubsub_topic_to_kubernetes_cluster_edge" {
+edge "pubsub_topic_to_kubernetes_cluster" {
   title = "notifies"
 
   sql = <<-EOQ
@@ -337,8 +337,8 @@ edge "gcp_pubsub_topic_to_kubernetes_cluster_edge" {
   param "name" {}
 }
 
-node "gcp_pubsub_topic_to_iam_role_node" {
-  category = category.gcp_iam_role
+node "pubsub_topic_to_iam_role" {
+  category = category.iam_role
 
   sql = <<-EOQ
   with iam_role as (
@@ -369,7 +369,7 @@ node "gcp_pubsub_topic_to_iam_role_node" {
   param "name" {}
 }
 
-edge "gcp_pubsub_topic_to_iam_role_edge" {
+edge "pubsub_topic_to_iam_role" {
   title = "assumes"
 
   sql = <<-EOQ
@@ -401,8 +401,8 @@ edge "gcp_pubsub_topic_to_iam_role_edge" {
   param "name" {}
 }
 
-node "gcp_pubsub_topic_to_pubsub_subscription_node" {
-  category = category.gcp_pubsub_subscription
+node "pubsub_topic_to_pubsub_subscription" {
+  category = category.pubsub_subscription
 
   sql = <<-EOQ
   select
@@ -425,7 +425,7 @@ node "gcp_pubsub_topic_to_pubsub_subscription_node" {
   param "name" {}
 }
 
-edge "gcp_pubsub_topic_to_pubsub_subscription_edge" {
+edge "pubsub_topic_to_pubsub_subscription" {
   title = "subscribed to"
 
   sql = <<-EOQ
@@ -443,8 +443,8 @@ edge "gcp_pubsub_topic_to_pubsub_subscription_edge" {
   param "name" {}
 }
 
-node "gcp_pubsub_topic_to_pubsub_snapshot_node" {
-  category = category.gcp_pubsub_subscription
+node "pubsub_topic_to_pubsub_snapshot" {
+  category = category.pubsub_subscription
 
   sql = <<-EOQ
   select
@@ -466,7 +466,7 @@ node "gcp_pubsub_topic_to_pubsub_snapshot_node" {
   param "name" {}
 }
 
-edge "gcp_pubsub_topic_to_pubsub_snapshot_edge" {
+edge "pubsub_topic_to_pubsub_snapshot" {
   title = "snapshot"
 
   sql = <<-EOQ

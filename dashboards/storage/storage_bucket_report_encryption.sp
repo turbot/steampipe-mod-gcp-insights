@@ -1,5 +1,5 @@
-dashboard "gcp_storage_bucket_encryption_report" {
-  
+dashboard "storage_bucket_encryption_report" {
+
   title         = "GCP Storage Bucket Encryption Report"
   documentation = file("./dashboards/storage/docs/storage_bucket_report_encryption.md")
 
@@ -11,17 +11,17 @@ dashboard "gcp_storage_bucket_encryption_report" {
   container {
 
     card {
-      query = query.gcp_storage_bucket_count
+      query = query.storage_bucket_count
       width = 2
     }
 
     card {
-      query = query.gcp_storage_bucket_google_managed_encryption
+      query = query.storage_bucket_google_managed_encryption
       width = 2
     }
 
     card {
-      query = query.gcp_storage_bucket_customer_managed_encryption
+      query = query.storage_bucket_customer_managed_encryption
       width = 2
     }
   }
@@ -34,12 +34,12 @@ dashboard "gcp_storage_bucket_encryption_report" {
     column "Self-Link" {
       display = "none"
     }
-    query = query.gcp_storage_bucket_encryption_table
+    query = query.storage_bucket_encryption_table
   }
 
 }
 
-query "gcp_storage_bucket_google_managed_encryption" {
+query "storage_bucket_google_managed_encryption" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -51,7 +51,7 @@ query "gcp_storage_bucket_google_managed_encryption" {
   EOQ
 }
 
-query "gcp_storage_bucket_customer_managed_encryption" {
+query "storage_bucket_customer_managed_encryption" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -63,7 +63,7 @@ query "gcp_storage_bucket_customer_managed_encryption" {
   EOQ
 }
 
-query "gcp_storage_bucket_encryption_table" {
+query "storage_bucket_encryption_table" {
   sql = <<-EOQ
     select
       b.name as "Name",

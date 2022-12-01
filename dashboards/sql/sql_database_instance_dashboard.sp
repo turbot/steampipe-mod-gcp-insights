@@ -1,4 +1,4 @@
-dashboard "gcp_sql_database_instance_dashboard" {
+dashboard "sql_database_instance_dashboard" {
 
   title         = "GCP SQL Database Instance Dashboard"
   documentation = file("./dashboards/sql/docs/gcp_sql_database_instance_dashboard.md")
@@ -10,32 +10,32 @@ dashboard "gcp_sql_database_instance_dashboard" {
   container {
 
     card {
-      query = query.gcp_sql_database_instance_count
+      query = query.sql_database_instance_count
       width = 2
     }
 
     card {
-      query = query.gcp_sql_database_instance_encryption_count
+      query = query.sql_database_instance_encryption_count
       width = 2
     }
 
     card {
-      query = query.gcp_sql_database_instance_backup_enabled_count
+      query = query.sql_database_instance_backup_enabled_count
       width = 2
     }
 
     card {
-      query = query.gcp_sql_database_instance_point_in_time_recovery_enable_count
+      query = query.sql_database_instance_point_in_time_recovery_enable_count
       width = 2
     }
 
     card {
-      query = query.gcp_sql_database_instance_public_access_count
+      query = query.sql_database_instance_public_access_count
       width = 2
     }
 
     card {
-      query = query.gcp_sql_database_instance_ssl_enabled_count
+      query = query.sql_database_instance_ssl_enabled_count
       width = 2
     }
   }
@@ -46,7 +46,7 @@ dashboard "gcp_sql_database_instance_dashboard" {
 
     chart {
       title = "Encryption Status"
-      query = query.gcp_sql_database_instance_encryption_status
+      query = query.sql_database_instance_encryption_status
       type  = "donut"
       width = 3
 
@@ -62,7 +62,7 @@ dashboard "gcp_sql_database_instance_dashboard" {
 
     chart {
       title = "Backup Status"
-      query = query.gcp_sql_database_instance_backup_status
+      query = query.sql_database_instance_backup_status
       type  = "donut"
       width = 3
 
@@ -78,7 +78,7 @@ dashboard "gcp_sql_database_instance_dashboard" {
 
     chart {
       title = "Point-in-time Recovery Status"
-      query = query.gcp_sql_database_instance_point_in_time_recovery_status
+      query = query.sql_database_instance_point_in_time_recovery_status
       type  = "donut"
       width = 3
 
@@ -94,7 +94,7 @@ dashboard "gcp_sql_database_instance_dashboard" {
 
     chart {
       title = "Public Access Status"
-      query = query.gcp_sql_database_instance_public_access_status
+      query = query.sql_database_instance_public_access_status
       type  = "donut"
       width = 3
 
@@ -110,7 +110,7 @@ dashboard "gcp_sql_database_instance_dashboard" {
 
     chart {
       title = "SSL Status"
-      query = query.gcp_sql_database_ssl_status
+      query = query.sql_database_ssl_status
       type  = "donut"
       width = 3
 
@@ -132,35 +132,35 @@ dashboard "gcp_sql_database_instance_dashboard" {
 
     chart {
       title = "Instances by Project"
-      query = query.gcp_sql_database_instance_by_project
+      query = query.sql_database_instance_by_project
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Instances by Location"
-      query = query.gcp_sql_database_instance_by_location
+      query = query.sql_database_instance_by_location
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Instances by State"
-      query = query.gcp_sql_database_instance_by_state
+      query = query.sql_database_instance_by_state
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Instances by Replica"
-      query = query.gcp_sql_database_instance_by_replica
+      query = query.sql_database_instance_by_replica
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Instances by Database Version"
-      query = query.gcp_sql_database_instance_by_database_version
+      query = query.sql_database_instance_by_database_version
       type  = "column"
       width = 4
     }
@@ -170,13 +170,13 @@ dashboard "gcp_sql_database_instance_dashboard" {
 
 # Card Queries
 
-query "gcp_sql_database_instance_count" {
+query "sql_database_instance_count" {
   sql = <<-EOQ
     select count(*) as "Instances" from gcp_sql_database_instance;
   EOQ
 }
 
-query "gcp_sql_database_instance_encryption_count" {
+query "sql_database_instance_encryption_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -189,7 +189,7 @@ query "gcp_sql_database_instance_encryption_count" {
   EOQ
 }
 
-query "gcp_sql_database_instance_backup_enabled_count" {
+query "sql_database_instance_backup_enabled_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -202,7 +202,7 @@ query "gcp_sql_database_instance_backup_enabled_count" {
   EOQ
 }
 
-query "gcp_sql_database_instance_point_in_time_recovery_enable_count" {
+query "sql_database_instance_point_in_time_recovery_enable_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -215,7 +215,7 @@ query "gcp_sql_database_instance_point_in_time_recovery_enable_count" {
   EOQ
 }
 
-query "gcp_sql_database_instance_public_access_count" {
+query "sql_database_instance_public_access_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -228,7 +228,7 @@ query "gcp_sql_database_instance_public_access_count" {
   EOQ
 }
 
-query "gcp_sql_database_instance_ssl_enabled_count" {
+query "sql_database_instance_ssl_enabled_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -243,7 +243,7 @@ query "gcp_sql_database_instance_ssl_enabled_count" {
 
 # Assessment Queries
 
-query "gcp_sql_database_instance_encryption_status" {
+query "sql_database_instance_encryption_status" {
   sql = <<-EOQ
     select
       encryption_status,
@@ -264,7 +264,7 @@ query "gcp_sql_database_instance_encryption_status" {
   EOQ
 }
 
-query "gcp_sql_database_instance_backup_status" {
+query "sql_database_instance_backup_status" {
   sql = <<-EOQ
     select
       backup_status,
@@ -285,7 +285,7 @@ query "gcp_sql_database_instance_backup_status" {
   EOQ
 }
 
-query "gcp_sql_database_instance_point_in_time_recovery_status" {
+query "sql_database_instance_point_in_time_recovery_status" {
   sql = <<-EOQ
     select
       point_in_time_recovery_status,
@@ -306,7 +306,7 @@ query "gcp_sql_database_instance_point_in_time_recovery_status" {
   EOQ
 }
 
-query "gcp_sql_database_instance_public_access_status" {
+query "sql_database_instance_public_access_status" {
   sql = <<-EOQ
     select
       public_access_status,
@@ -327,7 +327,7 @@ query "gcp_sql_database_instance_public_access_status" {
   EOQ
 }
 
-query "gcp_sql_database_ssl_status" {
+query "sql_database_ssl_status" {
   sql = <<-EOQ
     select
       ssl_status,
@@ -350,7 +350,7 @@ query "gcp_sql_database_ssl_status" {
 
 # Analysis Queries
 
-query "gcp_sql_database_instance_by_project" {
+query "sql_database_instance_by_project" {
   sql = <<-EOQ
     select
       p.title as "project",
@@ -367,7 +367,7 @@ query "gcp_sql_database_instance_by_project" {
   EOQ
 }
 
-query "gcp_sql_database_instance_by_location" {
+query "sql_database_instance_by_location" {
   sql = <<-EOQ
     select
       location,
@@ -379,7 +379,7 @@ query "gcp_sql_database_instance_by_location" {
   EOQ
 }
 
-query "gcp_sql_database_instance_by_state" {
+query "sql_database_instance_by_state" {
   sql = <<-EOQ
     select
       state,
@@ -391,7 +391,7 @@ query "gcp_sql_database_instance_by_state" {
   EOQ
 }
 
-query "gcp_sql_database_instance_by_replica" {
+query "sql_database_instance_by_replica" {
   sql = <<-EOQ
     select
       name,
@@ -403,7 +403,7 @@ query "gcp_sql_database_instance_by_replica" {
   EOQ
 }
 
-query "gcp_sql_database_instance_by_database_version" {
+query "sql_database_instance_by_database_version" {
   sql = <<-EOQ
     select
       database_version,

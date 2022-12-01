@@ -1,4 +1,4 @@
-dashboard "gcp_storage_bucket_detail" {
+dashboard "storage_bucket_detail" {
 
   title         = "GCP Storage Bucket Detail"
   documentation = file("./dashboards/storage/docs/storage_bucket_detail.md")
@@ -9,7 +9,7 @@ dashboard "gcp_storage_bucket_detail" {
 
   input "bucket_id" {
     title = "Select a bucket:"
-    query = query.gcp_storage_bucket_input
+    query = query.storage_bucket_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "gcp_storage_bucket_detail" {
 
     card {
       width = 2
-      query = query.gcp_storage_bucket_class
+      query = query.storage_bucket_class
       args = {
         id = self.input.bucket_id.value
       }
@@ -25,7 +25,7 @@ dashboard "gcp_storage_bucket_detail" {
 
     card {
       width = 2
-      query = query.gcp_storage_bucket_public_access
+      query = query.storage_bucket_public_access
       args = {
         id = self.input.bucket_id.value
       }
@@ -33,7 +33,7 @@ dashboard "gcp_storage_bucket_detail" {
 
     card {
       width = 2
-      query = query.gcp_storage_bucket_versioning_disabled
+      query = query.storage_bucket_versioning_disabled
       args = {
         id = self.input.bucket_id.value
       }
@@ -41,7 +41,7 @@ dashboard "gcp_storage_bucket_detail" {
 
     card {
       width = 2
-      query = query.gcp_storage_bucket_retention_policy
+      query = query.storage_bucket_retention_policy
       args = {
         id = self.input.bucket_id.value
       }
@@ -49,7 +49,7 @@ dashboard "gcp_storage_bucket_detail" {
 
     card {
       width = 2
-      query = query.gcp_storage_bucket_logging
+      query = query.storage_bucket_logging
       args = {
         id = self.input.bucket_id.value
       }
@@ -57,7 +57,7 @@ dashboard "gcp_storage_bucket_detail" {
 
     card {
       width = 2
-      query = query.gcp_storage_bucket_uniform_bucket_level_access
+      query = query.storage_bucket_uniform_bucket_level_access
       args = {
         id = self.input.bucket_id.value
       }
@@ -74,16 +74,16 @@ dashboard "gcp_storage_bucket_detail" {
 
 
       nodes = [
-        node.gcp_storage_bucket_nodes,
-        node.gcp_storage_bucket_to_kms_key_node,
-        node.gcp_storage_bucket_to_logging_bucket_node,
-        node.gcp_storage_bucket_from_compute_backend_bucket_node
+        node.storage_bucket,
+        node.storage_bucket_to_kms_key,
+        node.storage_bucket_to_logging_bucket,
+        node.storage_bucket_from_compute_backend_bucket
       ]
 
       edges = [
-        edge.gcp_storage_bucket_to_kms_key_edge,
-        edge.gcp_storage_bucket_to_logging_bucket_edge,
-        edge.gcp_storage_bucket_from_compute_backend_bucket_edge
+        edge.storage_bucket_to_kms_key,
+        edge.storage_bucket_to_logging_bucket,
+        edge.storage_bucket_from_compute_backend_bucket
       ]
 
       args = {
@@ -102,7 +102,7 @@ dashboard "gcp_storage_bucket_detail" {
         title = "Overview"
         type  = "line"
         width = 6
-        query = query.gcp_storage_bucket_overview
+        query = query.storage_bucket_overview
         args = {
           id = self.input.bucket_id.value
         }
@@ -112,7 +112,7 @@ dashboard "gcp_storage_bucket_detail" {
       table {
         title = "Tags"
         width = 6
-        query = query.gcp_storage_bucket_tags_detail
+        query = query.storage_bucket_tags_detail
         param "arn" {}
         args = {
           id = self.input.bucket_id.value
@@ -125,7 +125,7 @@ dashboard "gcp_storage_bucket_detail" {
 
       table {
         title = "Logging Details"
-        query = query.gcp_storage_bucket_logging_detail
+        query = query.storage_bucket_logging_detail
         args = {
           id = self.input.bucket_id.value
         }
@@ -133,7 +133,7 @@ dashboard "gcp_storage_bucket_detail" {
 
       table {
         title = "Compute Backend Bucket"
-        query = query.gcp_storage_bucket_compute_backend_bucket_detail
+        query = query.storage_bucket_compute_backend_bucket_detail
         args = {
           id = self.input.bucket_id.value
         }
@@ -141,7 +141,7 @@ dashboard "gcp_storage_bucket_detail" {
 
       table {
         title = "Encryption Details"
-        query = query.gcp_storage_bucket_encryption_detail
+        query = query.storage_bucket_encryption_detail
         args = {
           id = self.input.bucket_id.value
         }
@@ -152,7 +152,7 @@ dashboard "gcp_storage_bucket_detail" {
 
 }
 
-query "gcp_storage_bucket_input" {
+query "storage_bucket_input" {
   sql = <<-EOQ
     select
       title as label,
@@ -169,7 +169,7 @@ query "gcp_storage_bucket_input" {
 
 # Card Queries
 
-query "gcp_storage_bucket_class" {
+query "storage_bucket_class" {
   sql = <<-EOQ
     select
       'Storage Class' as label,
@@ -184,7 +184,7 @@ query "gcp_storage_bucket_class" {
 
 }
 
-query "gcp_storage_bucket_public_access" {
+query "storage_bucket_public_access" {
   sql = <<-EOQ
     select
       'Public Access' as label,
@@ -199,7 +199,7 @@ query "gcp_storage_bucket_public_access" {
   param "id" {}
 }
 
-query "gcp_storage_bucket_versioning_disabled" {
+query "storage_bucket_versioning_disabled" {
   sql = <<-EOQ
     select
       'Versioning' as label,
@@ -214,7 +214,7 @@ query "gcp_storage_bucket_versioning_disabled" {
   param "id" {}
 }
 
-query "gcp_storage_bucket_retention_policy" {
+query "storage_bucket_retention_policy" {
   sql = <<-EOQ
     select
       'Retention Policy' as label,
@@ -229,7 +229,7 @@ query "gcp_storage_bucket_retention_policy" {
   param "id" {}
 }
 
-query "gcp_storage_bucket_logging" {
+query "storage_bucket_logging" {
   sql = <<-EOQ
     select
       'Logging' as label,
@@ -244,7 +244,7 @@ query "gcp_storage_bucket_logging" {
   param "id" {}
 }
 
-query "gcp_storage_bucket_uniform_bucket_level_access" {
+query "storage_bucket_uniform_bucket_level_access" {
   sql = <<-EOQ
     select
       'Uniform Bucket Level Access' as label,
@@ -261,8 +261,8 @@ query "gcp_storage_bucket_uniform_bucket_level_access" {
 
 ## Graph
 
-node "gcp_storage_bucket_nodes" {
-  category = category.gcp_storage_bucket
+node "storage_bucket" {
+  category = category.storage_bucket
 
   sql = <<-EOQ
     select
@@ -282,8 +282,8 @@ node "gcp_storage_bucket_nodes" {
   param "bucket_ids" {}
 }
 
-node "gcp_storage_bucket_to_kms_key_node" {
-  category = category.gcp_kms_key
+node "storage_bucket_to_kms_key" {
+  category = category.kms_key
 
   sql = <<-EOQ
     select
@@ -307,7 +307,7 @@ node "gcp_storage_bucket_to_kms_key_node" {
   param "id" {}
 }
 
-edge "gcp_storage_bucket_to_kms_key_edge" {
+edge "storage_bucket_to_kms_key" {
   title = "encrypted with"
 
   sql = <<-EOQ
@@ -326,8 +326,8 @@ edge "gcp_storage_bucket_to_kms_key_edge" {
   param "id" {}
 }
 
-node "gcp_storage_bucket_to_logging_bucket_node" {
-  category = category.gcp_logging_bucket
+node "storage_bucket_to_logging_bucket" {
+  category = category.logging_bucket
 
   sql = <<-EOQ
     select
@@ -354,7 +354,7 @@ node "gcp_storage_bucket_to_logging_bucket_node" {
   param "id" {}
 }
 
-edge "gcp_storage_bucket_to_logging_bucket_edge" {
+edge "storage_bucket_to_logging_bucket" {
   title = "logs to"
 
   sql = <<-EOQ
@@ -376,8 +376,8 @@ edge "gcp_storage_bucket_to_logging_bucket_edge" {
   param "id" {}
 }
 
-node "gcp_storage_bucket_from_compute_backend_bucket_node" {
-  category = category.gcp_compute_backend_bucket
+node "storage_bucket_from_compute_backend_bucket" {
+  category = category.compute_backend_bucket
 
   sql = <<-EOQ
     select
@@ -400,7 +400,7 @@ node "gcp_storage_bucket_from_compute_backend_bucket_node" {
   param "id" {}
 }
 
-edge "gcp_storage_bucket_from_compute_backend_bucket_edge" {
+edge "storage_bucket_from_compute_backend_bucket" {
   title = "bucket"
 
   sql = <<-EOQ
@@ -420,7 +420,7 @@ edge "gcp_storage_bucket_from_compute_backend_bucket_edge" {
 
 # Tables
 
-query "gcp_storage_bucket_overview" {
+query "storage_bucket_overview" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -439,7 +439,7 @@ query "gcp_storage_bucket_overview" {
   param "id" {}
 }
 
-query "gcp_storage_bucket_tags_detail" {
+query "storage_bucket_tags_detail" {
   sql = <<-EOQ
     with jsondata as (
       select
@@ -462,7 +462,7 @@ query "gcp_storage_bucket_tags_detail" {
   param "id" {}
 }
 
-query "gcp_storage_bucket_logging_detail" {
+query "storage_bucket_logging_detail" {
   sql = <<-EOQ
     select
       b.log_bucket as "Log Bucket",
@@ -482,7 +482,7 @@ query "gcp_storage_bucket_logging_detail" {
   param "id" {}
 }
 
-query "gcp_storage_bucket_compute_backend_bucket_detail" {
+query "storage_bucket_compute_backend_bucket_detail" {
   sql = <<-EOQ
     select
       c.id as "Backend Bucket ID",
@@ -500,7 +500,7 @@ query "gcp_storage_bucket_compute_backend_bucket_detail" {
   param "id" {}
 }
 
-query "gcp_storage_bucket_encryption_detail" {
+query "storage_bucket_encryption_detail" {
   sql = <<-EOQ
     select
       case when k.name is not null then 'Customer-managed encryption key (CMEK)' else 'Google-managed encryption key' end as "Encryption Type",

@@ -1,4 +1,4 @@
-dashboard "gcp_sql_database_instance_detail" {
+dashboard "sql_database_instance_detail" {
 
   title         = "GCP SQL Database Instance"
   documentation = file("./dashboards/sql/docs/gcp_sql_database_instance_detail.md")
@@ -9,7 +9,7 @@ dashboard "gcp_sql_database_instance_detail" {
 
   input "database_instance_name" {
     title = "Select a Database Instance Name:"
-    sql   = query.gcp_sql_database_instance_input.sql
+    sql   = query.sql_database_instance_input.sql
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "gcp_sql_database_instance_detail" {
     card {
       width = 2
 
-      query = query.gcp_sql_database_instance_database_version
+      query = query.sql_database_instance_database_version
       args = {
         name = self.input.database_instance_name.value
       }
@@ -26,7 +26,7 @@ dashboard "gcp_sql_database_instance_detail" {
     card {
       width = 2
 
-      query = query.gcp_sql_database_instance_data_disk_size
+      query = query.sql_database_instance_data_disk_size
       args = {
         name = self.input.database_instance_name.value
       }
@@ -34,16 +34,7 @@ dashboard "gcp_sql_database_instance_detail" {
 
     card {
       width = 2
-      query = query.gcp_sql_database_instance_backup_enabled
-      args = {
-        name = self.input.database_instance_name.value
-      }
-    }
-
-    card {
-      width = 2
-
-      query = query.gcp_sql_database_instance_encryption
+      query = query.sql_database_instance_backup_enabled
       args = {
         name = self.input.database_instance_name.value
       }
@@ -52,7 +43,7 @@ dashboard "gcp_sql_database_instance_detail" {
     card {
       width = 2
 
-      query = query.gcp_sql_database_instance_is_public
+      query = query.sql_database_instance_encryption
       args = {
         name = self.input.database_instance_name.value
       }
@@ -61,7 +52,16 @@ dashboard "gcp_sql_database_instance_detail" {
     card {
       width = 2
 
-      query = query.gcp_sql_database_instance_ssl_enabled
+      query = query.sql_database_instance_is_public
+      args = {
+        name = self.input.database_instance_name.value
+      }
+    }
+
+    card {
+      width = 2
+
+      query = query.sql_database_instance_ssl_enabled
       args = {
         name = self.input.database_instance_name.value
       }
@@ -76,22 +76,22 @@ dashboard "gcp_sql_database_instance_detail" {
       direction = "TD"
 
       nodes = [
-        node.gcp_sql_database_instance_nodes,
-        node.gcp_sql_database_instance_to_kms_key_node,
-        node.gcp_sql_database_instance_to_sql_database_node,
-        node.gcp_sql_database_instance_to_compute_network_node,
-        node.gcp_sql_database_instance_to_sql_backup_node,
-        node.gcp_sql_database_instance_to_database_instance_replica_node,
-        node.gcp_sql_database_instance_from_primary_database_instance_node
+        node.sql_database_instance,
+        node.sql_database_instance_to_kms_key,
+        node.sql_database_instance_to_sql_database,
+        node.sql_database_instance_to_compute_network,
+        node.sql_database_instance_to_sql_backup,
+        node.sql_database_instance_to_database_instance_replica,
+        node.sql_database_instance_from_primary_database_instance
       ]
 
       edges = [
-        edge.gcp_sql_database_instance_to_kms_key_edge,
-        edge.gcp_sql_database_instance_to_sql_database_edge,
-        edge.gcp_sql_database_instance_to_compute_network_edge,
-        edge.gcp_sql_database_instance_to_database_instance_replica_edge,
-        edge.gcp_sql_database_instance_to_sql_backup_edge,
-        edge.gcp_sql_database_instance_from_primary_database_instance_edge
+        edge.sql_database_instance_to_kms_key,
+        edge.sql_database_instance_to_sql_database,
+        edge.sql_database_instance_to_compute_network,
+        edge.sql_database_instance_to_database_instance_replica,
+        edge.sql_database_instance_to_sql_backup,
+        edge.sql_database_instance_from_primary_database_instance
       ]
 
       args = {
@@ -111,7 +111,7 @@ dashboard "gcp_sql_database_instance_detail" {
         title = "Overview"
         type  = "line"
         width = 6
-        query = query.gcp_sql_database_instance_overview
+        query = query.sql_database_instance_overview
         args = {
           name = self.input.database_instance_name.value
         }
@@ -120,7 +120,7 @@ dashboard "gcp_sql_database_instance_detail" {
       table {
         title = "Tags"
         width = 6
-        query = query.gcp_sql_database_instance_tags
+        query = query.sql_database_instance_tags
         args = {
           name = self.input.database_instance_name.value
         }
@@ -132,7 +132,7 @@ dashboard "gcp_sql_database_instance_detail" {
 
       table {
         title = "Replication Details"
-        query = query.gcp_sql_database_instance_replication_status
+        query = query.sql_database_instance_replication_status
         args = {
           name = self.input.database_instance_name.value
         }
@@ -140,7 +140,7 @@ dashboard "gcp_sql_database_instance_detail" {
 
       table {
         title = "Encryption Details"
-        query = query.gcp_sql_database_instance_encryption_detail
+        query = query.sql_database_instance_encryption_detail
         args = {
           name = self.input.database_instance_name.value
         }
@@ -156,7 +156,7 @@ dashboard "gcp_sql_database_instance_detail" {
       title = "CPU Utilization - Last 7 Days"
       type  = "line"
       width = 6
-      query = query.gcp_sql_database_instance_cpu_utilization
+      query = query.sql_database_instance_cpu_utilization
       args = {
         name = self.input.database_instance_name.value
       }
@@ -166,7 +166,7 @@ dashboard "gcp_sql_database_instance_detail" {
       title = "Instance Connection - Last 7 Days"
       type  = "line"
       width = 6
-      query = query.gcp_sql_database_instance_connection
+      query = query.sql_database_instance_connection
       args = {
         name = self.input.database_instance_name.value
       }
@@ -175,7 +175,7 @@ dashboard "gcp_sql_database_instance_detail" {
   }
 }
 
-query "gcp_sql_database_instance_input" {
+query "sql_database_instance_input" {
   sql = <<-EOQ
     select
       title as label,
@@ -191,7 +191,7 @@ query "gcp_sql_database_instance_input" {
   EOQ
 }
 
-query "gcp_sql_database_instance_database_version" {
+query "sql_database_instance_database_version" {
   sql = <<-EOQ
     select
       'State' as label,
@@ -205,7 +205,7 @@ query "gcp_sql_database_instance_database_version" {
   param "name" {}
 }
 
-query "gcp_sql_database_instance_encryption" {
+query "sql_database_instance_encryption" {
   sql = <<-EOQ
     select
       'Encryption' as label,
@@ -220,7 +220,7 @@ query "gcp_sql_database_instance_encryption" {
   param "name" {}
 }
 
-query "gcp_sql_database_instance_data_disk_size" {
+query "sql_database_instance_data_disk_size" {
   sql = <<-EOQ
     select
       'Data Disk Size (GB)' as label,
@@ -234,7 +234,7 @@ query "gcp_sql_database_instance_data_disk_size" {
   param "name" {}
 }
 
-query "gcp_sql_database_instance_backup_enabled" {
+query "sql_database_instance_backup_enabled" {
   sql = <<-EOQ
     select
       'Backup' as label,
@@ -255,7 +255,7 @@ query "gcp_sql_database_instance_backup_enabled" {
   param "name" {}
 }
 
-query "gcp_sql_database_instance_is_public" {
+query "sql_database_instance_is_public" {
   sql = <<-EOQ
     select
       'Public Access' as label,
@@ -270,7 +270,7 @@ query "gcp_sql_database_instance_is_public" {
   param "name" {}
 }
 
-query "gcp_sql_database_instance_ssl_enabled" {
+query "sql_database_instance_ssl_enabled" {
   sql = <<-EOQ
     select
       'SSL' as label,
@@ -292,7 +292,7 @@ query "gcp_sql_database_instance_ssl_enabled" {
   param "name" {}
 }
 
-query "gcp_sql_database_instance_overview" {
+query "sql_database_instance_overview" {
   sql = <<-EOQ
     select
       database_version as "Database Version",
@@ -315,7 +315,7 @@ query "gcp_sql_database_instance_overview" {
   param "name" {}
 }
 
-query "gcp_sql_database_instance_tags" {
+query "sql_database_instance_tags" {
   sql = <<-EOQ
     with jsondata as (
       select
@@ -338,7 +338,7 @@ query "gcp_sql_database_instance_tags" {
   param "name" {}
 }
 
-query "gcp_sql_database_instance_replication_status" {
+query "sql_database_instance_replication_status" {
   sql = <<-EOQ
     select
       master_instance_name as "Master Instance Name",
@@ -354,7 +354,7 @@ query "gcp_sql_database_instance_replication_status" {
   param "name" {}
 }
 
-query "gcp_sql_database_instance_encryption_detail" {
+query "sql_database_instance_encryption_detail" {
   sql = <<-EOQ
     select
       k.name as "Key Name",
@@ -372,7 +372,7 @@ query "gcp_sql_database_instance_encryption_detail" {
   param "name" {}
 }
 
-query "gcp_sql_database_instance_cpu_utilization" {
+query "sql_database_instance_cpu_utilization" {
   sql = <<-EOQ
     select
       timestamp,
@@ -389,7 +389,7 @@ query "gcp_sql_database_instance_cpu_utilization" {
   param "name" {}
 }
 
-query "gcp_sql_database_instance_connection" {
+query "sql_database_instance_connection" {
   sql = <<-EOQ
     select
       timestamp,
@@ -406,8 +406,8 @@ query "gcp_sql_database_instance_connection" {
   param "name" {}
 }
 
-node "gcp_sql_database_instance_nodes" {
-  category = category.gcp_sql_database_instance
+node "sql_database_instance" {
+  category = category.sql_database_instance
 
   sql = <<-EOQ
     select
@@ -430,8 +430,8 @@ node "gcp_sql_database_instance_nodes" {
   param "database_instance_names" {}
 }
 
-node "gcp_sql_database_instance_to_kms_key_node" {
-  category = category.gcp_kms_key
+node "sql_database_instance_to_kms_key" {
+  category = category.kms_key
 
   sql = <<-EOQ
     select
@@ -453,7 +453,7 @@ node "gcp_sql_database_instance_to_kms_key_node" {
   param "name" {}
 }
 
-edge "gcp_sql_database_instance_to_kms_key_edge" {
+edge "sql_database_instance_to_kms_key" {
   title = "encrypted with"
 
   sql = <<-EOQ
@@ -470,8 +470,8 @@ edge "gcp_sql_database_instance_to_kms_key_edge" {
   param "name" {}
 }
 
-node "gcp_sql_database_instance_to_sql_database_node" {
-  category = category.gcp_sql_database
+node "sql_database_instance_to_sql_database" {
+  category = category.sql_database
 
   sql = <<-EOQ
     select
@@ -491,7 +491,7 @@ node "gcp_sql_database_instance_to_sql_database_node" {
   param "name" {}
 }
 
-edge "gcp_sql_database_instance_to_sql_database_edge" {
+edge "sql_database_instance_to_sql_database" {
   title = "database"
 
   sql = <<-EOQ
@@ -508,8 +508,8 @@ edge "gcp_sql_database_instance_to_sql_database_edge" {
   param "name" {}
 }
 
-node "gcp_sql_database_instance_to_compute_network_node" {
-  category = category.gcp_compute_network
+node "sql_database_instance_to_compute_network" {
+  category = category.compute_network
 
   sql = <<-EOQ
     select
@@ -531,7 +531,7 @@ node "gcp_sql_database_instance_to_compute_network_node" {
   param "name" {}
 }
 
-edge "gcp_sql_database_instance_to_compute_network_edge" {
+edge "sql_database_instance_to_compute_network" {
   title = "network"
 
   sql = <<-EOQ
@@ -549,8 +549,8 @@ edge "gcp_sql_database_instance_to_compute_network_edge" {
   param "name" {}
 }
 
-node "gcp_sql_database_instance_to_sql_backup_node" {
-  category = category.gcp_sql_backup
+node "sql_database_instance_to_sql_backup" {
+  category = category.sql_backup
 
   sql = <<-EOQ
     select
@@ -573,7 +573,7 @@ node "gcp_sql_database_instance_to_sql_backup_node" {
   param "name" {}
 }
 
-edge "gcp_sql_database_instance_to_sql_backup_edge" {
+edge "sql_database_instance_to_sql_backup" {
   title = "backup"
 
   sql = <<-EOQ
@@ -588,8 +588,8 @@ edge "gcp_sql_database_instance_to_sql_backup_edge" {
 
   param "name" {}
 }
-node "gcp_sql_database_instance_to_database_instance_replica_node" {
-  category = category.gcp_sql_database_instance
+node "sql_database_instance_to_database_instance_replica" {
+  category = category.sql_database_instance
 
   sql = <<-EOQ
     select
@@ -614,7 +614,7 @@ node "gcp_sql_database_instance_to_database_instance_replica_node" {
   param "name" {}
 }
 
-edge "gcp_sql_database_instance_to_database_instance_replica_edge" {
+edge "sql_database_instance_to_database_instance_replica" {
   title = "replica"
 
   sql = <<-EOQ
@@ -630,8 +630,8 @@ edge "gcp_sql_database_instance_to_database_instance_replica_edge" {
   param "name" {}
 }
 
-node "gcp_sql_database_instance_from_primary_database_instance_node" {
-  category = category.gcp_sql_database_instance
+node "sql_database_instance_from_primary_database_instance" {
+  category = category.sql_database_instance
 
   sql = <<-EOQ
   with master_instance as (
@@ -665,7 +665,7 @@ node "gcp_sql_database_instance_from_primary_database_instance_node" {
   param "name" {}
 }
 
-edge "gcp_sql_database_instance_from_primary_database_instance_edge" {
+edge "sql_database_instance_from_primary_database_instance" {
   title = "replicated from"
 
   sql = <<-EOQ

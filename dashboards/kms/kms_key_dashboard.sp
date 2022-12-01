@@ -1,4 +1,4 @@
-dashboard "gcp_kms_key_dashboard" {
+dashboard "kms_key_dashboard" {
 
   title         = "GCP KMS Key Dashboard"
   documentation = file("./dashboards/kms/docs/kms_key_dashboard.md")
@@ -10,12 +10,12 @@ dashboard "gcp_kms_key_dashboard" {
   container {
 
     card {
-      query = query.gcp_kms_key_count
+      query = query.kms_key_count
       width = 2
     }
 
     card {
-      query = query.gcp_kms_rotation_disabled_count
+      query = query.kms_rotation_disabled_count
       width = 2
     }
 
@@ -28,7 +28,7 @@ dashboard "gcp_kms_key_dashboard" {
 
     chart {
       title = "Rotation Status"
-      query = query.gcp_kms_key_rotation_status
+      query = query.kms_key_rotation_status
       type  = "donut"
       width = 4
 
@@ -50,21 +50,21 @@ dashboard "gcp_kms_key_dashboard" {
 
     chart {
       title = "Keys by Project"
-      query = query.gcp_kms_key_by_project
+      query = query.kms_key_by_project
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Keys by Location"
-      query = query.gcp_kms_key_by_location
+      query = query.kms_key_by_location
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Keys by Age"
-      query = query.gcp_kms_key_by_creation_month
+      query = query.kms_key_by_creation_month
       type  = "column"
       width = 4
     }
@@ -75,13 +75,13 @@ dashboard "gcp_kms_key_dashboard" {
 
 # Card Queries
 
-query "gcp_kms_key_count" {
+query "kms_key_count" {
   sql = <<-EOQ
     select count(*) as "Keys" from gcp_kms_key;
   EOQ
 }
 
-query "gcp_kms_rotation_disabled_count" {
+query "kms_rotation_disabled_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -97,7 +97,7 @@ query "gcp_kms_rotation_disabled_count" {
 # Assessment Queries
 
 
-query "gcp_kms_key_rotation_status" {
+query "kms_key_rotation_status" {
   sql = <<-EOQ
     select
       rotation_status,
@@ -121,7 +121,7 @@ query "gcp_kms_key_rotation_status" {
 
 # Analysis Queries
 
-query "gcp_kms_key_by_project" {
+query "kms_key_by_project" {
   sql = <<-EOQ
     select
       p.title as "project",
@@ -137,7 +137,7 @@ query "gcp_kms_key_by_project" {
   EOQ
 }
 
-query "gcp_kms_key_by_location" {
+query "kms_key_by_location" {
   sql = <<-EOQ
     select
       location,
@@ -149,7 +149,7 @@ query "gcp_kms_key_by_location" {
   EOQ
 }
 
-query "gcp_kms_key_by_creation_month" {
+query "kms_key_by_creation_month" {
   sql = <<-EOQ
     with keys as (
       select

@@ -1,4 +1,4 @@
-dashboard "gcp_compute_network_detail" {
+dashboard "compute_network_detail" {
 
   title         = "GCP Compute Network Detail"
   documentation = file("./dashboards/compute/docs/compute_network_detail.md")
@@ -9,7 +9,7 @@ dashboard "gcp_compute_network_detail" {
 
   input "network_name" {
     title = "Select a network:"
-    query = query.gcp_compute_network_input
+    query = query.compute_network_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "gcp_compute_network_detail" {
 
     card {
       width = 2
-      query = query.gcp_compute_network_mtu
+      query = query.compute_network_mtu
       args = {
         name = self.input.network_name.value
       }
@@ -25,7 +25,7 @@ dashboard "gcp_compute_network_detail" {
 
     card {
       width = 2
-      query = query.gcp_compute_network_subnet_count
+      query = query.compute_network_subnet_count
       args = {
         name = self.input.network_name.value
       }
@@ -33,7 +33,7 @@ dashboard "gcp_compute_network_detail" {
 
     card {
       width = 2
-      query = query.gcp_compute_network_is_default
+      query = query.compute_network_is_default
       args = {
         name = self.input.network_name.value
       }
@@ -41,7 +41,7 @@ dashboard "gcp_compute_network_detail" {
 
     card {
       width = 2
-      query = query.gcp_compute_network_routing_mode
+      query = query.compute_network_routing_mode
       args = {
         name = self.input.network_name.value
       }
@@ -49,7 +49,7 @@ dashboard "gcp_compute_network_detail" {
 
     card {
       width = 2
-      query = query.gcp_network_firewall_rules_count
+      query = query.network_firewall_rules_count
       args = {
         name = self.input.network_name.value
       }
@@ -57,7 +57,7 @@ dashboard "gcp_compute_network_detail" {
 
     card {
       width = 2
-      query = query.gcp_auto_create_subnetwork
+      query = query.auto_create_subnetwork
       args = {
         name = self.input.network_name.value
       }
@@ -73,30 +73,30 @@ dashboard "gcp_compute_network_detail" {
 
 
       nodes = [
-        node.gcp_compute_network_nodes,
-        node.gcp_compute_network_from_compute_vpn_gateway_node,
-        node.gcp_compute_network_to_compute_subnetwork_node,
-        node.gcp_compute_network_to_compute_firewall_node,
-        node.gcp_compute_network_to_compute_backend_service_node,
-        node.gcp_compute_network_to_compute_router_node,
-        node.gcp_compute_network_to_sql_database_instance_node,
-        node.gcp_compute_network_to_dns_policy_node,
-        node.gcp_compute_network_to_kubernetes_cluster_node,
-        node.gcp_compute_network_to_compute_instances_node,
-        node.gcp_compute_network_to_compute_forwarding_rule_node
+        node.compute_network,
+        node.compute_network_from_compute_vpn_gateway,
+        node.compute_network_to_compute_subnetwork,
+        node.compute_network_to_compute_firewall,
+        node.compute_network_to_compute_backend_service,
+        node.compute_network_to_compute_router,
+        node.compute_network_to_sql_database_instance,
+        node.compute_network_to_dns_policy,
+        node.compute_network_to_kubernetes_cluster,
+        node.compute_network_to_compute_instances,
+        node.compute_network_to_compute_forwarding_rule
       ]
 
       edges = [
-        edge.gcp_compute_network_from_compute_vpn_gateway_edge,
-        edge.gcp_compute_network_to_compute_subnetwork_edge,
-        edge.gcp_compute_network_to_compute_firewall_edge,
-        edge.gcp_compute_network_to_compute_backend_service_edge,
-        edge.gcp_compute_network_to_compute_router_edge,
-        edge.gcp_compute_network_to_sql_database_instance_edge,
-        edge.gcp_compute_network_to_dns_policy_edge,
-        edge.gcp_compute_network_to_kubernetes_cluster_edge,
-        edge.gcp_compute_network_to_compute_instances_edge,
-        edge.gcp_compute_network_to_compute_forwarding_rule_edge
+        edge.compute_network_from_compute_vpn_gateway_edge,
+        edge.compute_network_to_compute_subnetwork_edge,
+        edge.compute_network_to_compute_firewall_edge,
+        edge.compute_network_to_compute_backend_service_edge,
+        edge.compute_network_to_compute_router_edge,
+        edge.compute_network_to_sql_database_instance_edge,
+        edge.compute_network_to_dns_policy_edge,
+        edge.compute_network_to_kubernetes_cluster_edge,
+        edge.compute_network_to_compute_instances_edge,
+        edge.compute_network_to_compute_forwarding_rule_edge
       ]
 
       args = {
@@ -114,7 +114,7 @@ dashboard "gcp_compute_network_detail" {
         title = "Overview"
         width = 4
         type  = "line"
-        query = query.gcp_compute_network_overview
+        query = query.compute_network_overview
         args = {
           name = self.input.network_name.value
         }
@@ -123,7 +123,7 @@ dashboard "gcp_compute_network_detail" {
       table {
         title = "Peering Details"
         width = 8
-        query = query.gcp_compute_network_peering
+        query = query.compute_network_peering
         args = {
           name = self.input.network_name.value
         }
@@ -135,7 +135,7 @@ dashboard "gcp_compute_network_detail" {
 
       table {
         title = "Subnet Details"
-        query = query.gcp_compute_network_subnet
+        query = query.compute_network_subnet
         args = {
           name = self.input.network_name.value
         }
@@ -147,7 +147,7 @@ dashboard "gcp_compute_network_detail" {
 
 }
 
-query "gcp_compute_network_input" {
+query "compute_network_input" {
   sql = <<-EOQ
     select
       name as label,
@@ -163,7 +163,7 @@ query "gcp_compute_network_input" {
   EOQ
 }
 
-query "gcp_compute_network_mtu" {
+query "compute_network_mtu" {
   sql = <<-EOQ
     select
       'MTU (Bytes)' as label,
@@ -177,7 +177,7 @@ query "gcp_compute_network_mtu" {
   param "name" {}
 }
 
-query "gcp_compute_network_subnet_count" {
+query "compute_network_subnet_count" {
   sql = <<-EOQ
     select
       'Subnets' as label,
@@ -192,7 +192,7 @@ query "gcp_compute_network_subnet_count" {
   param "name" {}
 }
 
-query "gcp_compute_network_is_default" {
+query "compute_network_is_default" {
   sql = <<-EOQ
     select
       'Default Network' as label,
@@ -207,7 +207,7 @@ query "gcp_compute_network_is_default" {
   param "name" {}
 }
 
-query "gcp_compute_network_routing_mode" {
+query "compute_network_routing_mode" {
   sql = <<-EOQ
     select
       'Routing Mode' as label,
@@ -221,7 +221,7 @@ query "gcp_compute_network_routing_mode" {
   param "name" {}
 }
 
-query "gcp_network_firewall_rules_count" {
+query "network_firewall_rules_count" {
   sql = <<-EOQ
     select
       'Firewall Rules' as label,
@@ -236,7 +236,7 @@ query "gcp_network_firewall_rules_count" {
   param "name" {}
 }
 
-query "gcp_auto_create_subnetwork" {
+query "auto_create_subnetwork" {
   sql = <<-EOQ
     select
       'Auto Create Subnetwork' as label,
@@ -251,8 +251,8 @@ query "gcp_auto_create_subnetwork" {
   param "name" {}
 }
 
-node "gcp_compute_network_nodes" {
-  category = category.gcp_compute_network
+node "compute_network" {
+  category = category.compute_network
 
   sql = <<-EOQ
     select
@@ -272,8 +272,8 @@ node "gcp_compute_network_nodes" {
   param "network_names" {}
 }
 
-node "gcp_compute_network_to_compute_subnetwork_node" {
-  category = category.gcp_compute_subnetwork
+node "compute_network_to_compute_subnetwork" {
+  category = category.compute_subnetwork
 
   sql = <<-EOQ
     select
@@ -297,7 +297,7 @@ node "gcp_compute_network_to_compute_subnetwork_node" {
   param "name" {}
 }
 
-edge "gcp_compute_network_to_compute_subnetwork_edge" {
+edge "compute_network_to_compute_subnetwork_edge" {
   title = "subnetwork"
 
   sql = <<-EOQ
@@ -315,8 +315,8 @@ edge "gcp_compute_network_to_compute_subnetwork_edge" {
   param "name" {}
 }
 
-node "gcp_compute_network_to_compute_firewall_node" {
-  category = category.gcp_compute_firewall
+node "compute_network_to_compute_firewall" {
+  category = category.compute_firewall
 
   sql = <<-EOQ
     select
@@ -340,7 +340,7 @@ node "gcp_compute_network_to_compute_firewall_node" {
   param "name" {}
 }
 
-edge "gcp_compute_network_to_compute_firewall_edge" {
+edge "compute_network_to_compute_firewall_edge" {
   title = "firewall"
 
   sql = <<-EOQ
@@ -358,8 +358,8 @@ edge "gcp_compute_network_to_compute_firewall_edge" {
   param "name" {}
 }
 
-node "gcp_compute_network_to_compute_backend_service_node" {
-  category = category.gcp_compute_backend_service
+node "compute_network_to_compute_backend_service" {
+  category = category.compute_backend_service
 
   sql = <<-EOQ
     select
@@ -383,7 +383,7 @@ node "gcp_compute_network_to_compute_backend_service_node" {
   param "name" {}
 }
 
-edge "gcp_compute_network_to_compute_backend_service_edge" {
+edge "compute_network_to_compute_backend_service_edge" {
   title = "backend service"
 
   sql = <<-EOQ
@@ -401,8 +401,8 @@ edge "gcp_compute_network_to_compute_backend_service_edge" {
   param "name" {}
 }
 
-node "gcp_compute_network_to_compute_router_node" {
-  category = category.gcp_compute_router
+node "compute_network_to_compute_router" {
+  category = category.compute_router
 
   sql = <<-EOQ
     select
@@ -425,7 +425,7 @@ node "gcp_compute_network_to_compute_router_node" {
   param "name" {}
 }
 
-edge "gcp_compute_network_to_compute_router_edge" {
+edge "compute_network_to_compute_router_edge" {
   title = "router"
 
   sql = <<-EOQ
@@ -443,8 +443,8 @@ edge "gcp_compute_network_to_compute_router_edge" {
   param "name" {}
 }
 
-node "gcp_compute_network_to_sql_database_instance_node" {
-  category = category.gcp_sql_database_instance
+node "compute_network_to_sql_database_instance" {
+  category = category.sql_database_instance
 
   sql = <<-EOQ
     select
@@ -469,7 +469,7 @@ node "gcp_compute_network_to_sql_database_instance_node" {
   param "name" {}
 }
 
-edge "gcp_compute_network_to_sql_database_instance_edge" {
+edge "compute_network_to_sql_database_instance_edge" {
   title = "database instance"
 
   sql = <<-EOQ
@@ -487,8 +487,8 @@ edge "gcp_compute_network_to_sql_database_instance_edge" {
   param "name" {}
 }
 
-node "gcp_compute_network_from_compute_vpn_gateway_node" {
-  category = category.gcp_compute_vpn_gateway
+node "compute_network_from_compute_vpn_gateway" {
+  category = category.compute_vpn_gateway
 
   sql = <<-EOQ
     select
@@ -511,7 +511,7 @@ node "gcp_compute_network_from_compute_vpn_gateway_node" {
   param "name" {}
 }
 
-edge "gcp_compute_network_from_compute_vpn_gateway_edge" {
+edge "compute_network_from_compute_vpn_gateway_edge" {
   title = "network"
 
   sql = <<-EOQ
@@ -529,8 +529,8 @@ edge "gcp_compute_network_from_compute_vpn_gateway_edge" {
   param "name" {}
 }
 
-node "gcp_compute_network_to_dns_policy_node" {
-  category = category.gcp_dns_policy
+node "compute_network_to_dns_policy" {
+  category = category.dns_policy
 
   sql = <<-EOQ
     select
@@ -555,7 +555,7 @@ node "gcp_compute_network_to_dns_policy_node" {
   param "name" {}
 }
 
-edge "gcp_compute_network_to_dns_policy_edge" {
+edge "compute_network_to_dns_policy_edge" {
   title = "dns policy"
 
   sql = <<-EOQ
@@ -574,8 +574,8 @@ edge "gcp_compute_network_to_dns_policy_edge" {
   param "name" {}
 }
 
-node "gcp_compute_network_to_compute_instances_node" {
-  category = category.gcp_compute_instance
+node "compute_network_to_compute_instances" {
+  category = category.compute_instance
 
   sql = <<-EOQ
     select
@@ -600,7 +600,7 @@ node "gcp_compute_network_to_compute_instances_node" {
   param "name" {}
 }
 
-edge "gcp_compute_network_to_compute_instances_edge" {
+edge "compute_network_to_compute_instances_edge" {
   title = "network"
 
   sql = <<-EOQ
@@ -618,8 +618,8 @@ edge "gcp_compute_network_to_compute_instances_edge" {
 
   param "name" {}
 }
-node "gcp_compute_network_to_kubernetes_cluster_node" {
-  category = category.gcp_kubernetes_cluster
+node "compute_network_to_kubernetes_cluster" {
+  category = category.kubernetes_cluster
 
   sql = <<-EOQ
     select
@@ -643,7 +643,7 @@ node "gcp_compute_network_to_kubernetes_cluster_node" {
   param "name" {}
 }
 
-edge "gcp_compute_network_to_kubernetes_cluster_edge" {
+edge "compute_network_to_kubernetes_cluster_edge" {
   title = "network"
 
   sql = <<-EOQ
@@ -661,8 +661,8 @@ edge "gcp_compute_network_to_kubernetes_cluster_edge" {
   param "name" {}
 }
 
-node "gcp_compute_network_to_compute_forwarding_rule_node" {
-  category = category.gcp_compute_forwarding_rule
+node "compute_network_to_compute_forwarding_rule" {
+  category = category.compute_forwarding_rule
 
   sql = <<-EOQ
     select
@@ -684,7 +684,7 @@ node "gcp_compute_network_to_compute_forwarding_rule_node" {
   param "name" {}
 }
 
-edge "gcp_compute_network_to_compute_forwarding_rule_edge" {
+edge "compute_network_to_compute_forwarding_rule_edge" {
   title = "forwarding rule"
 
   sql = <<-EOQ
@@ -701,7 +701,7 @@ edge "gcp_compute_network_to_compute_forwarding_rule_edge" {
   param "name" {}
 }
 
-query "gcp_compute_network_overview" {
+query "compute_network_overview" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -720,7 +720,7 @@ query "gcp_compute_network_overview" {
   param "name" {}
 }
 
-query "gcp_compute_network_peering" {
+query "compute_network_peering" {
   sql = <<-EOQ
     select
       p ->> 'name' as "Name",
@@ -739,7 +739,7 @@ query "gcp_compute_network_peering" {
   param "name" {}
 }
 
-query "gcp_compute_network_subnet" {
+query "compute_network_subnet" {
   sql = <<-EOQ
     select
       name as "Name",
