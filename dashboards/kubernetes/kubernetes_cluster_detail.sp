@@ -68,41 +68,187 @@ dashboard "kubernetes_cluster_detail" {
   container {
 
     graph {
-      title     = "Relationships"
-      type      = "graph"
-      direction = "TD"
+      title = "Relationships"
+      type  = "graph"
 
+      with "kms_keys" {
+        sql = <<-EOQ
+          select
+            k.name as key_name
+          from
+            gcp_kubernetes_cluster c,
+            gcp_kms_key k
+          where
+            c.database_encryption_key_name is not null
+            and split_part(c.database_encryption_key_name, 'cryptoKeys/', 2) = k.name
+            and c.name = $1;
+        EOQ
+
+        args = [self.input.cluster_name.value]
+      }
+
+      with "kubernetes_node_pools" {
+        sql = <<-EOQ
+          select
+            p.name as pool_name
+          from
+            gcp_kubernetes_node_pool p
+          where
+            p.cluster_name = $1;
+        EOQ
+
+        args = [self.input.cluster_name.value]
+      }
+
+      with "pubsub_topics" {
+        sql = <<-EOQ
+          select
+            t.name as topic_name
+          from
+            gcp_kubernetes_cluster c,
+            gcp_pubsub_topic t
+          where
+            c.name = $1
+            and c.notification_config is not null
+            and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
+        EOQ
+
+        args = [self.input.cluster_name.value]
+      }
+
+      with "compute_instance_groups" {
+        sql = <<-EOQ
+          select
+            g.id::text as group_id
+          from
+            gcp_kubernetes_node_pool p,
+            gcp_compute_instance_group g,
+            jsonb_array_elements_text(instance_group_urls) ig
+          where
+            p.cluster_name = $1
+            and split_part(ig, 'instanceGroupManagers/', 2) = g.name;
+        EOQ
+
+        args = [self.input.cluster_name.value]
+      }
+
+      with "compute_instances" {
+        sql = <<-EOQ
+          select
+            i.id::text as instance_id
+          from
+            gcp_kubernetes_node_pool p,
+            gcp_compute_instance_group g,
+            jsonb_array_elements_text(instance_group_urls) ig,
+            jsonb_array_elements(g.instances) g_ins,
+            gcp_compute_instance i
+          where
+            p.cluster_name = $1
+            and split_part(ig, 'instanceGroupManagers/', 2) = g.name
+            and i.self_link = (g_ins ->> 'instance')
+        EOQ
+
+        args = [self.input.cluster_name.value]
+      }
+
+      with "compute_firewalls" {
+        sql = <<-EOQ
+          select
+            f.id::text as firewall_id
+          from
+            gcp_kubernetes_cluster c,
+            gcp_compute_network n,
+            gcp_compute_firewall f
+          where
+            c.network = n.name
+            and n.self_link = f.network
+            and c.name = $1;
+        EOQ
+
+        args = [self.input.cluster_name.value]
+      }
+
+      with "compute_subnets" {
+        sql = <<-EOQ
+          select
+            s.id::text as subnet_id
+          from
+            gcp_kubernetes_cluster c,
+            gcp_compute_subnetwork s
+          where
+            c.name = $1
+            and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
+        EOQ
+
+        args = [self.input.cluster_name.value]
+      }
+
+      with "compute_networks" {
+        sql = <<-EOQ
+          select
+            n.name as network_name
+          from
+            gcp_kubernetes_cluster c,
+            gcp_compute_network n
+          where
+            c.name = $1
+            and c.network = n.name;
+        EOQ
+
+        args = [self.input.cluster_name.value]
+      }
+
+      with "bigquery_datasets" {
+        sql = <<-EOQ
+          select
+            d.id as dataset_id
+          from
+            gcp_kubernetes_cluster c,
+            gcp_bigquery_dataset d
+          where
+            c.resource_usage_export_config -> 'bigqueryDestination' ->> 'datasetId' = d.dataset_id
+            and c.name = $1
+        EOQ
+
+        args = [self.input.cluster_name.value]
+      }
 
       nodes = [
+        node.bigquery_dataset,
+        node.compute_firewall,
+        node.compute_instance,
+        node.compute_instance_group,
+        node.kms_key,
         node.kubernetes_cluster,
-        node.kubernetes_cluster_to_compute_network,
-        node.kubernetes_cluster_network_to_compute_subnetwork,
-        node.kubernetes_cluster_node_pool_to_compute_instance_group,
-        node.kubernetes_cluster_to_pubsub_topic,
-        node.kubernetes_cluster_to_kms_key,
-
-        node.kubernetes_cluster_node_pool_to_compute_instance,
-
-        node.kubernetes_cluster_to_node_pool,
-        node.kubernetes_cluster_to_bigquery_dataset,
-        node.kubernetes_cluster_to_compute_firewall
+        node.kubernetes_node_pool,
+        node.pubsub_topic,
+        node.compute_subnetwork,
+        node.compute_network
       ]
 
       edges = [
-        edge.kubernetes_cluster_to_node_pool,
-        edge.kubernetes_cluster_to_compute_network,
-        edge.kubernetes_cluster_network_to_compute_subnetwork,
-        edge.kubernetes_cluster_to_pubsub_topic,
-        edge.kubernetes_cluster_node_pool_to_compute_instance_group,
-        edge.kubernetes_cluster_to_kms_key,
+        edge.compute_instance_group_to_compute_instance,
         edge.kubernetes_cluster_to_bigquery_dataset,
-        edge.kubernetes_cluster_node_pool_to_compute_instance,
-        edge.kubernetes_cluster_to_compute_firewall
+        edge.compute_subnetwork_to_compute_network,
+        edge.kubernetes_cluster_to_compute_subnetwork,
+        edge.kubernetes_cluster_to_compute_firewall,
+        edge.kubernetes_cluster_to_kms_key,
+        edge.kubernetes_cluster_to_kubernetes_node_pool,
+        edge.kubernetes_cluster_to_pubsub_topic,
+        edge.kubernetes_node_pool_to_compute_instance_group,
       ]
 
       args = {
-        name                     = self.input.cluster_name.value
-        kubernetes_cluster_names = [self.input.cluster_name.value]
+        bigquery_dataset_ids       = with.bigquery_datasets.rows[*].dataset_id
+        compute_firewall_ids       = with.compute_firewalls.rows[*].firewall_id
+        compute_instance_ids       = with.compute_instances.rows[*].instance_id
+        compute_instance_group_ids = with.compute_instance_groups.rows[*].group_id
+        compute_network_names      = with.compute_networks.rows[*].network_name
+        compute_subnet_ids         = with.compute_subnets.rows[*].subnet_id
+        kms_key_names              = with.kms_keys.rows[*].key_name
+        kubernetes_cluster_names   = [self.input.cluster_name.value]
+        kubernetes_node_pool_names = with.kubernetes_node_pools.rows[*].pool_name
+        pubsub_topic_names         = with.pubsub_topics.rows[*].topic_name
       }
     }
   }
@@ -309,345 +455,7 @@ query "kubernetes_cluster_auto_repair_disabled" {
 
 ## Graph
 
-node "kubernetes_cluster" {
-  category = category.kubernetes_cluster
-
-  sql = <<-EOQ
-    select
-      name as id,
-      title,
-      jsonb_build_object(
-        'Name', name,
-        'Created Time', create_time,
-        'Endpoint', endpoint,
-        'Services IPv4 CIDR', services_ipv4_cidr,
-        'Status', status
-      ) as properties
-    from
-      gcp_kubernetes_cluster
-    where
-      name = any($1);
-  EOQ
-
-  param "kubernetes_cluster_names" {}
-}
-
-node "kubernetes_cluster_to_node_pool" {
-  category = category.kubernetes_node_pool
-
-  sql = <<-EOQ
-    select
-      p.name as id,
-      p.title,
-      jsonb_build_object(
-        'Name', p.name,
-        'Initial Node Count', p.initial_node_count,
-        'Status', p.status,
-        'Version', p.version
-      ) as properties
-    from
-      gcp_kubernetes_node_pool p
-    where
-      p.cluster_name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-edge "kubernetes_cluster_to_node_pool" {
-  title = "node pool"
-
-  sql = <<-EOQ
-    select
-      $1 as from_id,
-      p.name as to_id
-    from
-      gcp_kubernetes_node_pool p
-    where
-      p.cluster_name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-node "kubernetes_cluster_node_pool_to_compute_instance_group" {
-  category = category.compute_instance_group
-
-  sql = <<-EOQ
-    select
-      g.id::text as id,
-      g.title,
-      jsonb_build_object(
-        'ID', g.id::text,
-        'Name', g.name,
-        'Created Time', g.creation_timestamp,
-        'Instance Count', g.size,
-        'Named Ports', g.named_ports
-      ) as properties
-    from
-      gcp_kubernetes_node_pool p,
-      gcp_compute_instance_group g,
-      jsonb_array_elements_text(instance_group_urls) ig
-    where
-      p.cluster_name = $1
-      and split_part(ig, 'instanceGroupManagers/', 2) = g.name;
-  EOQ
-
-  param "name" {}
-}
-
-edge "kubernetes_cluster_node_pool_to_compute_instance_group" {
-  title = "instance group"
-
-  sql = <<-EOQ
-    select
-      p.name as from_id,
-      g.id::text as to_id
-    from
-      gcp_kubernetes_node_pool p,
-      gcp_compute_instance_group g,
-      jsonb_array_elements_text(instance_group_urls) ig
-    where
-      p.cluster_name = $1
-      and split_part(ig, 'instanceGroupManagers/', 2) = g.name;
-  EOQ
-
-  param "name" {}
-}
-
-node "kubernetes_cluster_node_pool_to_compute_instance" {
-  category = category.compute_instance
-
-  sql = <<-EOQ
-    select
-      i.id::text,
-      i.title,
-      jsonb_build_object(
-        'ID', i.id::text,
-        'Name', i.name,
-        'Created Time', i.creation_timestamp,
-        'CPU Platform', i.cpu_platform,
-        'Status', i.status
-      ) as properties
-    from
-      gcp_kubernetes_node_pool p,
-      gcp_compute_instance_group g,
-      jsonb_array_elements_text(instance_group_urls) ig,
-      jsonb_array_elements(g.instances) g_ins,
-      gcp_compute_instance i
-    where
-      p.cluster_name = $1
-      and split_part(ig, 'instanceGroupManagers/', 2) = g.name
-      and i.self_link = (g_ins ->> 'instance')
-  EOQ
-
-  param "name" {}
-}
-
-edge "kubernetes_cluster_node_pool_to_compute_instance" {
-  title = "node"
-
-  sql = <<-EOQ
-    select
-      g.id::text as from_id,
-      i.id::text as to_id
-    from
-      gcp_kubernetes_node_pool p,
-      gcp_compute_instance_group g,
-      jsonb_array_elements_text(instance_group_urls) ig,
-      jsonb_array_elements(g.instances) g_ins,
-      gcp_compute_instance i
-    where
-      p.cluster_name = $1
-      and split_part(ig, 'instanceGroupManagers/', 2) = g.name
-      and i.self_link = (g_ins ->> 'instance')
-  EOQ
-
-  param "name" {}
-}
-
-node "kubernetes_cluster_to_compute_network" {
-  category = category.compute_network
-
-  sql = <<-EOQ
-    select
-      n.id::text as id,
-      n.title,
-      jsonb_build_object(
-        'ID', n.id::text,
-        'Name', n.name,
-        'Created Time', n.creation_timestamp
-      ) as properties
-    from
-      gcp_kubernetes_cluster c,
-      gcp_compute_network n
-    where
-      c.name = $1
-      and c.network = n.name
-  EOQ
-
-  param "name" {}
-}
-
-edge "kubernetes_cluster_to_compute_network" {
-  title = "network"
-
-  sql = <<-EOQ
-    select
-      s.id::text as from_id,
-      n.id::text as to_id
-    from
-      gcp_kubernetes_cluster c,
-      gcp_compute_network n,
-      gcp_compute_subnetwork s
-    where
-      c.name = $1
-      and c.network = n.name
-      and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
-  EOQ
-
-  param "name" {}
-}
-
-node "kubernetes_cluster_network_to_compute_subnetwork" {
-  category = category.compute_subnetwork
-
-  sql = <<-EOQ
-    select
-      s.id::text as id,
-      s.title,
-      jsonb_build_object(
-        'ID', s.id::text,
-        'Name', s.name,
-        'Created Time', s.creation_timestamp,
-        'Location', s.location,
-        'IP Cidr Range', s.ip_cidr_range
-      ) as properties
-    from
-      gcp_kubernetes_cluster c,
-      gcp_compute_subnetwork s
-    where
-      c.name = $1
-      and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
-  EOQ
-
-  param "name" {}
-}
-
-edge "kubernetes_cluster_network_to_compute_subnetwork" {
-  title = "subnetwork"
-
-  sql = <<-EOQ
-    select
-      c.name as from_id,
-      s.id::text as to_id
-    from
-      gcp_kubernetes_cluster c,
-      gcp_compute_network n,
-      gcp_compute_subnetwork s
-    where
-      c.name = $1
-      and c.network = n.name
-      and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
-  EOQ
-
-  param "name" {}
-}
-
-node "kubernetes_cluster_to_pubsub_topic" {
-  category = category.pubsub_topic
-
-  sql = <<-EOQ
-    select
-      t.name as id,
-      t.title,
-      jsonb_build_object(
-        'Name', t.name,
-        'Location', t.location,
-        'KMS Key', t.kms_key_name
-      ) as properties
-    from
-      gcp_kubernetes_cluster c,
-      gcp_pubsub_topic t
-    where
-      c.name = $1
-      and c.notification_config is not null
-      and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
-  EOQ
-
-  param "name" {}
-}
-
-edge "kubernetes_cluster_to_pubsub_topic" {
-  title = "notifies"
-
-  sql = <<-EOQ
-    select
-      c.name as from_id,
-      t.name as to_id,
-      jsonb_build_object(
-        'Notifications Enabled', (c.notification_config -> 'pubsub' ->> 'enabled')
-      ) as properties
-    from
-      gcp_kubernetes_cluster c,
-      gcp_pubsub_topic t
-    where
-      c.name = $1
-      and c.notification_config is not null
-      and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
-  EOQ
-
-  param "name" {}
-}
-
-node "kubernetes_cluster_to_kms_key" {
-  category = category.kms_key
-
-  sql = <<-EOQ
-    select
-      k.name as id,
-      k.title,
-      jsonb_build_object(
-        'Name', k.name,
-        'Created Time', k.create_time,
-        'Key Ring Name', key_ring_name,
-        'Location', k.location
-      ) as properties
-    from
-      gcp_kubernetes_cluster c,
-      gcp_kms_key k
-    where
-      c.name = $1
-      and c.database_encryption_key_name is not null
-      and split_part(c.database_encryption_key_name, 'cryptoKeys/', 2) = k.name;
-  EOQ
-
-  param "name" {}
-}
-
-edge "kubernetes_cluster_to_kms_key" {
-  title = "encrypted with"
-
-  sql = <<-EOQ
-    select
-      c.name as from_id,
-      k.name as to_id,
-      jsonb_build_object(
-        'Database Encryption State', c.database_encryption_state
-      ) as properties
-    from
-      gcp_kubernetes_cluster c,
-      gcp_kms_key k
-    where
-      c.name = $1
-      and c.database_encryption_key_name is not null
-      and split_part(c.database_encryption_key_name, 'cryptoKeys/', 2) = k.name;
-  EOQ
-
-  param "name" {}
-}
-
-node "kubernetes_cluster_to_bigquery_dataset" {
+node "bigquery_dataset" {
   category = category.bigquery_dataset
 
   sql = <<-EOQ
@@ -662,79 +470,12 @@ node "kubernetes_cluster_to_bigquery_dataset" {
         'Location', d.location
       ) as properties
     from
-      gcp_kubernetes_cluster c,
       gcp_bigquery_dataset d
     where
-      c.name = $1
-      and c.resource_usage_export_config -> 'bigqueryDestination' ->> 'datasetId' = d.dataset_id;
+      d.dataset_id = any($1);
   EOQ
 
-  param "name" {}
-}
-
-edge "kubernetes_cluster_to_bigquery_dataset" {
-  title = "usage metering"
-
-  sql = <<-EOQ
-    select
-      c.name as from_id,
-      d.id as to_id
-    from
-      gcp_kubernetes_cluster c,
-      gcp_bigquery_dataset d
-    where
-      c.name = $1
-      and c.resource_usage_export_config -> 'bigqueryDestination' ->> 'datasetId' = d.dataset_id;
-  EOQ
-
-  param "name" {}
-}
-
-node "kubernetes_cluster_to_compute_firewall" {
-  category = category.compute_firewall
-
-  sql = <<-EOQ
-    select
-      f.id::text,
-      f.title,
-      jsonb_build_object(
-        'ID', f.id,
-        'Direction', f.direction,
-        'Enabled', not f.disabled,
-        'Action', f.action,
-        'Priority', f.priority
-      ) as properties
-    from
-      gcp_kubernetes_cluster c,
-      gcp_compute_network n,
-      gcp_compute_firewall f
-    where
-      c.network = n.name
-      and n.self_link = f.network
-      and c.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-edge "kubernetes_cluster_to_compute_firewall" {
-  title = "firewall"
-
-  sql = <<-EOQ
-    select
-      c.name as from_id,
-      f.id::text as to_id
-    from
-      gcp_kubernetes_cluster c,
-      gcp_compute_network n,
-      gcp_compute_firewall f
-    where
-      c.network = n.name
-      and n.self_link = f.network
-      and c.name = $1;
-  EOQ
-
-  param "name" {}
+  param "bigquery_dataset_ids" {}
 }
 
 query "kubernetes_cluster_overview" {

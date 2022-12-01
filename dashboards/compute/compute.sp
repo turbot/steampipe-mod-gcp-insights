@@ -38,7 +38,6 @@ category "compute_disk" {
 category "compute_forwarding_rule" {
   color = local.network_color
   icon  = "arrow-right-on-rectangle"
-  href  = "/gcp_insights.dashboard.compute_forwarding_rule_detail?input.id={{.properties.'ID' | @uri}}"
   title = "Compute Forwarding Rule"
 }
 

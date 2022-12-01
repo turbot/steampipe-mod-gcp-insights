@@ -595,7 +595,7 @@ edge "compute_subnetwork_to_compute_network" {
   EOQ
 
   param "compute_subnet_ids" {}
-  param "network_names" {}
+  param "compute_network_names" {}
 }
 
 query "compute_subnetwork_overview" {

@@ -58,8 +58,8 @@ dashboard "pubsub_topic_detail" {
       ]
 
       args = {
-        name        = self.input.name.value
-        topic_names = [self.input.name.value]
+        name               = self.input.name.value
+        pubsub_topic_names = [self.input.name.value]
       }
     }
   }
@@ -250,7 +250,7 @@ node "pubsub_topic" {
       name = any($1);
   EOQ
 
-  param "topic_names" {}
+  param "pubsub_topic_names" {}
 }
 
 node "pubsub_topic_to_kms_key" {
