@@ -72,23 +72,69 @@ dashboard "storage_bucket_detail" {
       type      = "graph"
       direction = "TD"
 
+      with "kms_keys" {
+        sql = <<-EOQ
+          select
+            split_part(b.default_kms_key_name, 'cryptoKeys/', 2) as key_name
+          from
+            gcp_storage_bucket b
+          where
+            b.id = $1
+            and b.default_kms_key_name is not null;
+        EOQ
+
+        args = [self.input.bucket_id.value]
+      }
+
+      with "logging_buckets" {
+        sql = <<-EOQ
+          select
+            l.name as bucket_name
+          from
+            gcp_storage_bucket b,
+            gcp_logging_bucket l
+          where
+            b.id = $1
+            and b.log_bucket is not null
+            and b.log_bucket = l.name;
+        EOQ
+
+        args = [self.input.bucket_id.value]
+      }
+
+      with "compute_backend_buckets" {
+        sql = <<-EOQ
+          select
+            c.id::text as bucket_id
+          from
+            gcp_storage_bucket b,
+            gcp_compute_backend_bucket c
+          where
+            b.id = $1
+            and b.name = c.bucket_name;
+        EOQ
+
+        args = [self.input.bucket_id.value]
+      }
 
       nodes = [
         node.storage_bucket,
-        node.storage_bucket_to_kms_key,
-        node.storage_bucket_to_logging_bucket,
-        node.storage_bucket_from_compute_backend_bucket
+        node.kms_key,
+        node.logging_bucket,
+        node.compute_backend_bucket
       ]
 
       edges = [
+        edge.compute_backend_bucket_to_storage_bucket,
         edge.storage_bucket_to_kms_key,
-        edge.storage_bucket_to_logging_bucket,
-        edge.storage_bucket_from_compute_backend_bucket
+        edge.storage_bucket_to_logging_bucket
       ]
 
       args = {
-        id         = self.input.bucket_id.value
-        bucket_ids = [self.input.bucket_id.value]
+        storage_bucket_ids         = [self.input.bucket_id.value]
+        kms_key_names              = with.kms_keys.rows[*].key_name
+        logging_bucket_names       = with.logging_buckets.rows[*].bucket_name
+        compute_backend_bucket_ids = with.compute_backend_buckets.rows[*].bucket_id
       }
     }
   }
@@ -254,165 +300,6 @@ query "storage_bucket_uniform_bucket_level_access" {
       gcp_storage_bucket
     where
       id = $1;
-  EOQ
-
-  param "id" {}
-}
-
-## Graph
-
-node "storage_bucket" {
-  category = category.storage_bucket
-
-  sql = <<-EOQ
-    select
-      id,
-      title,
-      jsonb_build_object(
-        'Name', name,
-        'Created Time', time_created,
-        'Storage Class', storage_class
-      ) as properties
-    from
-      gcp_storage_bucket
-    where
-      id = any($1);
-  EOQ
-
-  param "bucket_ids" {}
-}
-
-node "storage_bucket_to_kms_key" {
-  category = category.kms_key
-
-  sql = <<-EOQ
-    select
-      k.name as id,
-      k.title,
-      jsonb_build_object(
-        'Name', k.name,
-        'Created Time', k.create_time,
-        'Key Ring Name', key_ring_name,
-        'Location', k.location
-      ) as properties
-    from
-      gcp_storage_bucket b,
-      gcp_kms_key k
-    where
-      b.id = $1
-      and b.default_kms_key_name is not null
-      and split_part(b.default_kms_key_name, 'cryptoKeys/', 2) = k.name;
-  EOQ
-
-  param "id" {}
-}
-
-edge "storage_bucket_to_kms_key" {
-  title = "encrypted with"
-
-  sql = <<-EOQ
-    select
-      b.id as from_id,
-      k.name as to_id
-    from
-      gcp_storage_bucket b,
-      gcp_kms_key k
-    where
-      b.id = $1
-      and b.default_kms_key_name is not null
-      and split_part(b.default_kms_key_name, 'cryptoKeys/', 2) = k.name;
-  EOQ
-
-  param "id" {}
-}
-
-node "storage_bucket_to_logging_bucket" {
-  category = category.logging_bucket
-
-  sql = <<-EOQ
-    select
-      l.name as id,
-      l.title,
-      jsonb_build_object(
-        'Name', l.name,
-        'Created Time', l.create_time,
-        'Description', l.description,
-        'Lifecycle State', l.lifecycle_state,
-        'Location', l.location,
-        'Locked', l.locked,
-        'Retention Days', l.retention_days
-      ) as properties
-    from
-      gcp_storage_bucket b,
-      gcp_logging_bucket l
-    where
-      b.id = $1
-      and b.log_bucket is not null
-      and b.log_bucket = l.name;
-  EOQ
-
-  param "id" {}
-}
-
-edge "storage_bucket_to_logging_bucket" {
-  title = "logs to"
-
-  sql = <<-EOQ
-    select
-      b.id as from_id,
-      l.name as to_id,
-      jsonb_build_object(
-        'Log Object Prefix', b.log_object_prefix
-      ) as properties
-    from
-      gcp_storage_bucket b,
-      gcp_logging_bucket l
-    where
-      b.id = $1
-      and b.log_bucket is not null
-      and b.log_bucket = l.name;
-  EOQ
-
-  param "id" {}
-}
-
-node "storage_bucket_from_compute_backend_bucket" {
-  category = category.compute_backend_bucket
-
-  sql = <<-EOQ
-    select
-      c.id::text as id,
-      c.title,
-      jsonb_build_object(
-        'Name', c.name,
-        'Created Time', c.creation_timestamp,
-        'Description', c.description,
-        'Location', c.location
-      ) as properties
-    from
-      gcp_storage_bucket b,
-      gcp_compute_backend_bucket c
-    where
-      b.id = $1
-      and b.name = c.bucket_name;
-  EOQ
-
-  param "id" {}
-}
-
-edge "storage_bucket_from_compute_backend_bucket" {
-  title = "bucket"
-
-  sql = <<-EOQ
-    select
-      c.id::text as from_id,
-      b.id as to_id
-    from
-      gcp_storage_bucket b,
-      gcp_compute_backend_bucket c
-    where
-      b.id = $1
-      and b.name = c.bucket_name;
   EOQ
 
   param "id" {}
