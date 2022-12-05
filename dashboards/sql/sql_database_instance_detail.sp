@@ -75,12 +75,41 @@ dashboard "sql_database_instance_detail" {
       type      = "graph"
       direction = "TD"
 
+      with "kms_keys" {
+        sql = <<-EOQ
+          select
+            k.name as key_name
+          from
+            gcp_sql_database_instance as i,
+            gcp_kms_key as k
+          where
+            i.name = $1 and i.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2));
+        EOQ
+
+        args = [self.input.database_instance_name.value]
+      }
+
+      with "compute_networks" {
+        sql = <<-EOQ
+          select
+            n.name as network_name
+          from
+            gcp_sql_database_instance as i,
+            gcp_compute_network as n
+          where
+            SPLIT_PART(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
+            and i.name = any($1);
+        EOQ
+
+        args = [self.input.database_instance_name.value]
+      }
+
       nodes = [
+        node.compute_network,
+        node.kms_key,
+        node.sql_backup,
+        node.sql_database,
         node.sql_database_instance,
-        node.sql_database_instance_to_kms_key,
-        node.sql_database_instance_to_sql_database,
-        node.sql_database_instance_to_compute_network,
-        node.sql_database_instance_to_sql_backup,
         node.sql_database_instance_to_database_instance_replica,
         node.sql_database_instance_from_primary_database_instance
       ]
@@ -96,7 +125,9 @@ dashboard "sql_database_instance_detail" {
 
       args = {
         name                    = self.input.database_instance_name.value
+        compute_network_names   = with.compute_networks.rows[*].network_name
         database_instance_names = [self.input.database_instance_name.value]
+        kms_key_names           = with.kms_keys.rows[*].key_name
       }
     }
   }
@@ -401,291 +432,6 @@ query "sql_database_instance_connection" {
       and SPLIT_PART(instance_id, ':', 2) in (select name from gcp_sql_database_instance where name = $1)
     order by
       timestamp;
-  EOQ
-
-  param "name" {}
-}
-
-node "sql_database_instance" {
-  category = category.sql_database_instance
-
-  sql = <<-EOQ
-    select
-      name as id,
-      title,
-      jsonb_build_object(
-        'Name', name,
-        'State', state,
-        'DatabaseVersion', database_version,
-        'MachineType', machine_type,
-        'DataDiskSizeGB', data_disk_size_gb,
-        'BackupEnabled', backup_enabled
-      ) as properties
-    from
-      gcp_sql_database_instance
-    where
-      name = any($1);
-  EOQ
-
-  param "database_instance_names" {}
-}
-
-node "sql_database_instance_to_kms_key" {
-  category = category.kms_key
-
-  sql = <<-EOQ
-    select
-      k.name as id,
-      k.title,
-      jsonb_build_object(
-        'Name', k.name,
-        'Created Time', k.create_time,
-        'Key Ring Name', key_ring_name,
-        'Location', k.location
-      ) as properties
-    from
-      gcp_sql_database_instance as i,
-      gcp_kms_key as k
-    where
-      i.name = $1 and i.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2));
-  EOQ
-
-  param "name" {}
-}
-
-edge "sql_database_instance_to_kms_key" {
-  title = "encrypted with"
-
-  sql = <<-EOQ
-    select
-      i.name as from_id,
-      k.name as to_id
-    from
-      gcp_sql_database_instance as i,
-      gcp_kms_key as k
-    where
-      i.name = $1 and i.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2));
-  EOQ
-
-  param "name" {}
-}
-
-node "sql_database_instance_to_sql_database" {
-  category = category.sql_database
-
-  sql = <<-EOQ
-    select
-      d.name as id,
-      d.title,
-      jsonb_build_object(
-        'Project', d.project,
-        'Location', d.location
-      ) as properties
-    from
-      gcp_sql_database_instance as i,
-      gcp_sql_database d
-    where
-      d.instance_name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-edge "sql_database_instance_to_sql_database" {
-  title = "database"
-
-  sql = <<-EOQ
-    select
-      i.name as from_id,
-      d.name as to_id
-    from
-      gcp_sql_database_instance as i,
-      gcp_sql_database d
-    where
-      d.instance_name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-node "sql_database_instance_to_compute_network" {
-  category = category.compute_network
-
-  sql = <<-EOQ
-    select
-      n.name as id,
-      n.title,
-      jsonb_build_object(
-        'ID', n.id,
-        'Name', n.name,
-        'Created Time', n.creation_timestamp
-      ) as properties
-    from
-      gcp_sql_database_instance as i,
-      gcp_compute_network as n
-    where
-      SPLIT_PART(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
-      and i.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-edge "sql_database_instance_to_compute_network" {
-  title = "network"
-
-  sql = <<-EOQ
-    select
-      n.name as to_id,
-      i.name as from_id
-    from
-      gcp_sql_database_instance as i,
-      gcp_compute_network as n
-    where
-      SPLIT_PART(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
-      and i.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-node "sql_database_instance_to_sql_backup" {
-  category = category.sql_backup
-
-  sql = <<-EOQ
-    select
-      id as id,
-      title,
-      jsonb_build_object(
-        'Backup Instance Name', instance_name,
-        'Status', status,
-        'Start Time', enqueued_time,
-        'End Time', end_time,
-        'Project', project,
-        'Location', location
-      ) as properties
-    from
-      gcp_sql_backup
-    where
-      instance_name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-edge "sql_database_instance_to_sql_backup" {
-  title = "backup"
-
-  sql = <<-EOQ
-    select
-      id as to_id,
-      instance_name as from_id
-    from
-      gcp_sql_backup
-    where
-      instance_name = $1;
-  EOQ
-
-  param "name" {}
-}
-node "sql_database_instance_to_database_instance_replica" {
-  category = category.sql_database_instance
-
-  sql = <<-EOQ
-    select
-      name as id,
-      title,
-      jsonb_build_object(
-        'Name', name,
-        'State', state,
-        'DatabaseVersion', database_version,
-        'MachineType', machine_type,
-        'DataDiskSizeGB', data_disk_size_gb,
-        'BackupEnabled', backup_enabled,
-        'Project', project,
-        'Location', location
-      ) as properties
-    from
-      gcp_sql_database_instance
-    where
-      SPLIT_PART(master_instance_name, ':', 2) = $1;
-  EOQ
-
-  param "name" {}
-}
-
-edge "sql_database_instance_to_database_instance_replica" {
-  title = "replica"
-
-  sql = <<-EOQ
-    select
-      name as to_id,
-      SPLIT_PART(master_instance_name, ':', 2) as from_id
-    from
-      gcp_sql_database_instance
-    where
-      SPLIT_PART(master_instance_name, ':', 2) = $1;
-  EOQ
-
-  param "name" {}
-}
-
-node "sql_database_instance_from_primary_database_instance" {
-  category = category.sql_database_instance
-
-  sql = <<-EOQ
-  with master_instance as (
-    select 
-      split_part(master_instance_name, ':', 2) as name 
-    from  
-      gcp_sql_database_instance 
-    where 
-      name = $1
-  )
-  select
-    i.name as id,
-    title,
-    jsonb_build_object(
-      'Name', i.name,
-      'State', state,
-      'DatabaseVersion', database_version,
-      'MachineType', machine_type,
-      'DataDiskSizeGB', data_disk_size_gb,
-      'BackupEnabled', backup_enabled,
-      'Project', project,
-      'Location', location
-    ) as properties
-  from
-      gcp_sql_database_instance as i,
-      master_instance as m
-  where
-      i.name = m.name;
-  EOQ
-
-  param "name" {}
-}
-
-edge "sql_database_instance_from_primary_database_instance" {
-  title = "replicated from"
-
-  sql = <<-EOQ
-    with master_instance as (
-      select 
-        split_part(master_instance_name, ':', 2) as mname,
-        name
-      from  
-        gcp_sql_database_instance 
-      where 
-        name = $1
-    )
-    select
-      i.name as from_id,
-      m.name as to_id
-    from
-      gcp_sql_database_instance as i,
-      master_instance as m
-    where
-      i.name = m.mname;
   EOQ
 
   param "name" {}
