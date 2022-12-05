@@ -59,42 +59,195 @@ dashboard "kms_key_detail" {
   container {
 
     graph {
-      title     = "Relationships"
-      type      = "graph"
-      direction = "TD"
+      title = "Relationships"
+      type  = "graph"
+
+      with "storage_buckets" {
+        sql = <<-EOQ
+          select
+            b.id as bucket_id
+          from
+            gcp_storage_bucket b,
+          where
+            b.default_kms_key_name is not null
+            and split_part(b.default_kms_key_name, 'cryptoKeys/', 2) = $1;
+        EOQ
+
+        args = [self.input.key_name.value]
+      }
+
+      with "pubsub_topics" {
+        sql = <<-EOQ
+          select
+            p.name as topic_name
+          from
+            gcp_pubsub_topic p,
+            gcp_kms_key k
+          where
+            split_part(p.kms_key_name, 'cryptoKeys/', 2) = $1;
+        EOQ
+
+        args = [self.input.key_name.value]
+      }
+
+      with "compute_disks" {
+        sql = <<-EOQ
+          select
+            d.id::text as disk_id
+          from
+            gcp_compute_disk d,
+            gcp_kms_key_version k
+          where
+            and d.disk_encryption_key is not null
+            and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = $1;
+        EOQ
+
+        args = [self.input.key_name.value]
+      }
+
+      with "sql_database_instances" {
+        sql = <<-EOQ
+          select
+            i.name as instance_name
+          from
+            gcp_sql_database_instance as i
+          where
+            split_part(i.kms_key_name, 'cryptoKeys/', 2) = $1;
+        EOQ
+
+        args = [self.input.key_name.value]
+      }
+
+      with "kubernetes_clusters" {
+        sql = <<-EOQ
+          select
+            c.name as cluster_name
+          from
+            gcp_kubernetes_cluster c
+          where
+            c.database_encryption_key_name is not null
+            and split_part(c.database_encryption_key_name, 'cryptoKeys/', 2) = $1;
+        EOQ
+
+        args = [self.input.key_name.value]
+      }
+
+      with "compute_snapshots" {
+        sql = <<-EOQ
+          select
+            s.id as snapshot_id
+          from
+            gcp_compute_snapshot s,
+            gcp_kms_key_version v
+          where
+            v.crypto_key_version::text = split_part(s.kms_key_name, 'cryptoKeyVersions/', 2)
+            and split_part(s.kms_key_name, '/', 8) = v.name
+            and v.name = $1;
+        EOQ
+
+        args = [self.input.key_name.value]
+      }
+
+      with "compute_images" {
+        sql = <<-EOQ
+          select
+            i.id as iamge_id
+          from
+            gcp_compute_image as i
+          where
+            split_part(i.image_encryption_key->>'kmsKeyName', '/', -3) = $1;
+        EOQ
+
+        args = [self.input.key_name.value]
+      }
+
+      with "bigquery_datasets" {
+        sql = <<-EOQ
+          select
+            d.id as dataset_id
+          from
+            gcp_bigquery_dataset d
+          where
+            split_part(d.kms_key_name, 'cryptoKeys/', 2) = $1;
+        EOQ
+
+        args = [self.input.key_name.value]
+      }
+
+      with "bigquery_tables" {
+        sql = <<-EOQ
+          select
+            t.id as table_id
+          from
+            gcp_bigquery_table t
+          where
+            split_part(t.kms_key_name, 'cryptoKeys/', 2) = $1;
+        EOQ
+
+        args = [self.input.key_name.value]
+      }
+
+      with "kms_key_rings" {
+        sql = <<-EOQ
+          select
+            concat(p.name, '_key_ring') as ring_name
+          from
+            gcp_kms_key_ring p,
+            gcp_kms_key k
+          where
+            k.key_ring_name = p.name
+            and k.name = $1;
+        EOQ
+
+        args = [self.input.key_name.value]
+      }
 
       nodes = [
         node.kms_key,
-        node.kms_key_from_storage_bucket,
-        node.kms_key_from_pubsub_topic,
-        node.kms_key_from_kms_key_ring,
-        node.kms_key_from_compute_disk,
-        node.kms_key_from_gcp_compute_image,
-        node.kms_key_from_compute_snapshot,
-        node.kms_key_from_sql_database_instance,
-        node.kms_key_from_bigquery_dataset,
-        node.kms_key_from_bigquery_table,
-        node.kms_key_to_kms_key_version,
-        node.kms_key_from_kubernetes_cluster
+        node.compute_disk,
+        node.storage_bucket,
+        node.pubsub_topic,
+        node.sql_database_instance,
+        node.kubernetes_cluster,
+        node.compute_snapshot,
+        node.compute_image,
+        node.bigquery_dataset,
+        node.bigquery_table,
+        node.kms_key_ring,
+        node.kms_key_version,
+
+        node.kms_key_from_sql_backup
       ]
 
       edges = [
-        edge.kms_key_from_storage_bucket_edge,
-        edge.kms_key_from_pubsub_topic_edge,
-        edge.kms_key_from_kms_key_ring_edge,
-        edge.kms_key_from_compute_disk_edge,
-        edge.kms_key_from_gcp_compute_image_edge,
-        edge.kms_key_from_compute_snapshot_edge,
-        edge.kms_key_from_sql_database_instance_edge,
-        edge.kms_key_from_bigquery_dataset_edge,
-        edge.kms_key_from_bigquery_table_edge,
-        edge.kms_key_to_kms_key_version_edge,
-        edge.kms_key_from_kubernetes_cluster_edge
+        edge.compute_disk_to_kms_key,
+        edge.storage_bucket_to_kms_key,
+        edge.pubsub_topic_to_kms_key,
+        edge.sql_database_instance_to_kms_key,
+        edge.kubernetes_cluster_to_kms_key,
+        edge.compute_snapshot_to_kms_key,
+        edge.compute_image_to_kms_key,
+        edge.bigquery_dataset_to_kms_key,
+        edge.bigquery_table_to_kms_key,
+        edge.kms_key_ring_to_kms_key,
+        edge.kms_key_to_kms_key_version,
+
+        edge.kms_key_from_sql_backup
       ]
 
       args = {
-        key_name      = self.input.key_name.value
-        kms_key_names = [self.input.key_name.value]
+        key_name                 = self.input.key_name.value
+        kms_key_names            = [self.input.key_name.value]
+        storage_bucket_ids       = with.storage_buckets.rows[*].bucket_id
+        pubsub_topic_names       = with.pubsub_topics.rows[*].topic_name
+        compute_disk_ids         = with.compute_disks.rows[*].disk_id
+        database_instance_names  = with.sql_database_instances.rows[*].instance_name
+        kubernetes_cluster_names = with.kubernetes_clusters.rows[*].cluster_name
+        compute_snapshot_ids     = with.compute_snapshots.rows[*].snapshot_id
+        compute_image_ids        = with.compute_images.rows[*].image_id
+        bigquery_dataset_ids     = with.bigquery_datasets.rows[*].dataset_id
+        bigquery_table_ids       = with.bigquery_tables.rows[*].table_id
+        kms_key_ring_names       = with.kms_key_rings.rows[*].ring_name
       }
     }
   }
@@ -141,543 +294,6 @@ query "kms_key_name_input" {
     order by
       title;
   EOQ
-}
-
-node "kms_key" {
-  category = category.kms_key
-
-  sql = <<-EOQ
-    select
-      name as id,
-      title,
-      jsonb_build_object(
-        'Name', name,
-        'Created Time', create_time,
-        'Location', location
-      ) as properties
-    from
-      gcp_kms_key
-    where
-      name = any($1);
-  EOQ
-
-  param "kms_key_names" {}
-}
-
-node "kms_key_from_storage_bucket" {
-  category = category.storage_bucket
-
-  sql = <<-EOQ
-    select
-      b.id,
-      b.title,
-      jsonb_build_object(
-        'Name', b.name,
-        'Created Time', b.time_created,
-        'Storage Class', b.storage_class
-      ) as properties
-    from
-      gcp_storage_bucket b,
-      gcp_kms_key k
-    where
-      k.name = split_part(b.default_kms_key_name, 'cryptoKeys/', 2)
-      and k.name = $1;
-  EOQ
-
-  param "key_name" {}
-}
-
-edge "kms_key_from_storage_bucket_edge" {
-  title = "encrypted with"
-
-  sql = <<-EOQ
-    select
-      b.id as from_id,
-      k.name as to_id
-    from
-      gcp_storage_bucket b,
-      gcp_kms_key k
-    where
-      k.name = $1
-      and b.default_kms_key_name is not null
-      and split_part(b.default_kms_key_name, 'cryptoKeys/', 2) = k.name;
-  EOQ
-
-  param "key_name" {}
-}
-
-node "kms_key_from_pubsub_topic" {
-  category = category.pubsub_topic
-
-  sql = <<-EOQ
-    select
-      p.name as id,
-      p.title,
-      jsonb_build_object(
-        'Name', p.name,
-        'Location', p.location,
-        'Project', p.project,
-        'Self Link', p.self_link
-      ) as properties
-    from
-      gcp_pubsub_topic p,
-      gcp_kms_key k
-    where
-      k.name = split_part(p.kms_key_name, 'cryptoKeys/', 2)
-      and k.name = $1;
-  EOQ
-
-  param "key_name" {}
-}
-
-edge "kms_key_from_pubsub_topic_edge" {
-  title = "encrypted with"
-
-  sql = <<-EOQ
-    select
-      p.name as from_id,
-      k.name as to_id
-    from
-      gcp_pubsub_topic p,
-      gcp_kms_key k
-    where
-      k.name = split_part(p.kms_key_name, 'cryptoKeys/', 2)
-      and k.name = $1;
-  EOQ
-
-  param "key_name" {}
-}
-
-node "kms_key_from_kms_key_ring" {
-  category = category.kms_key_ring
-
-  sql = <<-EOQ
-    select
-      concat(p.name, '_key_ring') as id,
-      p.title,
-      jsonb_build_object(
-        'Name', p.name,
-        'Location', p.location,
-        'Project', p.project,
-        'Create Time', p.create_time
-      ) as properties
-    from
-      gcp_kms_key_ring p,
-      gcp_kms_key k
-    where
-      k.key_ring_name = p.name
-      and k.name = $1;
-  EOQ
-
-  param "key_name" {}
-}
-
-edge "kms_key_from_kms_key_ring_edge" {
-  title = "organizes"
-
-  sql = <<-EOQ
-    select
-      concat(p.name, '_key_ring') as from_id,
-      k.name as to_id
-    from
-      gcp_kms_key_ring p,
-      gcp_kms_key k
-    where
-      k.key_ring_name = p.name
-      and k.name = $1;
-  EOQ
-
-  param "key_name" {}
-}
-
-node "kms_key_from_compute_disk" {
-  category = category.compute_disk
-
-  sql = <<-EOQ
-    select
-      d.id::text,
-      d.title,
-      jsonb_build_object(
-        'ID', d.id,
-        'Created Time', d.creation_timestamp,
-        'Size(GB)', d.size_gb,
-        'Status', d.status,
-        'Encryption Key Type', d.disk_encryption_key_type
-      ) as properties
-    from
-      gcp_compute_disk d,
-      gcp_kms_key k
-    where
-      k.name = $1
-      and d.disk_encryption_key is not null
-      and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.name;
-  EOQ
-
-  param "key_name" {}
-}
-
-edge "kms_key_from_compute_disk_edge" {
-  title = "encrypted with"
-
-  sql = <<-EOQ
-    select
-      d.id::text as from_id,
-      k.name as to_id
-    from
-      gcp_compute_disk d,
-      gcp_kms_key_version k
-    where
-      k.name = $1
-      and d.disk_encryption_key is not null
-      and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.name;
-  EOQ
-
-  param "key_name" {}
-}
-
-node "kms_key_from_sql_database_instance" {
-  category = category.sql_database_instance
-
-  sql = <<-EOQ
-    select
-      i.name as id,
-      i.title,
-      jsonb_build_object(
-        'Name', i.name,
-        'State', i.state,
-        'Instance Type', i.instance_type,
-        'Database Version', i.database_version,
-        'KMS Key Name', i.kms_key_name,
-        'Location', i.location
-      ) as properties
-    from
-      gcp_sql_database_instance as i,
-      gcp_kms_key as k
-    where
-      split_part(i.kms_key_name, 'cryptoKeys/', 2) = k.name
-      and k.name = $1;
-  EOQ
-
-  param "key_name" {}
-}
-
-edge "kms_key_from_sql_database_instance_edge" {
-  title = "encrypted with"
-
-  sql = <<-EOQ
-    select
-      i.name as from_id,
-      k.name as to_id
-    from
-      gcp_sql_database_instance as i,
-      gcp_kms_key as k
-    where
-      split_part(i.kms_key_name, 'cryptoKeys/', 2) = k.name
-      and k.name = $1;
-  EOQ
-
-  param "key_name" {}
-}
-
-node "kms_key_from_gcp_compute_image" {
-  category = category.compute_image
-
-  sql = <<-EOQ
-    select
-      i.name as id,
-      i.title,
-      jsonb_build_object(
-        'Name', i.name,
-        'Status', i.status,
-        'KMS Key Name', split_part(i.image_encryption_key->>'kmsKeyName', '/', -3),
-        'Location', i.location
-      ) as properties
-    from
-      gcp_compute_image as i,
-      gcp_kms_key as k
-    where
-      split_part(i.image_encryption_key->>'kmsKeyName', '/', -3) = k.name
-      and k.name = $1;
-  EOQ
-
-  param "key_name" {}
-}
-
-edge "kms_key_from_gcp_compute_image_edge" {
-  title = "encrypted with"
-
-  sql = <<-EOQ
-    select
-      i.name as from_id,
-      k.name as to_id
-    from
-      gcp_compute_image as i,
-      gcp_kms_key as k
-    where
-      split_part(i.image_encryption_key->>'kmsKeyName', '/', -3) = k.name
-      and k.name = $1;
-  EOQ
-
-  param "key_name" {}
-}
-
-node "kms_key_from_compute_snapshot" {
-  category = category.compute_snapshot
-
-  sql = <<-EOQ
-    select
-      s.name as id,
-      s.title,
-      jsonb_build_object(
-        'Name', s.name,
-        'Created Time', s.creation_timestamp,
-        'Size(GB)', s.disk_size_gb,
-        'Status', s.status
-      ) as properties
-    from
-      gcp_compute_snapshot s,
-      gcp_kms_key_version v
-    where
-      v.crypto_key_version::text = split_part(s.kms_key_name, 'cryptoKeyVersions/', 2)
-      and split_part(s.kms_key_name, '/', 8) = v.name
-      and v.name = $1;
-  EOQ
-
-  param "key_name" {}
-}
-
-edge "kms_key_from_compute_snapshot_edge" {
-  title = "encrypted with"
-
-  sql = <<-EOQ
-    select
-      s.name as from_id,
-      v.name || '_' || v.crypto_key_version as to_id
-    from
-      gcp_compute_snapshot s,
-      gcp_kms_key_version v
-    where
-      v.crypto_key_version::text = split_part(s.kms_key_name, 'cryptoKeyVersions/', 2)
-      and split_part(s.kms_key_name, '/', 8) = v.name
-      and v.name = $1;
-  EOQ
-
-  param "key_name" {}
-}
-
-node "kms_key_from_bigquery_dataset" {
-  category = category.bigquery_dataset
-
-  sql = <<-EOQ
-    select
-      d.id,
-      d.title,
-      jsonb_build_object(
-        'ID', d.id,
-        'Created Time', d.creation_time,
-        'Table Expiration(ms)', d.default_table_expiration_ms,
-        'KMS Key', d.kms_key_name,
-        'Location', d.location
-      ) as properties
-    from
-      gcp_kms_key k,
-      gcp_bigquery_dataset d
-    where
-      k.name = split_part(d.kms_key_name, 'cryptoKeys/', 2)
-      and k.name = $1;
-  EOQ
-
-  param "key_name" {}
-}
-
-edge "kms_key_from_bigquery_dataset_edge" {
-  title = "encrypted with"
-
-  sql = <<-EOQ
-    select
-      d.id as from_id,
-      k.name as to_id
-    from
-      gcp_kms_key k,
-      gcp_bigquery_dataset d
-    where
-      k.name = split_part(d.kms_key_name, 'cryptoKeys/', 2)
-      and k.name = $1;
-  EOQ
-
-  param "key_name" {}
-}
-
-node "kms_key_from_bigquery_table" {
-  category = category.bigquery_table
-
-  sql = <<-EOQ
-    select
-      t.id,
-      t.title,
-      jsonb_build_object(
-        'ID', t.id,
-        'Created Time', t.creation_time,
-        'Dataset Id', t.dataset_id,
-        'Expiration Time', t.expiration_time,
-        'KMS Key', t.kms_key_name,
-        'Location', t.location
-      ) as properties
-    from
-      gcp_kms_key k,
-      gcp_bigquery_table t
-    where
-      k.name = split_part(t.kms_key_name, 'cryptoKeys/', 2)
-      and k.name = $1;
-  EOQ
-
-  param "key_name" {}
-}
-
-edge "kms_key_from_bigquery_table_edge" {
-  title = "encrypted with"
-
-  sql = <<-EOQ
-    select
-      t.id as from_id,
-      k.name as to_id
-    from
-      gcp_kms_key k,
-      gcp_bigquery_table t
-    where
-      k.name = split_part(t.kms_key_name, 'cryptoKeys/', 2)
-      and k.name = $1;
-  EOQ
-
-  param "key_name" {}
-}
-
-node "kms_key_from_sql_backup" {
-  category = category.sql_backup
-
-  sql = <<-EOQ
-    select
-      b.id::text,
-      b.title,
-      jsonb_build_object(
-        'ID', b.id,
-        'Created Time', b.end_time,
-        'Instance Name', b.instance_name,
-        'Type', b.type,
-        'Status', b.status,
-        'Location', b.location
-      ) as properties
-    from
-      gcp_kms_key k,
-      gcp_sql_backup b
-    where
-      split_part(b.disk_encryption_configuration ->> 'kmsKeyName','cryptoKeys/',2) = $1;
-  EOQ
-
-  param "key_name" {}
-}
-
-edge "kms_key_from_sql_backup_edge" {
-  title = "encrypted with"
-
-  sql = <<-EOQ
-    select
-      b.id::text as from_id,
-      k.name as to_id
-    from
-      gcp_kms_key k,
-      gcp_sql_backup b
-    where
-      split_part(b.disk_encryption_configuration ->> 'kmsKeyName','cryptoKeys/',2) = $1;
-  EOQ
-
-  param "key_name" {}
-}
-
-node "kms_key_to_kms_key_version" {
-  category = category.kms_key_version
-
-  sql = <<-EOQ
-    select
-      v.name || '_' || v.crypto_key_version as id,
-      v.title,
-      jsonb_build_object(
-        'Created Time', v.create_time,
-        'Destroy Time', v.destroy_time,
-        'Algorithm', v.algorithm,
-        'Crypto Key Version', v.crypto_key_version,
-        'Protection Level', v.protection_level,
-        'State', v.state,
-        'Location', v.location
-      ) as properties
-    from
-      gcp_kms_key_version v
-    where
-      v.name = $1;
-  EOQ
-
-  param "key_name" {}
-}
-
-edge "kms_key_to_kms_key_version_edge" {
-  title = "version"
-
-  sql = <<-EOQ
-    select
-      $1 as from_id,
-      v.name || '_' || v.crypto_key_version as to_id
-    from
-      gcp_kms_key_version v
-    where
-      v.name = $1;
-  EOQ
-
-  param "key_name" {}
-}
-
-node "kms_key_from_kubernetes_cluster" {
-  category = category.kubernetes_cluster
-
-  sql = <<-EOQ
-    select
-      c.name as id,
-      c.title,
-      jsonb_build_object(
-        'Name', c.name,
-        'Created Time', c.create_time,
-        'Endpoint', c.endpoint,
-        'Services IPv4 CIDR', c.services_ipv4_cidr,
-        'Status', c.status
-      ) as properties
-    from
-      gcp_kubernetes_cluster c,
-      gcp_kms_key k
-    where
-      k.name = $1
-      and c.database_encryption_key_name is not null
-      and split_part(c.database_encryption_key_name, 'cryptoKeys/', 2) = k.name;
-  EOQ
-
-  param "key_name" {}
-}
-
-edge "kms_key_from_kubernetes_cluster_edge" {
-  title = "encrypted with"
-
-  sql = <<-EOQ
-    select
-      c.name as from_id,
-      k.name as to_id
-    from
-      gcp_kubernetes_cluster c,
-      gcp_kms_key k
-    where
-      k.name = $1
-      and c.database_encryption_key_name is not null
-      and split_part(c.database_encryption_key_name, 'cryptoKeys/', 2) = k.name;
-  EOQ
-
-  param "key_name" {}
 }
 
 query "kms_key_purpose" {

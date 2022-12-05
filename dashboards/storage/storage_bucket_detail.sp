@@ -68,9 +68,8 @@ dashboard "storage_bucket_detail" {
   container {
 
     graph {
-      title     = "Relationships"
-      type      = "graph"
-      direction = "TD"
+      title = "Relationships"
+      type  = "graph"
 
       with "kms_keys" {
         sql = <<-EOQ

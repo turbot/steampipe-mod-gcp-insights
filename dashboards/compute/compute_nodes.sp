@@ -22,6 +22,29 @@ node "compute_disk" {
   param "compute_disk_ids" {}
 }
 
+node "compute_image" {
+  category = category.compute_image
+
+  sql = <<-EOQ
+    select
+      i.id::text,
+      i.title,
+      jsonb_build_object(
+        'ID', i.id::text,
+        'Name', i.name,
+        'Created Time', i.creation_timestamp,
+        'Size(GB)', i.disk_size_gb,
+        'Status', i.status
+      ) as properties
+    from
+      gcp_compute_image i
+    where
+      i.id = any($1);
+  EOQ
+
+  param "compute_image_ids" {}
+}
+
 node "compute_disk_to_compute_disk" {
   category = category.compute_disk
 
@@ -79,7 +102,7 @@ node "compute_disk_to_compute_snapshot" {
 
   sql = <<-EOQ
     select
-      s.name as id,
+      s.id::text as id,
       s.title,
       jsonb_build_object(
         'Name', s.name,
@@ -103,7 +126,7 @@ node "compute_disk_from_compute_snapshot" {
 
   sql = <<-EOQ
     select
-      s.name as id,
+      s.id::text,
       s.title,
       jsonb_build_object(
         'Name', s.name,
@@ -152,7 +175,7 @@ node "compute_disk_from_compute_image" {
 
   sql = <<-EOQ
     select
-      i.name as id,
+      i.id::text,
       i.title,
       jsonb_build_object(
         'Name', i.name,
@@ -341,7 +364,7 @@ node "compute_snapshot" {
 
   sql = <<-EOQ
     select
-      s.name as id,
+      s.id:text,
       s.title,
       jsonb_build_object(
         'Name', s.name,
@@ -355,7 +378,7 @@ node "compute_snapshot" {
       s.id = any($1);
   EOQ
 
-  param "snapshot_ids" {}
+  param "compute_snapshot_ids" {}
 }
 
 node "service_account" {
