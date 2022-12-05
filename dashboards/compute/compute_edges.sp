@@ -202,7 +202,7 @@ edge "compute_instance_to_service_account" {
   EOQ
 
   param "compute_instance_ids" {}
-  param "service_account_names" {}
+  param "iam_service_account_names" {}
 }
 
 ## Compute Instance Group

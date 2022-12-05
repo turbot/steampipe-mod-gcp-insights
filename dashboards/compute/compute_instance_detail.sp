@@ -141,7 +141,7 @@ dashboard "compute_instance_detail" {
         args = [self.input.instance_id.value]
       }
 
-      with "service_accounts" {
+      with "iam_service_accounts" {
         sql = <<-EOQ
           select
             s.name as account_name
@@ -184,7 +184,7 @@ dashboard "compute_instance_detail" {
         compute_firewall_ids       = with.compute_firewalls.rows[*].firewall_id
         compute_subnet_ids         = with.compute_subnets.rows[*].subnet_id
         compute_network_names      = with.compute_networks.rows[*].network_name
-        service_account_names      = with.service_accounts.rows[*].account_name
+        iam_service_account_names  = with.iam_service_accounts.rows[*].account_name
       }
     }
   }

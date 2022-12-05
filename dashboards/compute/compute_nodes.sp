@@ -380,25 +380,3 @@ node "compute_snapshot" {
 
   param "compute_snapshot_ids" {}
 }
-
-node "service_account" {
-  category = category.service_account
-
-  sql = <<-EOQ
-    select
-      s.name as id,
-      s.title,
-      jsonb_build_object(
-        'ID', s.unique_id,
-        'Enabled', not s.disabled,
-        'Region', s.location,
-        'OAuth 2.0 client ID', s.oauth2_client_id
-      ) as properties
-    from
-      gcp_service_account s
-    where
-      s.name = any($1);
-  EOQ
-
-  param "service_account_names" {}
-}
