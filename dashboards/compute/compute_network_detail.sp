@@ -67,10 +67,8 @@ dashboard "compute_network_detail" {
   container {
 
     graph {
-      title     = "Relationships"
-      type      = "graph"
-      direction = "TD"
-
+      title = "Relationships"
+      type  = "graph"
 
       nodes = [
         node.compute_network,
@@ -87,16 +85,16 @@ dashboard "compute_network_detail" {
       ]
 
       edges = [
-        edge.compute_network_from_compute_vpn_gateway_edge,
-        edge.compute_network_to_compute_subnetwork_edge,
-        edge.compute_network_to_compute_firewall_edge,
-        edge.compute_network_to_compute_backend_service_edge,
-        edge.compute_network_to_compute_router_edge,
-        edge.compute_network_to_sql_database_instance_edge,
-        edge.compute_network_to_dns_policy_edge,
-        edge.compute_network_to_kubernetes_cluster_edge,
-        edge.compute_network_to_compute_instances_edge,
-        edge.compute_network_to_compute_forwarding_rule_edge
+        edge.compute_network_from_compute_vpn_gateway,
+        edge.compute_network_to_compute_subnetwork,
+        edge.compute_network_to_compute_firewall,
+        edge.compute_network_to_compute_backend_service,
+        edge.compute_network_to_compute_router,
+        edge.compute_network_to_sql_database_instance,
+        edge.compute_network_to_dns_policy,
+        edge.compute_network_to_kubernetes_cluster,
+        edge.compute_network_to_compute_instances,
+        edge.compute_network_to_compute_forwarding_rule
       ]
 
       args = {
@@ -297,7 +295,7 @@ node "compute_network_to_compute_subnetwork" {
   param "name" {}
 }
 
-edge "compute_network_to_compute_subnetwork_edge" {
+edge "compute_network_to_compute_subnetwork" {
   title = "subnetwork"
 
   sql = <<-EOQ
@@ -340,7 +338,7 @@ node "compute_network_to_compute_firewall" {
   param "name" {}
 }
 
-edge "compute_network_to_compute_firewall_edge" {
+edge "compute_network_to_compute_firewall" {
   title = "firewall"
 
   sql = <<-EOQ
@@ -383,7 +381,7 @@ node "compute_network_to_compute_backend_service" {
   param "name" {}
 }
 
-edge "compute_network_to_compute_backend_service_edge" {
+edge "compute_network_to_compute_backend_service" {
   title = "backend service"
 
   sql = <<-EOQ
@@ -425,7 +423,7 @@ node "compute_network_to_compute_router" {
   param "name" {}
 }
 
-edge "compute_network_to_compute_router_edge" {
+edge "compute_network_to_compute_router" {
   title = "router"
 
   sql = <<-EOQ
@@ -469,7 +467,7 @@ node "compute_network_to_sql_database_instance" {
   param "name" {}
 }
 
-edge "compute_network_to_sql_database_instance_edge" {
+edge "compute_network_to_sql_database_instance" {
   title = "database instance"
 
   sql = <<-EOQ
@@ -511,7 +509,7 @@ node "compute_network_from_compute_vpn_gateway" {
   param "name" {}
 }
 
-edge "compute_network_from_compute_vpn_gateway_edge" {
+edge "compute_network_from_compute_vpn_gateway" {
   title = "network"
 
   sql = <<-EOQ
@@ -555,7 +553,7 @@ node "compute_network_to_dns_policy" {
   param "name" {}
 }
 
-edge "compute_network_to_dns_policy_edge" {
+edge "compute_network_to_dns_policy" {
   title = "dns policy"
 
   sql = <<-EOQ
@@ -600,7 +598,7 @@ node "compute_network_to_compute_instances" {
   param "name" {}
 }
 
-edge "compute_network_to_compute_instances_edge" {
+edge "compute_network_to_compute_instances" {
   title = "network"
 
   sql = <<-EOQ
@@ -643,7 +641,7 @@ node "compute_network_to_kubernetes_cluster" {
   param "name" {}
 }
 
-edge "compute_network_to_kubernetes_cluster_edge" {
+edge "compute_network_to_kubernetes_cluster" {
   title = "network"
 
   sql = <<-EOQ
@@ -684,7 +682,7 @@ node "compute_network_to_compute_forwarding_rule" {
   param "name" {}
 }
 
-edge "compute_network_to_compute_forwarding_rule_edge" {
+edge "compute_network_to_compute_forwarding_rule" {
   title = "forwarding rule"
 
   sql = <<-EOQ

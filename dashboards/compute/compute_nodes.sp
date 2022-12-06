@@ -1,3 +1,45 @@
+node "compute_address" {
+  category = category.compute_address
+
+  sql = <<-EOQ
+    select
+      a.id::text,
+      a.title,
+      jsonb_build_object(
+        'ID', a.id,
+        'Created Time', a.creation_timestamp,
+        'Address', a.address,
+        'Address Type', a.address_type,
+        'Purpose', a.purpose,
+        'Status', a.status
+      ) as properties
+    from
+      gcp_compute_address a
+    where
+      a.id = any($1)
+    
+    union
+
+    select
+      a.id::text,
+      a.title,
+      jsonb_build_object(
+        'ID', a.id,
+        'Created Time', a.creation_timestamp,
+        'Address', a.address,
+        'Address Type', a.address_type,
+        'Purpose', a.purpose,
+        'Status', a.status
+      ) as properties
+    from
+      gcp_compute_global_address a
+    where
+      a.id = any($1)
+  EOQ
+
+  param "compute_address_ids" {}
+}
+
 node "compute_autoscaler" {
   category = category.compute_autoscaler
 
@@ -262,6 +304,48 @@ node "compute_firewall" {
   param "compute_firewall_ids" {}
 }
 
+node "compute_forwarding_rule" {
+  category = category.compute_forwarding_rule
+
+  sql = <<-EOQ
+    select
+      r.id::text,
+      r.title,
+      jsonb_build_object(
+        'ID', r.id::text,
+        'Created Time', r.creation_timestamp,
+        'IP Address', r.ip_address,
+        'Global Access', r.allow_global_access,
+        'Load Balancing Scheme', r.load_balancing_scheme,
+        'Network Tier', r.network_tier
+      ) as properties
+    from
+      gcp_compute_forwarding_rule r
+    where
+      r.id = any($1)
+
+    union
+
+    select
+      r.id::text,
+      r.title,
+      jsonb_build_object(
+        'ID', r.id::text,
+        'Created Time', r.creation_timestamp,
+        'IP Address', r.ip_address,
+        'Global Access', r.allow_global_access,
+        'Load Balancing Scheme', r.load_balancing_scheme,
+        'Network Tier', r.network_tier
+      ) as properties
+    from
+      gcp_compute_global_forwarding_rule r
+    where
+      r.id = any($1)
+  EOQ
+
+  param "compute_forwarding_rule_ids" {}
+}
+
 node "compute_instance" {
   category = category.compute_instance
 
@@ -306,6 +390,28 @@ node "compute_instance_group" {
   EOQ
 
   param "compute_instance_group_ids" {}
+}
+
+node "compute_instance_template" {
+  category = category.compute_instance_template
+
+  sql = <<-EOQ
+    select
+      t.id::text,
+      t.title,
+      jsonb_build_object(
+        'ID', t.id,
+        'Name', t.name,
+        'Created Time', t.creation_timestamp,
+        'Location', t.location
+      ) as properties
+    from
+      gcp_compute_instance_template t
+    where
+      t.id = $1;
+  EOQ
+
+  param "compute_instance_template_ids" {}
 }
 
 node "compute_image" {

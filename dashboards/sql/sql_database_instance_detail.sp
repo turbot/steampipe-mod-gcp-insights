@@ -71,9 +71,8 @@ dashboard "sql_database_instance_detail" {
   container {
 
     graph {
-      title     = "Relationships"
-      type      = "graph"
-      direction = "TD"
+      title = "Relationships"
+      type  = "graph"
 
       with "compute_networks" {
         sql = <<-EOQ
