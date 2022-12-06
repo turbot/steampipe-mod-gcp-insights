@@ -43,15 +43,18 @@ edge "kubernetes_cluster_to_compute_instance_group" {
 
   sql = <<-EOQ
     select
-      cluster_name as from_id,
-      instance_group_id as to_id
+      c.name as from_id,
+      g.id::text as to_id
     from
-      unnest($1::text[]) as cluster_name,
-      unnest($2::text[]) as instance_group_id;
+      gcp_kubernetes_cluster c,
+      gcp_compute_instance_group g,
+      jsonb_array_elements_text(instance_group_urls) ig
+    where
+      split_part(ig, 'instanceGroupManagers/', 2) = g.name
+      and c.name = any($1);
   EOQ
 
   param "kubernetes_cluster_names" {}
-  param "compute_instance_group_ids" {}
 }
 
 edge "kubernetes_cluster_to_compute_subnetwork" {
