@@ -68,20 +68,3 @@ edge "bigquery_table_to_kms_key" {
 
   param "bigquery_table_ids" {}
 }
-
-edge "kms_key_from_sql_backup" {
-  title = "encrypted with"
-
-  sql = <<-EOQ
-    select
-      b.id::text as from_id,
-      k.name as to_id
-    from
-      gcp_kms_key k,
-      gcp_sql_backup b
-    where
-      split_part(b.disk_encryption_configuration ->> 'kmsKeyName','cryptoKeys/',2) = $1;
-  EOQ
-
-  param "key_name" {}
-}

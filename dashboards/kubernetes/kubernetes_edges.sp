@@ -1,5 +1,43 @@
 ## Kubernetes Cluster
 
+edge "kubernetes_cluster_to_bigquery_dataset" {
+  title = "usage metering"
+
+  sql = <<-EOQ
+    select
+      c.name as from_id,
+      d.id as to_id
+    from
+      gcp_kubernetes_cluster c,
+      gcp_bigquery_dataset d
+    where
+      c.name = any($1)
+      and c.resource_usage_export_config -> 'bigqueryDestination' ->> 'datasetId' = d.dataset_id;
+  EOQ
+
+  param "kubernetes_cluster_names" {}
+}
+
+edge "kubernetes_cluster_to_compute_firewall" {
+  title = "firewall"
+
+  sql = <<-EOQ
+    select
+      c.name as from_id,
+      f.id::text as to_id
+    from
+      gcp_kubernetes_cluster c,
+      gcp_compute_network n,
+      gcp_compute_firewall f
+    where
+      c.network = n.name
+      and n.self_link = f.network
+      and c.name = any($1);
+  EOQ
+
+  param "kubernetes_cluster_names" {}
+}
+
 edge "kubernetes_cluster_to_compute_instance_group" {
   title = "instance group"
 
@@ -14,6 +52,26 @@ edge "kubernetes_cluster_to_compute_instance_group" {
 
   param "kubernetes_cluster_names" {}
   param "compute_instance_group_ids" {}
+}
+
+edge "kubernetes_cluster_to_compute_subnetwork" {
+  title = "subnetwork"
+
+  sql = <<-EOQ
+    select
+      c.name as from_id,
+      s.id::text as to_id
+    from
+      gcp_kubernetes_cluster c,
+      gcp_compute_network n,
+      gcp_compute_subnetwork s
+    where
+      c.name = any($1)
+      and c.network = n.name
+      and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
+  EOQ
+
+  param "kubernetes_cluster_names" {}
 }
 
 edge "kubernetes_cluster_to_kms_key" {
@@ -33,6 +91,22 @@ edge "kubernetes_cluster_to_kms_key" {
       c.name = any($1)
       and c.database_encryption_key_name is not null
       and split_part(c.database_encryption_key_name, 'cryptoKeys/', 2) = k.name;
+  EOQ
+
+  param "kubernetes_cluster_names" {}
+}
+
+edge "kubernetes_cluster_to_kubernetes_node_pool" {
+  title = "node pool"
+
+  sql = <<-EOQ
+    select
+      p.cluster_name as from_id,
+      p.name as to_id
+    from
+      gcp_kubernetes_node_pool p
+    where
+      p.cluster_name = any($1);
   EOQ
 
   param "kubernetes_cluster_names" {}
@@ -60,70 +134,6 @@ edge "kubernetes_cluster_to_pubsub_topic" {
   param "kubernetes_cluster_names" {}
 }
 
-edge "kubernetes_cluster_to_kubernetes_node_pool" {
-  title = "node pool"
-
-  sql = <<-EOQ
-    select
-      cluster_name as from_id,
-      pool_name as to_id
-    from
-      unnest($1::text[]) as cluster_name,
-      unnest($2::text[]) as pool_name;
-  EOQ
-
-  param "kubernetes_cluster_names" {}
-  param "kubernetes_node_pool_names" {}
-}
-
-edge "kubernetes_cluster_to_bigquery_dataset" {
-  title = "usage metering"
-
-  sql = <<-EOQ
-    select
-      cluster_name as from_id,
-      dataset_id as to_id
-    from
-      unnest($1::text[]) as cluster_name,
-      unnest($2::text[]) as dataset_id;
-  EOQ
-
-  param "kubernetes_cluster_names" {}
-  param "bigquery_dataset_ids" {}
-}
-
-edge "kubernetes_cluster_to_compute_firewall" {
-  title = "firewall"
-
-  sql = <<-EOQ
-    select
-      cluster_name as from_id,
-      firewall_id as to_id
-    from
-      unnest($1::text[]) as cluster_name,
-      unnest($2::text[]) as firewall_id;
-  EOQ
-
-  param "kubernetes_cluster_names" {}
-  param "compute_firewall_ids" {}
-}
-
-edge "kubernetes_cluster_to_compute_subnetwork" {
-  title = "subnetwork"
-
-  sql = <<-EOQ
-    select
-      cluster_name as from_id,
-      subnet_id as to_id
-    from
-      unnest($1::text[]) as cluster_name,
-      unnest($2::text[]) as subnet_id;
-  EOQ
-
-  param "kubernetes_cluster_names" {}
-  param "compute_subnet_ids" {}
-}
-
 ## Kubernetes Node Pool
 
 edge "kubernetes_node_pool_to_compute_instance_group" {
@@ -131,13 +141,16 @@ edge "kubernetes_node_pool_to_compute_instance_group" {
 
   sql = <<-EOQ
     select
-      pool_name as from_id,
-      group_id as to_id
+      p.name as from_id,
+      g.id::text as to_id
     from
-      unnest($1::text[]) as pool_name,
-      unnest($2::text[]) as group_id
+      gcp_kubernetes_node_pool p,
+      gcp_compute_instance_group g,
+      jsonb_array_elements_text(instance_group_urls) ig
+    where
+      p.name = any($1)
+      and split_part(ig, 'instanceGroupManagers/', 2) = g.name;
   EOQ
 
   param "kubernetes_node_pool_names" {}
-  param "compute_instance_group_ids" {}
 }

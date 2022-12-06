@@ -142,36 +142,35 @@ dashboard "compute_instance_group_detail" {
       }
 
       nodes = [
+        node.compute_autoscaler,
+        node.compute_backend_service,
+        node.compute_firewall,
         node.compute_instance_group,
         node.compute_instance,
-        node.compute_firewall,
         node.compute_network,
         node.compute_subnetwork,
-        node.kubernetes_cluster,
-        node.compute_backend_service,
-        node.compute_autoscaler
+        node.kubernetes_cluster
       ]
 
       edges = [
         edge.compute_backend_service_to_compute_instance_group,
-        edge.kubernetes_cluster_to_compute_instance_group,
-        edge.compute_subnetwork_to_compute_network,
+        edge.compute_instance_group_to_compute_autoscaler,
+        edge.compute_instance_group_to_compute_firewall,
         edge.compute_instance_group_to_compute_instance,
         edge.compute_instance_group_to_compute_subnetwork,
-        edge.compute_instance_group_to_compute_firewall,
-        edge.compute_instance_group_to_compute_autoscaler
+        edge.compute_subnetwork_to_compute_network,
+        edge.kubernetes_cluster_to_compute_instance_group
       ]
 
       args = {
-        id                          = self.input.group_id.value
+        compute_autoscaler_ids      = with.compute_autoscalers.rows[*].autoscaler_id
+        compute_backend_service_ids = with.compute_backend_services.rows[*].service_id
+        compute_firewall_ids        = with.compute_firewalls.rows[*].firewall_id
         compute_instance_group_ids  = [self.input.group_id.value]
         compute_instance_ids        = with.compute_instances.rows[*].instance_id
         compute_network_names       = with.compute_networks.rows[*].network_name
-        kubernetes_cluster_names    = with.kubernetes_clusters.rows[*].cluster_name
         compute_subnet_ids          = with.compute_subnets.rows[*].subnet_id
-        compute_firewall_ids        = with.compute_firewalls.rows[*].firewall_id
-        compute_backend_service_ids = with.compute_backend_services.rows[*].service_id
-        compute_autoscaler_ids      = with.compute_autoscalers.rows[*].autoscaler_id
+        kubernetes_cluster_names    = with.kubernetes_clusters.rows[*].cluster_name
       }
     }
   }

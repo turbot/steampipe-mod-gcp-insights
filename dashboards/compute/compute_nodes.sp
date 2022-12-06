@@ -1,3 +1,71 @@
+node "compute_autoscaler" {
+  category = category.compute_autoscaler
+
+  sql = <<-EOQ
+    select
+      a.id::text,
+      a.title,
+      jsonb_build_object(
+        'ID', a.id,
+        'Name', a.name,
+        'Created Time', a.creation_timestamp,
+        'Status', a.status,
+        'Location', a.location
+      ) as properties
+    from
+      gcp_compute_autoscaler a
+    where
+      a.id = any($1);
+  EOQ
+
+  param "compute_autoscaler_ids" {}
+}
+
+node "compute_backend_bucket" {
+  category = category.compute_backend_bucket
+
+  sql = <<-EOQ
+    select
+      c.id::text as id,
+      c.title,
+      jsonb_build_object(
+        'Name', c.name,
+        'Created Time', c.creation_timestamp,
+        'Description', c.description,
+        'Location', c.location
+      ) as properties
+    from
+      gcp_compute_backend_bucket c
+    where
+      c.id = any($1);
+  EOQ
+
+  param "compute_backend_bucket_ids" {}
+}
+
+node "compute_backend_service" {
+  category = category.compute_backend_service
+
+  sql = <<-EOQ
+    select
+      bs.id::text,
+      bs.title,
+      jsonb_build_object(
+        'ID', bs.id,
+        'Name', bs.name,
+        'Enable CDN', bs.enable_cdn,
+        'Protocol', bs.protocol,
+        'Location', bs.location
+      ) as properties
+    from
+      gcp_compute_backend_service bs
+    where
+      bs.id = any($1);
+  EOQ
+
+  param "compute_backend_service_ids" {}
+}
+
 node "compute_disk" {
   category = category.compute_disk
 
@@ -17,55 +85,6 @@ node "compute_disk" {
       gcp_compute_disk
     where
       id = any($1);
-  EOQ
-
-  param "compute_disk_ids" {}
-}
-
-node "compute_image" {
-  category = category.compute_image
-
-  sql = <<-EOQ
-    select
-      i.id::text,
-      i.title,
-      jsonb_build_object(
-        'ID', i.id::text,
-        'Name', i.name,
-        'Created Time', i.creation_timestamp,
-        'Size(GB)', i.disk_size_gb,
-        'Status', i.status
-      ) as properties
-    from
-      gcp_compute_image i
-    where
-      i.id = any($1);
-  EOQ
-
-  param "compute_image_ids" {}
-}
-
-node "compute_disk_to_compute_disk" {
-  category = category.compute_disk
-
-  sql = <<-EOQ
-    select
-      cd.id::text,
-      cd.title,
-      jsonb_build_object(
-        'ID', cd.id::text,
-        'Name', cd.name,
-        'Created Time', cd.creation_timestamp,
-        'Size(GB)', cd.size_gb,
-        'Status', cd.status,
-        'Encryption Key Type', cd.disk_encryption_key_type
-      ) as properties
-    from
-      gcp_compute_disk d,
-      gcp_compute_disk cd
-    where
-      d.id = any($1)
-      and d.id::text = cd.source_disk_id;
   EOQ
 
   param "compute_disk_ids" {}
@@ -97,25 +116,25 @@ node "compute_disk_from_compute_disk" {
   param "compute_disk_ids" {}
 }
 
-node "compute_disk_to_compute_snapshot" {
+node "compute_disk_from_compute_image" {
   category = category.compute_snapshot
 
   sql = <<-EOQ
     select
-      s.id::text as id,
-      s.title,
+      i.id::text,
+      i.title,
       jsonb_build_object(
-        'Name', s.name,
-        'Created Time', s.creation_timestamp,
-        'Size(GB)', s.disk_size_gb,
-        'Status', s.status
+        'Name', i.name,
+        'Created Time', i.creation_timestamp,
+        'Size(GB)', i.disk_size_gb,
+        'Status', i.status
       ) as properties
     from
       gcp_compute_disk d,
-      gcp_compute_snapshot s
+      gcp_compute_image i
     where
       d.id = any($1)
-      and d.self_link = s.source_disk;
+      and d.source_image = i.self_link;
   EOQ
 
   param "compute_disk_ids" {}
@@ -140,6 +159,32 @@ node "compute_disk_from_compute_snapshot" {
     where
       d.id = any($1)
       and d.source_snapshot = s.self_link;
+  EOQ
+
+  param "compute_disk_ids" {}
+}
+
+node "compute_disk_to_compute_disk" {
+  category = category.compute_disk
+
+  sql = <<-EOQ
+    select
+      cd.id::text,
+      cd.title,
+      jsonb_build_object(
+        'ID', cd.id::text,
+        'Name', cd.name,
+        'Created Time', cd.creation_timestamp,
+        'Size(GB)', cd.size_gb,
+        'Status', cd.status,
+        'Encryption Key Type', cd.disk_encryption_key_type
+      ) as properties
+    from
+      gcp_compute_disk d,
+      gcp_compute_disk cd
+    where
+      d.id = any($1)
+      and d.id::text = cd.source_disk_id;
   EOQ
 
   param "compute_disk_ids" {}
@@ -170,49 +215,25 @@ node "compute_disk_to_compute_image" {
   param "compute_disk_ids" {}
 }
 
-node "compute_disk_from_compute_image" {
+node "compute_disk_to_compute_snapshot" {
   category = category.compute_snapshot
 
   sql = <<-EOQ
     select
-      i.id::text,
-      i.title,
+      s.id::text as id,
+      s.title,
       jsonb_build_object(
-        'Name', i.name,
-        'Created Time', i.creation_timestamp,
-        'Size(GB)', i.disk_size_gb,
-        'Status', i.status
+        'Name', s.name,
+        'Created Time', s.creation_timestamp,
+        'Size(GB)', s.disk_size_gb,
+        'Status', s.status
       ) as properties
     from
       gcp_compute_disk d,
-      gcp_compute_image i
+      gcp_compute_snapshot s
     where
       d.id = any($1)
-      and d.source_image = i.self_link;
-  EOQ
-
-  param "compute_disk_ids" {}
-}
-
-node "compute_disk_to_compute_resource_policy" {
-  category = category.compute_resource_policy
-
-  sql = <<-EOQ
-   select
-      r.id as id,
-      r.title,
-      jsonb_build_object(
-        'Name', r.name,
-        'Created Time', r.creation_timestamp,
-        'Status', r.status
-      ) as properties
-    from
-      gcp_compute_disk d,
-      jsonb_array_elements_text(resource_policies) as rp,
-      gcp_compute_resource_policy r
-    where
-      d.id = any($1)
-      and rp = r.self_link
+      and d.self_link = s.source_disk;
   EOQ
 
   param "compute_disk_ids" {}
@@ -264,32 +285,6 @@ node "compute_instance" {
   param "compute_instance_ids" {}
 }
 
-node "compute_instance_to_compute_firewall" {
-  category = category.compute_firewall
-
-  sql = <<-EOQ
-    select
-      f.id::text,
-      f.title,
-      jsonb_build_object(
-        'ID', f.id,
-        'Direction', f.direction,
-        'Enabled', not f.disabled,
-        'Action', f.action,
-        'Priority', f.priority
-      ) as properties
-    from
-      gcp_compute_instance i,
-      gcp_compute_firewall f,
-      jsonb_array_elements(network_interfaces) as ni
-    where
-      ni ->> 'network' = f.network
-      and i.id = $1;
-  EOQ
-
-  param "id" {}
-}
-
 node "compute_instance_group" {
   category = category.compute_instance_group
 
@@ -313,50 +308,48 @@ node "compute_instance_group" {
   param "compute_instance_group_ids" {}
 }
 
-node "compute_autoscaler" {
-  category = category.compute_autoscaler
+node "compute_image" {
+  category = category.compute_image
 
   sql = <<-EOQ
     select
-      a.id::text,
-      a.title,
+      i.id::text,
+      i.title,
       jsonb_build_object(
-        'ID', a.id,
-        'Name', a.name,
-        'Created Time', a.creation_timestamp,
-        'Status', a.status,
-        'Location', a.location
+        'ID', i.id::text,
+        'Name', i.name,
+        'Created Time', i.creation_timestamp,
+        'Size(GB)', i.disk_size_gb,
+        'Status', i.status
       ) as properties
     from
-      gcp_compute_autoscaler a
+      gcp_compute_image i
     where
-      a.id = any($1);
+      i.id = any($1);
   EOQ
 
-  param "compute_autoscaler_ids" {}
+  param "compute_image_ids" {}
 }
 
-node "compute_backend_service" {
-  category = category.compute_backend_service
+node "compute_resource_policy" {
+  category = category.compute_resource_policy
 
   sql = <<-EOQ
-    select
-      bs.id::text,
-      bs.title,
+   select
+      r.id as id,
+      r.title,
       jsonb_build_object(
-        'ID', bs.id,
-        'Name', bs.name,
-        'Enable CDN', bs.enable_cdn,
-        'Protocol', bs.protocol,
-        'Location', bs.location
+        'Name', r.name,
+        'Created Time', r.creation_timestamp,
+        'Status', r.status
       ) as properties
     from
-      gcp_compute_backend_service bs
+      gcp_compute_resource_policy r
     where
-      bs.id = any($1);
+      r.id = any($1);
   EOQ
 
-  param "compute_backend_service_ids" {}
+  param "compute_resource_policy_ids" {}
 }
 
 node "compute_snapshot" {

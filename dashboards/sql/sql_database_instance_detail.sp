@@ -75,6 +75,21 @@ dashboard "sql_database_instance_detail" {
       type      = "graph"
       direction = "TD"
 
+      with "compute_networks" {
+        sql = <<-EOQ
+          select
+            n.name as network_name
+          from
+            gcp_sql_database_instance as i,
+            gcp_compute_network as n
+          where
+            SPLIT_PART(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
+            and i.name = $1;
+        EOQ
+
+        args = [self.input.database_instance_name.value]
+      }
+
       with "kms_keys" {
         sql = <<-EOQ
           select
@@ -89,16 +104,14 @@ dashboard "sql_database_instance_detail" {
         args = [self.input.database_instance_name.value]
       }
 
-      with "compute_networks" {
+      with "sql_backups" {
         sql = <<-EOQ
           select
-            n.name as network_name
+            id as backup_id
           from
-            gcp_sql_database_instance as i,
-            gcp_compute_network as n
+            gcp_sql_backup
           where
-            SPLIT_PART(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
-            and i.name = any($1);
+            instance_name = any($1);
         EOQ
 
         args = [self.input.database_instance_name.value]
@@ -115,19 +128,19 @@ dashboard "sql_database_instance_detail" {
       ]
 
       edges = [
+        edge.sql_database_instance_to_compute_network,
         edge.sql_database_instance_to_kms_key,
         edge.sql_database_instance_to_sql_database,
-        edge.sql_database_instance_to_compute_network,
-        edge.sql_database_instance_to_database_instance_replica,
         edge.sql_database_instance_to_sql_backup,
+        edge.sql_database_instance_to_database_instance_replica,
         edge.sql_database_instance_from_primary_database_instance
       ]
 
       args = {
-        name                    = self.input.database_instance_name.value
-        compute_network_names   = with.compute_networks.rows[*].network_name
-        database_instance_names = [self.input.database_instance_name.value]
-        kms_key_names           = with.kms_keys.rows[*].key_name
+        compute_network_names       = with.compute_networks.rows[*].network_name
+        kms_key_names               = with.kms_keys.rows[*].key_name
+        sql_backup_ids              = with.sql_backups.rows[*].backup_id
+        sql_database_instance_names = [self.input.database_instance_name.value]
       }
     }
   }

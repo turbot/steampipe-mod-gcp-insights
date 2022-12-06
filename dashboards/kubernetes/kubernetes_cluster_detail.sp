@@ -216,22 +216,22 @@ dashboard "kubernetes_cluster_detail" {
       nodes = [
         node.bigquery_dataset,
         node.compute_firewall,
-        node.compute_instance,
         node.compute_instance_group,
+        node.compute_instance,
+        node.compute_network,
+        node.compute_subnetwork,
         node.kms_key,
         node.kubernetes_cluster,
         node.kubernetes_node_pool,
-        node.pubsub_topic,
-        node.compute_subnetwork,
-        node.compute_network
+        node.pubsub_topic
       ]
 
       edges = [
         edge.compute_instance_group_to_compute_instance,
-        edge.kubernetes_cluster_to_bigquery_dataset,
         edge.compute_subnetwork_to_compute_network,
-        edge.kubernetes_cluster_to_compute_subnetwork,
+        edge.kubernetes_cluster_to_bigquery_dataset,
         edge.kubernetes_cluster_to_compute_firewall,
+        edge.kubernetes_cluster_to_compute_subnetwork,
         edge.kubernetes_cluster_to_kms_key,
         edge.kubernetes_cluster_to_kubernetes_node_pool,
         edge.kubernetes_cluster_to_pubsub_topic,
@@ -451,31 +451,6 @@ query "kubernetes_cluster_auto_repair_disabled" {
   EOQ
 
   param "name" {}
-}
-
-## Graph
-
-node "bigquery_dataset" {
-  category = category.bigquery_dataset
-
-  sql = <<-EOQ
-    select
-      d.id,
-      d.title,
-      jsonb_build_object(
-        'ID', d.id,
-        'Created Time', d.creation_time,
-        'Table Expiration(ms)', d.default_table_expiration_ms,
-        'KMS Key', d.kms_key_name,
-        'Location', d.location
-      ) as properties
-    from
-      gcp_bigquery_dataset d
-    where
-      d.dataset_id = any($1);
-  EOQ
-
-  param "bigquery_dataset_ids" {}
 }
 
 query "kubernetes_cluster_overview" {

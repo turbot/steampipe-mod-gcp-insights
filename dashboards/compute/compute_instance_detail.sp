@@ -177,13 +177,12 @@ dashboard "compute_instance_detail" {
       ]
 
       args = {
-        id                         = self.input.instance_id.value
-        compute_instance_ids       = [self.input.instance_id.value]
-        compute_instance_group_ids = with.compute_instance_groups.rows[*].group_id
         compute_disk_ids           = with.compute_disks.rows[*].disk_id
         compute_firewall_ids       = with.compute_firewalls.rows[*].firewall_id
-        compute_subnet_ids         = with.compute_subnets.rows[*].subnet_id
+        compute_instance_group_ids = with.compute_instance_groups.rows[*].group_id
+        compute_instance_ids       = [self.input.instance_id.value]
         compute_network_names      = with.compute_networks.rows[*].network_name
+        compute_subnet_ids         = with.compute_subnets.rows[*].subnet_id
         iam_service_account_names  = with.iam_service_accounts.rows[*].account_name
       }
     }

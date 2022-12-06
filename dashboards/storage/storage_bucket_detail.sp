@@ -71,6 +71,21 @@ dashboard "storage_bucket_detail" {
       title = "Relationships"
       type  = "graph"
 
+      with "compute_backend_buckets" {
+        sql = <<-EOQ
+          select
+            c.id::text as bucket_id
+          from
+            gcp_storage_bucket b,
+            gcp_compute_backend_bucket c
+          where
+            b.id = $1
+            and b.name = c.bucket_name;
+        EOQ
+
+        args = [self.input.bucket_id.value]
+      }
+
       with "kms_keys" {
         sql = <<-EOQ
           select
@@ -101,26 +116,11 @@ dashboard "storage_bucket_detail" {
         args = [self.input.bucket_id.value]
       }
 
-      with "compute_backend_buckets" {
-        sql = <<-EOQ
-          select
-            c.id::text as bucket_id
-          from
-            gcp_storage_bucket b,
-            gcp_compute_backend_bucket c
-          where
-            b.id = $1
-            and b.name = c.bucket_name;
-        EOQ
-
-        args = [self.input.bucket_id.value]
-      }
-
       nodes = [
-        node.storage_bucket,
+        node.compute_backend_bucket,
         node.kms_key,
         node.logging_bucket,
-        node.compute_backend_bucket
+        node.storage_bucket
       ]
 
       edges = [
@@ -130,10 +130,10 @@ dashboard "storage_bucket_detail" {
       ]
 
       args = {
-        storage_bucket_ids         = [self.input.bucket_id.value]
+        compute_backend_bucket_ids = with.compute_backend_buckets.rows[*].bucket_id
         kms_key_names              = with.kms_keys.rows[*].key_name
         logging_bucket_names       = with.logging_buckets.rows[*].bucket_name
-        compute_backend_bucket_ids = with.compute_backend_buckets.rows[*].bucket_id
+        storage_bucket_ids         = [self.input.bucket_id.value]
       }
     }
   }

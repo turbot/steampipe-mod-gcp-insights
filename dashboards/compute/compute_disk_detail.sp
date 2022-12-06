@@ -79,6 +79,22 @@ dashboard "compute_disk_detail" {
         args = [self.input.disk_id.value]
       }
 
+      with "compute_resource_policies" {
+        sql = <<-EOQ
+          select
+            r.id as policy_id
+          from
+            gcp_compute_disk d,
+            jsonb_array_elements_text(resource_policies) as rp,
+            gcp_compute_resource_policy r
+          where
+            d.id = $1
+            and rp = r.self_link;
+        EOQ
+
+        args = [self.input.disk_id.value]
+      }
+
       with "kms_keys" {
         sql = <<-EOQ
           select
@@ -94,8 +110,6 @@ dashboard "compute_disk_detail" {
 
         args = [self.input.disk_id.value]
       }
-
-
 
       with "to_disks" {
         sql = <<-EOQ
@@ -126,6 +140,7 @@ dashboard "compute_disk_detail" {
       nodes = [
         node.compute_disk,
         node.compute_instance,
+        node.compute_resource_policy,
         node.kms_key,
 
         node.compute_disk_to_compute_disk,
@@ -135,34 +150,32 @@ dashboard "compute_disk_detail" {
         node.compute_disk_from_compute_image,
 
         node.compute_disk_to_compute_snapshot,
-        node.compute_disk_from_compute_snapshot,
-
-        node.compute_disk_to_compute_resource_policy
+        node.compute_disk_from_compute_snapshot
       ]
 
       edges = [
         edge.compute_instance_to_compute_disk,
         edge.compute_disk_to_kms_key,
+        edge.compute_disk_to_compute_resource_policy,
+
         edge.compute_disk_to_compute_disk,
         edge.compute_disk_from_compute_disk,
-
 
         edge.compute_disk_to_compute_image,
         edge.compute_disk_from_compute_image,
 
         edge.compute_disk_to_compute_snapshot,
-        edge.compute_disk_from_compute_snapshot,
+        edge.compute_disk_from_compute_snapshot
 
-        edge.compute_disk_to_compute_resource_policy
       ]
 
       args = {
-        compute_disk_ids = [self.input.disk_id.value]
-        // compute_disk_ids      = [self.input.disk_id.value, with.to_disks.rows[*].disk_id, with.from_disks.rows[*].disk_id]
-        to_disk_ids          = with.to_disks.rows[*].disk_id
-        from_disk_ids        = with.from_disks.rows[*].disk_id
-        compute_instance_ids = with.compute_instances.rows[*].instance_id
-        kms_key_names        = with.kms_keys.rows[*].key_name
+        compute_disk_ids            = [self.input.disk_id.value]
+        compute_instance_ids        = with.compute_instances.rows[*].instance_id
+        compute_resource_policy_ids = with.compute_resource_policies.rows[*].policy_id
+        from_disk_ids               = with.from_disks.rows[*].disk_id
+        kms_key_names               = with.kms_keys.rows[*].key_name
+        to_disk_ids                 = with.to_disks.rows[*].disk_id
       }
     }
   }

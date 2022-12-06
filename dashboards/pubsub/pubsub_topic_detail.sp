@@ -127,13 +127,12 @@ dashboard "pubsub_topic_detail" {
       ]
 
       args = {
-        name                      = self.input.name.value
-        pubsub_topic_names        = [self.input.name.value]
         iam_role_ids              = with.iam_roles.rows[*].role_id
         kms_key_names             = with.kms_keys.rows[*].key_name
         kubernetes_cluster_names  = with.kubernetes_clusters.rows[*].cluster_name
         pubsub_snapshot_names     = with.pubsub_snapshots.rows[*].snapshot_name
         pubsub_subscription_names = with.pubsub_subscriptions.rows[*].subscription_name
+        pubsub_topic_names        = [self.input.name.value]
       }
     }
   }

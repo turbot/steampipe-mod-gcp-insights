@@ -1,35 +1,19 @@
-edge "sql_database_instance_to_kms_key" {
+edge "sql_backup_to_kms_key" {
   title = "encrypted with"
 
   sql = <<-EOQ
     select
-      i.name as from_id,
+      b.id::text as from_id,
       k.name as to_id
     from
-      gcp_sql_database_instance as i,
-      gcp_kms_key as k
+      gcp_kms_key k,
+      gcp_sql_backup b
     where
-      i.name = any($1) and i.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2));
+      split_part(b.disk_encryption_configuration ->> 'kmsKeyName','cryptoKeys/',2) = k.name
+      and b.id = any($1);
   EOQ
 
-  param "database_instance_names" {}
-}
-
-edge "sql_database_instance_to_sql_database" {
-  title = "database"
-
-  sql = <<-EOQ
-    select
-      i.name as from_id,
-      d.name as to_id
-    from
-      gcp_sql_database_instance as i,
-      gcp_sql_database d
-    where
-      d.instance_name = any($1);
-  EOQ
-
-  param "database_instance_names" {}
+  param "sql_backup_ids" {}
 }
 
 edge "sql_database_instance_to_compute_network" {
@@ -47,7 +31,41 @@ edge "sql_database_instance_to_compute_network" {
       and i.name = any($1);
   EOQ
 
-  param "database_instance_names" {}
+  param "sql_database_instance_names" {}
+}
+
+edge "sql_database_instance_to_kms_key" {
+  title = "encrypted with"
+
+  sql = <<-EOQ
+    select
+      i.name as from_id,
+      k.name as to_id
+    from
+      gcp_sql_database_instance as i,
+      gcp_kms_key as k
+    where
+      i.name = any($1) and i.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2));
+  EOQ
+
+  param "sql_database_instance_names" {}
+}
+
+edge "sql_database_instance_to_sql_database" {
+  title = "database"
+
+  sql = <<-EOQ
+    select
+      i.name as from_id,
+      d.name as to_id
+    from
+      gcp_sql_database_instance as i,
+      gcp_sql_database d
+    where
+      d.instance_name = any($1);
+  EOQ
+
+  param "sql_database_instance_names" {}
 }
 
 edge "sql_database_instance_to_sql_backup" {
@@ -63,7 +81,7 @@ edge "sql_database_instance_to_sql_backup" {
       instance_name = any($1);
   EOQ
 
-  param "database_instance_names" {}
+  param "sql_database_instance_names" {}
 }
 
 edge "sql_database_instance_to_database_instance_replica" {
@@ -79,7 +97,7 @@ edge "sql_database_instance_to_database_instance_replica" {
       SPLIT_PART(master_instance_name, ':', 2) = any($1);
   EOQ
 
-  param "database_instance_names" {}
+  param "sql_database_instance_names" {}
 }
 
 edge "sql_database_instance_from_primary_database_instance" {
@@ -105,5 +123,5 @@ edge "sql_database_instance_from_primary_database_instance" {
       i.name = m.mname;
   EOQ
 
-  param "database_instance_names" {}
+  param "sql_database_instance_names" {}
 }

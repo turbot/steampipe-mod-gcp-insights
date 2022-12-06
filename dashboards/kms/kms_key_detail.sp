@@ -62,105 +62,6 @@ dashboard "kms_key_detail" {
       title = "Relationships"
       type  = "graph"
 
-      with "storage_buckets" {
-        sql = <<-EOQ
-          select
-            b.id as bucket_id
-          from
-            gcp_storage_bucket b,
-          where
-            b.default_kms_key_name is not null
-            and split_part(b.default_kms_key_name, 'cryptoKeys/', 2) = $1;
-        EOQ
-
-        args = [self.input.key_name.value]
-      }
-
-      with "pubsub_topics" {
-        sql = <<-EOQ
-          select
-            p.name as topic_name
-          from
-            gcp_pubsub_topic p,
-            gcp_kms_key k
-          where
-            split_part(p.kms_key_name, 'cryptoKeys/', 2) = $1;
-        EOQ
-
-        args = [self.input.key_name.value]
-      }
-
-      with "compute_disks" {
-        sql = <<-EOQ
-          select
-            d.id::text as disk_id
-          from
-            gcp_compute_disk d,
-            gcp_kms_key_version k
-          where
-            and d.disk_encryption_key is not null
-            and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = $1;
-        EOQ
-
-        args = [self.input.key_name.value]
-      }
-
-      with "sql_database_instances" {
-        sql = <<-EOQ
-          select
-            i.name as instance_name
-          from
-            gcp_sql_database_instance as i
-          where
-            split_part(i.kms_key_name, 'cryptoKeys/', 2) = $1;
-        EOQ
-
-        args = [self.input.key_name.value]
-      }
-
-      with "kubernetes_clusters" {
-        sql = <<-EOQ
-          select
-            c.name as cluster_name
-          from
-            gcp_kubernetes_cluster c
-          where
-            c.database_encryption_key_name is not null
-            and split_part(c.database_encryption_key_name, 'cryptoKeys/', 2) = $1;
-        EOQ
-
-        args = [self.input.key_name.value]
-      }
-
-      with "compute_snapshots" {
-        sql = <<-EOQ
-          select
-            s.id as snapshot_id
-          from
-            gcp_compute_snapshot s,
-            gcp_kms_key_version v
-          where
-            v.crypto_key_version::text = split_part(s.kms_key_name, 'cryptoKeyVersions/', 2)
-            and split_part(s.kms_key_name, '/', 8) = v.name
-            and v.name = $1;
-        EOQ
-
-        args = [self.input.key_name.value]
-      }
-
-      with "compute_images" {
-        sql = <<-EOQ
-          select
-            i.id as iamge_id
-          from
-            gcp_compute_image as i
-          where
-            split_part(i.image_encryption_key->>'kmsKeyName', '/', -3) = $1;
-        EOQ
-
-        args = [self.input.key_name.value]
-      }
-
       with "bigquery_datasets" {
         sql = <<-EOQ
           select
@@ -187,6 +88,50 @@ dashboard "kms_key_detail" {
         args = [self.input.key_name.value]
       }
 
+      with "compute_disks" {
+        sql = <<-EOQ
+          select
+            d.id::text as disk_id
+          from
+            gcp_compute_disk d,
+            gcp_kms_key_version k
+          where
+            and d.disk_encryption_key is not null
+            and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = $1;
+        EOQ
+
+        args = [self.input.key_name.value]
+      }
+
+      with "compute_images" {
+        sql = <<-EOQ
+          select
+            i.id as iamge_id
+          from
+            gcp_compute_image as i
+          where
+            split_part(i.image_encryption_key->>'kmsKeyName', '/', -3) = $1;
+        EOQ
+
+        args = [self.input.key_name.value]
+      }
+
+      with "compute_snapshots" {
+        sql = <<-EOQ
+          select
+            s.id as snapshot_id
+          from
+            gcp_compute_snapshot s,
+            gcp_kms_key_version v
+          where
+            v.crypto_key_version::text = split_part(s.kms_key_name, 'cryptoKeyVersions/', 2)
+            and split_part(s.kms_key_name, '/', 8) = v.name
+            and v.name = $1;
+        EOQ
+
+        args = [self.input.key_name.value]
+      }
+
       with "kms_key_rings" {
         sql = <<-EOQ
           select
@@ -202,52 +147,118 @@ dashboard "kms_key_detail" {
         args = [self.input.key_name.value]
       }
 
+      with "kubernetes_clusters" {
+        sql = <<-EOQ
+          select
+            c.name as cluster_name
+          from
+            gcp_kubernetes_cluster c
+          where
+            c.database_encryption_key_name is not null
+            and split_part(c.database_encryption_key_name, 'cryptoKeys/', 2) = $1;
+        EOQ
+
+        args = [self.input.key_name.value]
+      }
+
+      with "pubsub_topics" {
+        sql = <<-EOQ
+          select
+            p.name as topic_name
+          from
+            gcp_pubsub_topic p,
+            gcp_kms_key k
+          where
+            split_part(p.kms_key_name, 'cryptoKeys/', 2) = $1;
+        EOQ
+
+        args = [self.input.key_name.value]
+      }
+
+      with "storage_buckets" {
+        sql = <<-EOQ
+          select
+            b.id as bucket_id
+          from
+            gcp_storage_bucket b,
+          where
+            b.default_kms_key_name is not null
+            and split_part(b.default_kms_key_name, 'cryptoKeys/', 2) = $1;
+        EOQ
+
+        args = [self.input.key_name.value]
+      }
+
+      with "sql_backups" {
+        sql = <<-EOQ
+          select
+            b.id::text as backup_id
+          from
+            gcp_sql_backup b
+          where
+            split_part(b.disk_encryption_configuration ->> 'kmsKeyName','cryptoKeys/',2) = $1;
+        EOQ
+
+        args = [self.input.key_name.value]
+      }
+
+      with "sql_database_instances" {
+        sql = <<-EOQ
+          select
+            i.name as instance_name
+          from
+            gcp_sql_database_instance as i
+          where
+            split_part(i.kms_key_name, 'cryptoKeys/', 2) = $1;
+        EOQ
+
+        args = [self.input.key_name.value]
+      }
+
       nodes = [
-        node.kms_key,
-        node.compute_disk,
-        node.storage_bucket,
-        node.pubsub_topic,
-        node.sql_database_instance,
-        node.kubernetes_cluster,
-        node.compute_snapshot,
-        node.compute_image,
         node.bigquery_dataset,
         node.bigquery_table,
+        node.compute_disk,
+        node.compute_image,
+        node.compute_snapshot,
         node.kms_key_ring,
         node.kms_key_version,
-
-        node.kms_key_from_sql_backup
+        node.kms_key,
+        node.kubernetes_cluster,
+        node.pubsub_topic,
+        node.sql_backup,
+        node.sql_database_instance,
+        node.storage_bucket
       ]
 
       edges = [
-        edge.compute_disk_to_kms_key,
-        edge.storage_bucket_to_kms_key,
-        edge.pubsub_topic_to_kms_key,
-        edge.sql_database_instance_to_kms_key,
-        edge.kubernetes_cluster_to_kms_key,
-        edge.compute_snapshot_to_kms_key,
-        edge.compute_image_to_kms_key,
         edge.bigquery_dataset_to_kms_key,
         edge.bigquery_table_to_kms_key,
+        edge.compute_disk_to_kms_key,
+        edge.compute_image_to_kms_key,
+        edge.compute_snapshot_to_kms_key,
         edge.kms_key_ring_to_kms_key,
         edge.kms_key_to_kms_key_version,
-
-        edge.kms_key_from_sql_backup
+        edge.kubernetes_cluster_to_kms_key,
+        edge.pubsub_topic_to_kms_key,
+        edge.sql_backup_to_kms_key,
+        edge.sql_database_instance_to_kms_key,
+        edge.storage_bucket_to_kms_key
       ]
 
       args = {
-        key_name                 = self.input.key_name.value
-        kms_key_names            = [self.input.key_name.value]
-        storage_bucket_ids       = with.storage_buckets.rows[*].bucket_id
-        pubsub_topic_names       = with.pubsub_topics.rows[*].topic_name
-        compute_disk_ids         = with.compute_disks.rows[*].disk_id
-        database_instance_names  = with.sql_database_instances.rows[*].instance_name
-        kubernetes_cluster_names = with.kubernetes_clusters.rows[*].cluster_name
-        compute_snapshot_ids     = with.compute_snapshots.rows[*].snapshot_id
-        compute_image_ids        = with.compute_images.rows[*].image_id
-        bigquery_dataset_ids     = with.bigquery_datasets.rows[*].dataset_id
-        bigquery_table_ids       = with.bigquery_tables.rows[*].table_id
-        kms_key_ring_names       = with.kms_key_rings.rows[*].ring_name
+        bigquery_dataset_ids        = with.bigquery_datasets.rows[*].dataset_id
+        bigquery_table_ids          = with.bigquery_tables.rows[*].table_id
+        compute_disk_ids            = with.compute_disks.rows[*].disk_id
+        compute_image_ids           = with.compute_images.rows[*].image_id
+        compute_snapshot_ids        = with.compute_snapshots.rows[*].snapshot_id
+        kms_key_names               = [self.input.key_name.value]
+        kms_key_ring_names          = with.kms_key_rings.rows[*].ring_name
+        kubernetes_cluster_names    = with.kubernetes_clusters.rows[*].cluster_name
+        pubsub_topic_names          = with.pubsub_topics.rows[*].topic_name
+        sql_backup_ids              = with.sql_backups.rows[*].backup_id
+        sql_database_instance_names = with.sql_database_instances.rows[*].instance_name
+        storage_bucket_ids          = with.storage_buckets.rows[*].bucket_id
       }
     }
   }

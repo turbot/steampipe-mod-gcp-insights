@@ -41,31 +41,6 @@ node "kms_key_ring" {
   param "kms_key_ring_names" {}
 }
 
-
-node "bigquery_table" {
-  category = category.bigquery_table
-
-  sql = <<-EOQ
-    select
-      t.id,
-      t.title,
-      jsonb_build_object(
-        'ID', t.id,
-        'Created Time', t.creation_time,
-        'Dataset Id', t.dataset_id,
-        'Expiration Time', t.expiration_time,
-        'KMS Key', t.kms_key_name,
-        'Location', t.location
-      ) as properties
-    from
-      gcp_bigquery_table t
-    where
-      t.id = any($1);
-  EOQ
-
-  param "bigquery_table_ids" {}
-}
-
 node "kms_key_version" {
   category = category.kms_key_version
 
@@ -89,29 +64,4 @@ node "kms_key_version" {
   EOQ
 
   param "kms_key_ring_names" {}
-}
-
-node "kms_key_from_sql_backup" {
-  category = category.sql_backup
-
-  sql = <<-EOQ
-    select
-      b.id::text,
-      b.title,
-      jsonb_build_object(
-        'ID', b.id,
-        'Created Time', b.end_time,
-        'Instance Name', b.instance_name,
-        'Type', b.type,
-        'Status', b.status,
-        'Location', b.location
-      ) as properties
-    from
-      gcp_kms_key k,
-      gcp_sql_backup b
-    where
-      split_part(b.disk_encryption_configuration ->> 'kmsKeyName','cryptoKeys/',2) = $1;
-  EOQ
-
-  param "key_name" {}
 }

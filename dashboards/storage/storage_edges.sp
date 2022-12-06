@@ -38,21 +38,3 @@ edge "storage_bucket_to_logging_bucket" {
 
   param "storage_bucket_ids" {}
 }
-
-edge "compute_backend_bucket_to_storage_bucket" {
-  title = "bucket"
-
-  sql = <<-EOQ
-    select
-      c.id::text as from_id,
-      b.id as to_id
-    from
-      gcp_storage_bucket b,
-      gcp_compute_backend_bucket c
-    where
-      b.id = any($1)
-      and b.name = c.bucket_name;
-  EOQ
-
-  param "storage_bucket_ids" {}
-}

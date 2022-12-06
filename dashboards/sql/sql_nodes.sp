@@ -16,10 +16,10 @@ node "sql_backup" {
     from
       gcp_sql_backup
     where
-      instance_name = any($1);
+      id = any($1);
   EOQ
 
-  param "database_instance_names" {}
+  param "sql_backup_ids" {}
 }
 
 node "sql_database" {
@@ -40,7 +40,7 @@ node "sql_database" {
       d.instance_name = $1;
   EOQ
 
-  param "database_instance_names" {}
+  param "sql_database_instance_names" {}
 }
 
 node "sql_database_instance" {
@@ -64,7 +64,7 @@ node "sql_database_instance" {
       name = any($1);
   EOQ
 
-  param "database_instance_names" {}
+  param "sql_database_instance_names" {}
 }
 
 node "sql_database_instance_to_database_instance_replica" {
@@ -90,7 +90,7 @@ node "sql_database_instance_to_database_instance_replica" {
       SPLIT_PART(master_instance_name, ':', 2) = $1;
   EOQ
 
-  param "database_instance_names" {}
+  param "sql_database_instance_names" {}
 }
 
 node "sql_database_instance_from_primary_database_instance" {
@@ -125,5 +125,5 @@ node "sql_database_instance_from_primary_database_instance" {
       i.name = m.name;
   EOQ
 
-  param "database_instance_names" {}
+  param "sql_database_instance_names" {}
 }
