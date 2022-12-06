@@ -134,3 +134,9 @@ category "compute_vpn_gateway" {
   icon  = "text:VPNGW"
   title = "Compute VPN Gateway"
 }
+
+category "dns_policy" {
+  color = local.dns_color
+  icon  = "globe-alt"
+  title = "DNS Policy"
+}

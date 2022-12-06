@@ -9,3 +9,9 @@ category "iam_role" {
   icon  = "user-plus"
   title = "IAM Role"
 }
+
+category "service_account" {
+  color = local.iam_color
+  icon  = "text:SA"
+  title = "Service Account"
+}
