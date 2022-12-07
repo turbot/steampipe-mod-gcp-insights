@@ -380,6 +380,182 @@ edge "compute_instance_group_to_compute_subnetwork" {
   param "compute_instance_group_ids" {}
 }
 
+## Compute Network
+
+edge "compute_network_to_compute_backend_service" {
+  title = "backend service"
+
+  sql = <<-EOQ
+    select
+      n.name as from_id,
+      bs.id::text as to_id
+    from
+      gcp_compute_backend_service bs,
+      gcp_compute_network n
+    where
+      bs.network = n.self_link
+      and n.name = any($1);
+  EOQ
+
+  param "compute_network_names" {}
+}
+
+edge "compute_network_to_compute_firewall" {
+  title = "firewall"
+
+  sql = <<-EOQ
+    select
+      n.name as from_id,
+      f.id::text as to_id
+    from
+      gcp_compute_firewall f,
+      gcp_compute_network n
+    where
+      f.network = n.self_link
+      and n.name = any($1);
+  EOQ
+
+  param "compute_network_names" {}
+}
+
+edge "compute_network_to_compute_forwarding_rule" {
+  title = "forwarding rule"
+
+  sql = <<-EOQ
+    select
+      n.name as from_id,
+      fr.id::text as to_id
+    from
+      gcp_compute_forwarding_rule fr,
+      gcp_compute_network n
+    where
+      split_part(fr.network, 'networks/', 2) = any($1)
+
+    union
+
+    select
+      n.name as from_id,
+      fr.id::text as to_id
+    from
+      gcp_compute_global_forwarding_rule fr,
+      gcp_compute_network n
+    where
+      split_part(fr.network, 'networks/', 2) = any($1);
+  EOQ
+
+  param "compute_network_names" {}
+}
+
+edge "compute_network_to_compute_router" {
+  title = "router"
+
+  sql = <<-EOQ
+    select
+      n.name as from_id,
+      r.id::text as to_id
+    from
+      gcp_compute_router r,
+      gcp_compute_network n
+    where
+      r.network = n.self_link
+      and n.name = any($1);
+  EOQ
+
+  param "compute_network_names" {}
+}
+
+edge "compute_network_to_compute_subnetwork" {
+  title = "subnetwork"
+
+  sql = <<-EOQ
+    select
+      n.id::text as from_id,
+      s.id::text as to_id
+    from
+      gcp_compute_subnetwork s,
+      gcp_compute_network n
+    where
+      s.network = n.self_link
+      and n.name = any($1);
+  EOQ
+
+  param "compute_network_names" {}
+}
+
+edge "compute_network_to_compute_instance" {
+  title = "network"
+
+  sql = <<-EOQ
+    select
+      i.id::text as to_id,
+      n.name as from_id
+    from
+      gcp_compute_instance i,
+      gcp_compute_network n,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      n.self_link = ni ->> 'network'
+      and n.name = any($1);
+  EOQ
+
+  param "compute_network_names" {}
+}
+
+edge "compute_network_to_dns_policy" {
+  title = "dns policy"
+
+  sql = <<-EOQ
+    select
+      n.name as from_id,
+      p.id::text as to_id
+    from
+      gcp_dns_policy p,
+      jsonb_array_elements(p.networks) pn,
+      gcp_compute_network n
+    where
+      pn ->> 'networkUrl' = n.self_link
+      and n.name = any($1);
+  EOQ
+
+  param "compute_network_names" {}
+}
+
+edge "compute_network_to_kubernetes_cluster" {
+  title = "network"
+
+  sql = <<-EOQ
+    select
+      c.name as to_id,
+      n.name as from_id
+    from
+      gcp_kubernetes_cluster c,
+      gcp_compute_network n
+    where
+      n.name = $1
+      and n.name = c.network
+  EOQ
+
+  param "compute_network_names" {}
+}
+
+edge "compute_network_to_sql_database_instance" {
+  title = "database instance"
+
+  sql = <<-EOQ
+    select
+      n.name as from_id,
+      i.name as to_id
+    from
+      gcp_sql_database_instance i,
+      gcp_compute_network n
+    where
+      n.self_link like '%' || (i.ip_configuration ->> 'privateNetwork') || '%'
+      and n.name = $1;
+  EOQ
+
+  param "compute_network_names" {}
+}
+
 ## Compute Snapshot
 
 edge "compute_snapshot_to_kms_key" {
@@ -401,17 +577,176 @@ edge "compute_snapshot_to_kms_key" {
   param "compute_snapshot_ids" {}
 }
 
+## Compute Subnetwork
 
+edge "compute_subnetwork_to_compute_instance" {
+  title = "compute instance"
 
+  sql = <<-EOQ
+    select
+      s.id::text as from_id,
+      i.id::text as to_id
+    from
+      gcp_compute_instance i,
+      gcp_compute_subnetwork s,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      ni ->> 'subnetwork' = s.self_link
+      and s.id = any($1);
+  EOQ
 
+  param "compute_subnetwork_ids" {}
+}
 
+edge "compute_subnetwork_to_compute_instance_group" {
+  title = "compute instance group"
 
+  sql = <<-EOQ
+    select
+      s.id::text as from_id,
+      g.id::text as to_id
+    from
+      gcp_compute_instance_group g,
+      gcp_compute_subnetwork s
+    where
+      g.subnetwork = s.self_link
+      and s.id = any($1);
+  EOQ
 
+  param "compute_subnetwork_ids" {}
+}
 
+edge "compute_subnetwork_to_compute_instance_template" {
+  title = "compute instance template"
 
+  sql = <<-EOQ
+    select
+      s.id::text as from_id,
+      t.id::text as to_id
+    from
+      gcp_compute_instance_template t,
+      jsonb_array_elements(instance_network_interfaces) ni,
+      gcp_compute_subnetwork s
+    where
+      ni ->> 'subnetwork' = s.self_link
+      and s.id = any($1);
+  EOQ
 
+  param "compute_subnetwork_ids" {}
+}
 
+edge "compute_subnetwork_to_kubernetes_cluster" {
+  title = "kubernetes cluster"
 
+  sql = <<-EOQ
+    select
+      s.id::text as from_id,
+      c.name as to_id
+    from
+      gcp_kubernetes_cluster c,
+      gcp_compute_subnetwork s
+    where
+      s.id = any($1)
+      and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
+  EOQ
 
+  param "compute_subnetwork_ids" {}
+}
 
+edge "compute_subnetwork_to_compute_address" {
+  title = "compute address"
 
+  sql = <<-EOQ
+    select
+      s.id::text as from_id,
+      a.id::text as to_id
+    from
+      gcp_compute_address a,
+      gcp_compute_subnetwork s
+    where
+      s.id = any($1)
+      and s.self_link = a.subnetwork
+
+    union
+
+    select
+      s.id::text as from_id,
+      a.id::text as to_id
+    from
+      gcp_compute_global_address a,
+      gcp_compute_subnetwork s
+    where
+      s.id = any($1)
+      and s.self_link = a.subnetwork;
+  EOQ
+
+  param "compute_subnetwork_ids" {}
+}
+
+edge "compute_subnetwork_to_compute_forwarding_rule" {
+  title = "forwarding rule"
+
+  sql = <<-EOQ
+    select
+      s.id::text as from_id,
+      r.id::text as to_id
+    from
+      gcp_compute_forwarding_rule r,
+      gcp_compute_subnetwork s
+    where
+      s.id = any($1)
+      and split_part(r.subnetwork, 'subnetworks/', 2) = s.name
+
+    union
+
+    select
+      s.id::text as from_id,
+      r.id::text as to_id
+    from
+      gcp_compute_global_forwarding_rule r,
+      gcp_compute_subnetwork s
+    where
+      s.id = any($1)
+      and split_part(r.subnetwork, 'subnetworks/', 2) = s.name;
+  EOQ
+
+  param "compute_subnetwork_ids" {}
+}
+
+edge "compute_subnetwork_to_compute_network" {
+  title = "network"
+
+  sql = <<-EOQ
+    select
+      s.id::text as from_id,
+      n.name as to_id
+    from
+      gcp_compute_subnetwork s,
+      gcp_compute_network n
+    where
+      s.network = n.self_link
+      and s.id = any($1);
+  EOQ
+
+  param "compute_subnetwork_ids" {}
+}
+
+## Compute VPN Gateway
+
+edge "compute_vpn_gateway_to_compute_network" {
+  title = "network"
+
+  sql = <<-EOQ
+    select
+      g.id::text as from_id,
+      n.name as to_id
+    from
+      gcp_compute_vpn_gateway g,
+      gcp_compute_network n
+    where
+      g.network = n.self_link
+      and g.id = any($1);
+  EOQ
+
+  param "compute_vpn_gateway_ids" {}
+}

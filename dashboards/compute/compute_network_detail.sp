@@ -70,36 +70,206 @@ dashboard "compute_network_detail" {
       title = "Relationships"
       type  = "graph"
 
+      with "compute_backend_services" {
+        sql = <<-EOQ
+          select
+            bs.id::text as service_id
+          from
+            gcp_compute_backend_service bs,
+            gcp_compute_network n
+          where
+            bs.network = n.self_link
+            and n.name = $1;
+        EOQ
+
+        args = [self.input.network_name.value]
+      }
+
+      with "compute_firewalls" {
+        sql = <<-EOQ
+          select
+            f.id::text as firewall_id
+          from
+            gcp_compute_firewall f,
+            gcp_compute_network n
+          where
+            f.network = n.self_link
+            and n.name = $1;
+        EOQ
+
+        args = [self.input.network_name.value]
+      }
+
+      with "compute_forwarding_rules" {
+        sql = <<-EOQ
+          select
+            fr.id::text as rule_id
+          from
+            gcp_compute_forwarding_rule fr,
+            gcp_compute_network n
+          where
+            split_part(fr.network, 'networks/', 2) = $1
+
+          union
+
+          select
+            fr.id::text as rule_id
+          from
+            gcp_compute_global_forwarding_rule fr,
+            gcp_compute_network n
+          where
+            split_part(fr.network, 'networks/', 2) = $1;
+        EOQ
+
+        args = [self.input.network_name.value]
+      }
+
+      with "compute_instances" {
+        sql = <<-EOQ
+          select
+            i.id::text as instance_id
+          from
+            gcp_compute_instance i,
+            gcp_compute_network n,
+            jsonb_array_elements(network_interfaces) as ni
+          where
+            n.self_link = ni ->> 'network'
+            and n.name = $1;
+        EOQ
+
+        args = [self.input.network_name.value]
+      }
+
+      with "compute_routers" {
+        sql = <<-EOQ
+          select
+            r.id::text as router_id
+          from
+            gcp_compute_router r,
+            gcp_compute_network n
+          where
+            r.network = n.self_link
+            and n.name = $1;
+        EOQ
+
+        args = [self.input.network_name.value]
+      }
+
+      with "compute_subnetworks" {
+        sql = <<-EOQ
+          select
+            s.id as subnetwork_id
+          from
+            gcp_compute_subnetwork s,
+            gcp_compute_network n
+          where
+            s.network = n.self_link
+            and n.name = $1;
+        EOQ
+
+        args = [self.input.network_name.value]
+      }
+
+      with "compute_vpn_gateways" {
+        sql = <<-EOQ
+          select
+            g.id::text as gateway_id
+          from
+            gcp_compute_vpn_gateway g,
+            gcp_compute_network n
+          where
+            g.network = n.self_link
+            and n.name = $1;
+        EOQ
+
+        args = [self.input.network_name.value]
+      }
+
+      with "dns_policies" {
+        sql = <<-EOQ
+          select
+            p.id::text as policy_id
+          from
+            gcp_dns_policy p,
+            jsonb_array_elements(p.networks) pn,
+            gcp_compute_network n
+          where
+            pn ->> 'networkUrl' = n.self_link
+            and n.name = $1;
+        EOQ
+
+        args = [self.input.network_name.value]
+      }
+
+      with "kubernetes_clusters" {
+        sql = <<-EOQ
+          select
+            c.name as cluster_name
+          from
+            gcp_kubernetes_cluster c
+          where
+            c.network = $1;
+            
+        EOQ
+
+        args = [self.input.network_name.value]
+      }
+
+      with "sql_database_instances" {
+        sql = <<-EOQ
+          select
+            i.name as instance_id
+          from
+            gcp_sql_database_instance i,
+            gcp_compute_network n
+          where
+            n.self_link like '%' || (i.ip_configuration ->> 'privateNetwork') || '%'
+            and n.name = $1;
+        EOQ
+
+        args = [self.input.network_name.value]
+      }
+
       nodes = [
+        node.compute_backend_service,
+        node.compute_firewall,
+        node.compute_forwarding_rule
+        node.compute_instances,
         node.compute_network,
-        node.compute_network_from_compute_vpn_gateway,
-        node.compute_network_to_compute_subnetwork,
-        node.compute_network_to_compute_firewall,
-        node.compute_network_to_compute_backend_service,
-        node.compute_network_to_compute_router,
-        node.compute_network_to_sql_database_instance,
-        node.compute_network_to_dns_policy,
-        node.compute_network_to_kubernetes_cluster,
-        node.compute_network_to_compute_instances,
-        node.compute_network_to_compute_forwarding_rule
+        node.compute_router,
+        node.compute_subnetwork,
+        node.compute_vpn_gateway,
+        node.dns_policy,
+        node.kubernetes_cluster,
+
+        node.sql_database_instance,
       ]
 
       edges = [
-        edge.compute_network_from_compute_vpn_gateway,
-        edge.compute_network_to_compute_subnetwork,
-        edge.compute_network_to_compute_firewall,
         edge.compute_network_to_compute_backend_service,
+        edge.compute_network_to_compute_firewall,
+        edge.compute_network_to_compute_forwarding_rule,
+        edge.compute_network_to_compute_instance,
         edge.compute_network_to_compute_router,
-        edge.compute_network_to_sql_database_instance,
+        edge.compute_network_to_compute_subnetwork,
         edge.compute_network_to_dns_policy,
         edge.compute_network_to_kubernetes_cluster,
-        edge.compute_network_to_compute_instances,
-        edge.compute_network_to_compute_forwarding_rule
+        edge.compute_vpn_gateway_to_compute_network,
+
+        edge.compute_network_to_sql_database_instance,
       ]
 
       args = {
-        name                  = self.input.network_name.value
-        compute_network_names = [self.input.network_name.value]
+        compute_network_names       = [self.input.network_name.value]
+        compute_backend_service_id  = with.compute_backend_services.rows[*].service_id
+        compute_firewall_ids        = with.compute_firewalls.rows[*].firewall_id
+        compute_forwarding_rule_ids = with.compute_forwarding_rules.rows[*].rule_id
+        compute_instance_ids        = with.compute_instances.rows[*].instance_id
+        compute_router_ids          = with.compute_routers.rows[*].router_id
+        compute_subnetwork_ids      = with.compute_subnetworks.rows[*].subnetwork_id
+        compute_vpn_gateway_ids     = with.compute_vpn_gateways.rows[*].gateway_id
+        kubernetes_cluster_names    = with.kubernetes_clusters.rows[*].cluster_name
+        sql_database_instance_ids   = with.sql_database_instances.rows[*].instance_id
       }
     }
   }
@@ -244,456 +414,6 @@ query "auto_create_subnetwork" {
       gcp_compute_network
     where
       name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-node "compute_network" {
-  category = category.compute_network
-
-  sql = <<-EOQ
-    select
-      n.name as id,
-      n.title,
-      jsonb_build_object(
-        'ID', n.id,
-        'Name', n.name,
-        'Created Time', n.creation_timestamp
-      ) as properties
-    from
-      gcp_compute_network n
-    where
-      n.name = any($1);
-  EOQ
-
-  param "compute_network_names" {}
-}
-
-node "compute_network_to_compute_subnetwork" {
-  category = category.compute_subnetwork
-
-  sql = <<-EOQ
-    select
-      s.id::text as id,
-      s.title,
-      jsonb_build_object(
-        'ID', s.id::text,
-        'Name', s.name,
-        'Created Time', s.creation_timestamp,
-        'Location', s.location,
-        'IP Cidr Range', s.ip_cidr_range
-      ) as properties
-    from
-      gcp_compute_subnetwork s,
-      gcp_compute_network n
-    where
-      s.network = n.self_link
-      and n.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-edge "compute_network_to_compute_subnetwork" {
-  title = "subnetwork"
-
-  sql = <<-EOQ
-    select
-      n.name as from_id,
-      s.id::text as to_id
-    from
-      gcp_compute_subnetwork s,
-      gcp_compute_network n
-    where
-      s.network = n.self_link
-      and n.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-node "compute_network_to_compute_firewall" {
-  category = category.compute_firewall
-
-  sql = <<-EOQ
-    select
-      f.id::text,
-      f.title,
-      jsonb_build_object(
-        'ID', f.id,
-        'Direction', f.direction,
-        'Enabled', not f.disabled,
-        'Action', f.action,
-        'Priority', f.priority
-      ) as properties
-    from
-      gcp_compute_firewall f,
-      gcp_compute_network n
-    where
-      f.network = n.self_link
-      and n.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-edge "compute_network_to_compute_firewall" {
-  title = "firewall"
-
-  sql = <<-EOQ
-    select
-      n.name as from_id,
-      f.id::text as to_id
-    from
-      gcp_compute_firewall f,
-      gcp_compute_network n
-    where
-      f.network = n.self_link
-      and n.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-node "compute_network_to_compute_backend_service" {
-  category = category.compute_backend_service
-
-  sql = <<-EOQ
-    select
-      bs.id::text,
-      bs.title,
-      jsonb_build_object(
-        'ID', bs.id,
-        'Name', bs.name,
-        'Enable CDN', bs.enable_cdn,
-        'Protocol', bs.protocol,
-        'Location', bs.location
-      ) as properties
-    from
-      gcp_compute_backend_service bs,
-      gcp_compute_network n
-    where
-      bs.network = n.self_link
-      and n.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-edge "compute_network_to_compute_backend_service" {
-  title = "backend service"
-
-  sql = <<-EOQ
-    select
-      n.name as from_id,
-      bs.id::text as to_id
-    from
-      gcp_compute_backend_service bs,
-      gcp_compute_network n
-    where
-      bs.network = n.self_link
-      and n.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-node "compute_network_to_compute_router" {
-  category = category.compute_router
-
-  sql = <<-EOQ
-    select
-      r.id::text,
-      r.title,
-      jsonb_build_object(
-        'ID', r.id,
-        'Name', r.name,
-        'Created Time', r.creation_timestamp,
-        'Location', r.location
-      ) as properties
-    from
-      gcp_compute_router r,
-      gcp_compute_network n
-    where
-      r.network = n.self_link
-      and n.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-edge "compute_network_to_compute_router" {
-  title = "router"
-
-  sql = <<-EOQ
-    select
-      n.name as from_id,
-      r.id::text as to_id
-    from
-      gcp_compute_router r,
-      gcp_compute_network n
-    where
-      r.network = n.self_link
-      and n.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-node "compute_network_to_sql_database_instance" {
-  category = category.sql_database_instance
-
-  sql = <<-EOQ
-    select
-      i.name as id,
-      i.title,
-      jsonb_build_object(
-        'Name', i.name,
-        'State', i.state,
-        'Instance Type', i.instance_type,
-        'Database Version', i.database_version,
-        'KMS Key Name', i.kms_key_name,
-        'Location', i.location
-      ) as properties
-    from
-      gcp_sql_database_instance i,
-      gcp_compute_network n
-    where
-      n.self_link like '%' || (i.ip_configuration ->> 'privateNetwork') || '%'
-      and n.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-edge "compute_network_to_sql_database_instance" {
-  title = "database instance"
-
-  sql = <<-EOQ
-    select
-      n.name as from_id,
-      i.name as to_id
-    from
-      gcp_sql_database_instance i,
-      gcp_compute_network n
-    where
-      n.self_link like '%' || (i.ip_configuration ->> 'privateNetwork') || '%'
-      and n.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-node "compute_network_from_compute_vpn_gateway" {
-  category = category.compute_vpn_gateway
-
-  sql = <<-EOQ
-    select
-      g.id::text,
-      g.title,
-      jsonb_build_object(
-        'ID', g.id,
-        'Name', g.name,
-        'Created Time', g.creation_timestamp,
-        'Location', g.location
-      ) as properties
-    from
-      gcp_compute_vpn_gateway g,
-      gcp_compute_network n
-    where
-      g.network = n.self_link
-      and n.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-edge "compute_network_from_compute_vpn_gateway" {
-  title = "network"
-
-  sql = <<-EOQ
-    select
-      g.id::text as from_id,
-      n.name as to_id
-    from
-      gcp_compute_vpn_gateway g,
-      gcp_compute_network n
-    where
-      g.network = n.self_link
-      and n.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-node "compute_network_to_dns_policy" {
-  category = category.dns_policy
-
-  sql = <<-EOQ
-    select
-      p.id::text,
-      p.title,
-      jsonb_build_object(
-        'ID', p.id,
-        'Name', p.name,
-        'Enable Logging', p.enable_logging,
-        'Enable Inbound Forwarding', p.enable_inbound_forwarding,
-        'Location', p.location
-      ) as properties
-    from
-      gcp_dns_policy p,
-      jsonb_array_elements(p.networks) pn,
-      gcp_compute_network n
-    where
-      pn ->> 'networkUrl' = n.self_link
-      and n.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-edge "compute_network_to_dns_policy" {
-  title = "dns policy"
-
-  sql = <<-EOQ
-    select
-      n.name as from_id,
-      p.id::text as to_id
-    from
-      gcp_dns_policy p,
-      jsonb_array_elements(p.networks) pn,
-      gcp_compute_network n
-    where
-      pn ->> 'networkUrl' = n.self_link
-      and n.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-node "compute_network_to_compute_instances" {
-  category = category.compute_instance
-
-  sql = <<-EOQ
-    select
-      i.id::text,
-      i.title,
-      jsonb_build_object(
-        'ID', i.id,
-        'Name', i.name,
-        'Created Time', i.creation_timestamp,
-        'CPU Platform', i.cpu_platform,
-        'Status', i.status
-      ) as properties
-    from
-      gcp_compute_instance i,
-      gcp_compute_network n,
-      jsonb_array_elements(network_interfaces) as ni
-    where
-      n.self_link = ni ->> 'network'
-      and n.name = $1;
-  EOQ
-
-  param "name" {}
-}
-
-edge "compute_network_to_compute_instances" {
-  title = "network"
-
-  sql = <<-EOQ
-    select
-      i.id::text as to_id,
-      n.name as from_id
-    from
-      gcp_compute_instance i,
-      gcp_compute_network n,
-      jsonb_array_elements(network_interfaces) as ni
-    where
-      n.self_link = ni ->> 'network'
-      and n.name = $1;
-  EOQ
-
-  param "name" {}
-}
-node "compute_network_to_kubernetes_cluster" {
-  category = category.kubernetes_cluster
-
-  sql = <<-EOQ
-    select
-      c.name as id,
-      c.title,
-      jsonb_build_object(
-        'Name', c.name,
-        'Created Time', c.create_time,
-        'Endpoint', c.endpoint,
-        'Services IPv4 CIDR', c.services_ipv4_cidr,
-        'Status', c.status
-      ) as properties
-      from
-      gcp_kubernetes_cluster c,
-      gcp_compute_network n
-    where
-      n.name = $1
-      and n.name = c.network
-  EOQ
-
-  param "name" {}
-}
-
-edge "compute_network_to_kubernetes_cluster" {
-  title = "network"
-
-  sql = <<-EOQ
-    select
-      c.name as to_id,
-      n.name as from_id
-      from
-      gcp_kubernetes_cluster c,
-      gcp_compute_network n
-    where
-      n.name = $1
-      and n.name = c.network
-  EOQ
-
-  param "name" {}
-}
-
-node "compute_network_to_compute_forwarding_rule" {
-  category = category.compute_forwarding_rule
-
-  sql = <<-EOQ
-    select
-      fr.id::text,
-      fr.title,
-      jsonb_build_object(
-        'ID', fr.id::text,
-        'IP Address', fr.ip_address,
-        'Global Access', fr.allow_global_access,
-        'Created Time', fr.creation_timestamp
-      ) as properties
-    from
-      gcp_compute_forwarding_rule fr,
-      gcp_compute_network n
-    where
-      split_part(fr.network, 'networks/', 2) = $1;
-  EOQ
-
-  param "name" {}
-}
-
-edge "compute_network_to_compute_forwarding_rule" {
-  title = "forwarding rule"
-
-  sql = <<-EOQ
-    select
-      n.name as from_id,
-      fr.id::text as to_id
-    from
-      gcp_compute_forwarding_rule fr,
-      gcp_compute_network n
-    where
-      split_part(fr.network, 'networks/', 2) = $1;
   EOQ
 
   param "name" {}

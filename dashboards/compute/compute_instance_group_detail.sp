@@ -67,7 +67,7 @@ dashboard "compute_instance_group_detail" {
       with "compute_subnets" {
         sql = <<-EOQ
           select
-            s.id::text as subnet_id
+            s.id::text as subnetwork_id
           from
             gcp_compute_instance_group g,
             gcp_compute_subnetwork s
@@ -169,7 +169,7 @@ dashboard "compute_instance_group_detail" {
         compute_instance_group_ids  = [self.input.group_id.value]
         compute_instance_ids        = with.compute_instances.rows[*].instance_id
         compute_network_names       = with.compute_networks.rows[*].network_name
-        compute_subnet_ids          = with.compute_subnets.rows[*].subnet_id
+        compute_subnetwork_ids      = with.compute_subnets.rows[*].subnetwork_id
         kubernetes_cluster_names    = with.kubernetes_clusters.rows[*].cluster_name
       }
     }

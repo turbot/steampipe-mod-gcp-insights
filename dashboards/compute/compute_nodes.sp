@@ -437,6 +437,27 @@ node "compute_image" {
   param "compute_image_ids" {}
 }
 
+node "compute_network" {
+  category = category.compute_network
+
+  sql = <<-EOQ
+    select
+      n.name as id,
+      n.title,
+      jsonb_build_object(
+        'ID', n.id,
+        'Name', n.name,
+        'Created Time', n.creation_timestamp
+      ) as properties
+    from
+      gcp_compute_network n
+    where
+      n.name = any($1);
+  EOQ
+
+  param "compute_network_names" {}
+}
+
 node "compute_resource_policy" {
   category = category.compute_resource_policy
 
@@ -456,6 +477,28 @@ node "compute_resource_policy" {
   EOQ
 
   param "compute_resource_policy_ids" {}
+}
+
+node "compute_router" {
+  category = category.compute_router
+
+  sql = <<-EOQ
+    select
+      r.id::text,
+      r.title,
+      jsonb_build_object(
+        'ID', r.id,
+        'Name', r.name,
+        'Created Time', r.creation_timestamp,
+        'Location', r.location
+      ) as properties
+    from
+      gcp_compute_router r
+    where
+      r.id = any($1);
+  EOQ
+
+  param "compute_router_ids" {}
 }
 
 node "compute_snapshot" {
@@ -478,4 +521,72 @@ node "compute_snapshot" {
   EOQ
 
   param "compute_snapshot_ids" {}
+}
+
+node "compute_subnetwork" {
+  category = category.compute_subnetwork
+
+  sql = <<-EOQ
+    select
+      s.id::text as id,
+      s.title,
+      jsonb_build_object(
+        'ID', s.id,
+        'Name', s.name,
+        'Created Time', s.creation_timestamp,
+        'Location', s.location,
+        'IP Cidr Range', s.ip_cidr_range
+      ) as properties
+    from
+      gcp_compute_subnetwork s
+    where
+      s.id = any($1);
+  EOQ
+
+  param "compute_subnetwork_ids" {}
+}
+
+node "compute_vpn_gateway" {
+  category = category.compute_vpn_gateway
+
+  sql = <<-EOQ
+    select
+      g.id::text,
+      g.title,
+      jsonb_build_object(
+        'ID', g.id,
+        'Name', g.name,
+        'Created Time', g.creation_timestamp,
+        'Location', g.location
+      ) as properties
+    from
+      gcp_compute_vpn_gateway g
+    where
+      g.id = any($1);
+  EOQ
+
+  param "compute_vpn_gateway_ids" {}
+}
+
+node "dns_policy" {
+  category = category.dns_policy
+
+  sql = <<-EOQ
+    select
+      p.id::text,
+      p.title,
+      jsonb_build_object(
+        'ID', p.id,
+        'Name', p.name,
+        'Enable Logging', p.enable_logging,
+        'Enable Inbound Forwarding', p.enable_inbound_forwarding,
+        'Location', p.location
+      ) as properties
+    from
+      gcp_dns_policy p
+    where
+      p.id = any($1);
+  EOQ
+
+  param "dns_policy_ids" {}
 }

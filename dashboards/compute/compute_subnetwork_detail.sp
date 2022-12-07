@@ -90,7 +90,7 @@ dashboard "compute_subnetwork_detail" {
             gcp_compute_network n
           where
             s.network = n.self_link
-            and n.name = $1;
+            and s.id = $1;
         EOQ
 
         args = [self.input.subnetwork_id.value]
@@ -213,7 +213,7 @@ dashboard "compute_subnetwork_detail" {
         compute_instance_group_ids    = with.compute_instance_groups.rows[*].group_id
         compute_instance_template_ids = with.compute_instance_templates.rows[*].template_id
         compute_forwarding_rule_ids   = with.compute_forwarding_rules.rows[*].rule_id
-        compute_subnet_ids            = [self.input.subnetwork_id.value]
+        compute_subnetwork_ids        = [self.input.subnetwork_id.value]
         kubernetes_cluster_names      = with.kubernetes_clusters.rows[*].cluster_name
 
       }

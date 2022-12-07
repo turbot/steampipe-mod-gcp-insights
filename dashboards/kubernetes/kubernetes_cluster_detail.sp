@@ -171,7 +171,7 @@ dashboard "kubernetes_cluster_detail" {
       with "compute_subnets" {
         sql = <<-EOQ
           select
-            s.id::text as subnet_id
+            s.id::text as subnetwork_id
           from
             gcp_kubernetes_cluster c,
             gcp_compute_subnetwork s
@@ -244,7 +244,7 @@ dashboard "kubernetes_cluster_detail" {
         compute_instance_ids       = with.compute_instances.rows[*].instance_id
         compute_instance_group_ids = with.compute_instance_groups.rows[*].group_id
         compute_network_names      = with.compute_networks.rows[*].network_name
-        compute_subnet_ids         = with.compute_subnets.rows[*].subnet_id
+        compute_subnetwork_ids     = with.compute_subnets.rows[*].subnetwork_id
         kms_key_names              = with.kms_keys.rows[*].key_name
         kubernetes_cluster_names   = [self.input.cluster_name.value]
         kubernetes_node_pool_names = with.kubernetes_node_pools.rows[*].pool_name

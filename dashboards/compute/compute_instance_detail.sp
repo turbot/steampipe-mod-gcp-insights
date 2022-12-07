@@ -112,7 +112,7 @@ dashboard "compute_instance_detail" {
       with "compute_subnets" {
         sql = <<-EOQ
           select
-            s.id::text as subnet_id
+            s.id::text as subnetwork_id
           from
             gcp_compute_instance i,
             gcp_compute_subnetwork s,
@@ -182,7 +182,7 @@ dashboard "compute_instance_detail" {
         compute_instance_group_ids = with.compute_instance_groups.rows[*].group_id
         compute_instance_ids       = [self.input.instance_id.value]
         compute_network_names      = with.compute_networks.rows[*].network_name
-        compute_subnet_ids         = with.compute_subnets.rows[*].subnet_id
+        compute_subnetwork_ids     = with.compute_subnets.rows[*].subnetwork_id
         iam_service_account_names  = with.iam_service_accounts.rows[*].account_name
       }
     }
