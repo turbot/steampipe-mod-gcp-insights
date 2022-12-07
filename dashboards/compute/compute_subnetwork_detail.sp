@@ -191,12 +191,12 @@ dashboard "compute_subnetwork_detail" {
         node.compute_instance,
         node.compute_instance_group,
         node.compute_instance_template,
-        node.forwarding_rule,
-        node.kubernetes_cluster,
+        node.compute_forwarding_rule,
+        node.kubernetes_cluster
       ]
 
       edges = [
-        edge.compute_network_to_subcompute_network,
+        edge.compute_network_to_compute_subnetwork,
         edge.compute_subnetwork_to_compute_instance,
         edge.compute_subnetwork_to_compute_instance_group,
         edge.compute_subnetwork_to_compute_instance_template,
@@ -215,7 +215,6 @@ dashboard "compute_subnetwork_detail" {
         compute_forwarding_rule_ids   = with.compute_forwarding_rules.rows[*].rule_id
         compute_subnetwork_ids        = [self.input.subnetwork_id.value]
         kubernetes_cluster_names      = with.kubernetes_clusters.rows[*].cluster_name
-
       }
     }
   }

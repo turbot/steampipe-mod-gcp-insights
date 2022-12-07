@@ -233,16 +233,15 @@ dashboard "compute_network_detail" {
       nodes = [
         node.compute_backend_service,
         node.compute_firewall,
-        node.compute_forwarding_rule
-        node.compute_instances,
+        node.compute_forwarding_rule,
+        node.compute_instance,
         node.compute_network,
         node.compute_router,
         node.compute_subnetwork,
         node.compute_vpn_gateway,
         node.dns_policy,
         node.kubernetes_cluster,
-
-        node.sql_database_instance,
+        node.sql_database_instance
       ]
 
       edges = [
@@ -255,8 +254,7 @@ dashboard "compute_network_detail" {
         edge.compute_network_to_dns_policy,
         edge.compute_network_to_kubernetes_cluster,
         edge.compute_vpn_gateway_to_compute_network,
-
-        edge.compute_network_to_sql_database_instance,
+        edge.compute_network_to_sql_database_instance
       ]
 
       args = {
