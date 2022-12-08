@@ -71,6 +71,104 @@ dashboard "kubernetes_cluster_detail" {
       title = "Relationships"
       type  = "graph"
 
+
+      with "bigquery_datasets" {
+        sql = <<-EOQ
+          select
+            d.id as dataset_id
+          from
+            gcp_kubernetes_cluster c,
+            gcp_bigquery_dataset d
+          where
+            c.resource_usage_export_config -> 'bigqueryDestination' ->> 'datasetId' = d.dataset_id
+            and c.name = $1
+        EOQ
+
+        args = [self.input.cluster_name.value]
+      }
+
+      with "compute_firewalls" {
+        sql = <<-EOQ
+          select
+            f.id::text as firewall_id
+          from
+            gcp_kubernetes_cluster c,
+            gcp_compute_network n,
+            gcp_compute_firewall f
+          where
+            c.network = n.name
+            and n.self_link = f.network
+            and c.name = $1;
+        EOQ
+
+        args = [self.input.cluster_name.value]
+      }
+
+      with "compute_instance_groups" {
+        sql = <<-EOQ
+          select
+            g.id::text as group_id
+          from
+            gcp_kubernetes_node_pool p,
+            gcp_compute_instance_group g,
+            jsonb_array_elements_text(instance_group_urls) ig
+          where
+            p.cluster_name = $1
+            and split_part(ig, 'instanceGroupManagers/', 2) = g.name;
+        EOQ
+
+        args = [self.input.cluster_name.value]
+      }
+
+      with "compute_instances" {
+        sql = <<-EOQ
+          select
+            i.id::text as instance_id
+          from
+            gcp_kubernetes_node_pool p,
+            gcp_compute_instance_group g,
+            jsonb_array_elements_text(instance_group_urls) ig,
+            jsonb_array_elements(g.instances) g_ins,
+            gcp_compute_instance i
+          where
+            p.cluster_name = $1
+            and split_part(ig, 'instanceGroupManagers/', 2) = g.name
+            and i.self_link = (g_ins ->> 'instance')
+        EOQ
+
+        args = [self.input.cluster_name.value]
+      }
+
+      with "compute_networks" {
+        sql = <<-EOQ
+          select
+            n.name as network_name
+          from
+            gcp_kubernetes_cluster c,
+            gcp_compute_network n
+          where
+            c.name = $1
+            and c.network = n.name;
+        EOQ
+
+        args = [self.input.cluster_name.value]
+      }
+
+      with "compute_subnets" {
+        sql = <<-EOQ
+          select
+            s.id::text as subnetwork_id
+          from
+            gcp_kubernetes_cluster c,
+            gcp_compute_subnetwork s
+          where
+            c.name = $1
+            and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
+        EOQ
+
+        args = [self.input.cluster_name.value]
+      }
+
       with "kms_keys" {
         sql = <<-EOQ
           select
@@ -116,103 +214,6 @@ dashboard "kubernetes_cluster_detail" {
         args = [self.input.cluster_name.value]
       }
 
-      with "compute_instance_groups" {
-        sql = <<-EOQ
-          select
-            g.id::text as group_id
-          from
-            gcp_kubernetes_node_pool p,
-            gcp_compute_instance_group g,
-            jsonb_array_elements_text(instance_group_urls) ig
-          where
-            p.cluster_name = $1
-            and split_part(ig, 'instanceGroupManagers/', 2) = g.name;
-        EOQ
-
-        args = [self.input.cluster_name.value]
-      }
-
-      with "compute_instances" {
-        sql = <<-EOQ
-          select
-            i.id::text as instance_id
-          from
-            gcp_kubernetes_node_pool p,
-            gcp_compute_instance_group g,
-            jsonb_array_elements_text(instance_group_urls) ig,
-            jsonb_array_elements(g.instances) g_ins,
-            gcp_compute_instance i
-          where
-            p.cluster_name = $1
-            and split_part(ig, 'instanceGroupManagers/', 2) = g.name
-            and i.self_link = (g_ins ->> 'instance')
-        EOQ
-
-        args = [self.input.cluster_name.value]
-      }
-
-      with "compute_firewalls" {
-        sql = <<-EOQ
-          select
-            f.id::text as firewall_id
-          from
-            gcp_kubernetes_cluster c,
-            gcp_compute_network n,
-            gcp_compute_firewall f
-          where
-            c.network = n.name
-            and n.self_link = f.network
-            and c.name = $1;
-        EOQ
-
-        args = [self.input.cluster_name.value]
-      }
-
-      with "compute_subnets" {
-        sql = <<-EOQ
-          select
-            s.id::text as subnetwork_id
-          from
-            gcp_kubernetes_cluster c,
-            gcp_compute_subnetwork s
-          where
-            c.name = $1
-            and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
-        EOQ
-
-        args = [self.input.cluster_name.value]
-      }
-
-      with "compute_networks" {
-        sql = <<-EOQ
-          select
-            n.name as network_name
-          from
-            gcp_kubernetes_cluster c,
-            gcp_compute_network n
-          where
-            c.name = $1
-            and c.network = n.name;
-        EOQ
-
-        args = [self.input.cluster_name.value]
-      }
-
-      with "bigquery_datasets" {
-        sql = <<-EOQ
-          select
-            d.id as dataset_id
-          from
-            gcp_kubernetes_cluster c,
-            gcp_bigquery_dataset d
-          where
-            c.resource_usage_export_config -> 'bigqueryDestination' ->> 'datasetId' = d.dataset_id
-            and c.name = $1
-        EOQ
-
-        args = [self.input.cluster_name.value]
-      }
-
       nodes = [
         node.bigquery_dataset,
         node.compute_firewall,
@@ -241,8 +242,8 @@ dashboard "kubernetes_cluster_detail" {
       args = {
         bigquery_dataset_ids       = with.bigquery_datasets.rows[*].dataset_id
         compute_firewall_ids       = with.compute_firewalls.rows[*].firewall_id
-        compute_instance_ids       = with.compute_instances.rows[*].instance_id
         compute_instance_group_ids = with.compute_instance_groups.rows[*].group_id
+        compute_instance_ids       = with.compute_instances.rows[*].instance_id
         compute_network_names      = with.compute_networks.rows[*].network_name
         compute_subnetwork_ids     = with.compute_subnets.rows[*].subnetwork_id
         kms_key_names              = with.kms_keys.rows[*].key_name

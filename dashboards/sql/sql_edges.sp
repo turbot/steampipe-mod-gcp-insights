@@ -51,6 +51,22 @@ edge "sql_database_instance_to_kms_key" {
   param "sql_database_instance_names" {}
 }
 
+edge "sql_database_instance_to_sql_backup" {
+  title = "backup"
+
+  sql = <<-EOQ
+    select
+      id as to_id,
+      instance_name as from_id
+    from
+      gcp_sql_backup
+    where
+      instance_name = any($1);
+  EOQ
+
+  param "sql_database_instance_names" {}
+}
+
 edge "sql_database_instance_to_sql_database" {
   title = "database"
 
@@ -63,22 +79,6 @@ edge "sql_database_instance_to_sql_database" {
       gcp_sql_database d
     where
       d.instance_name = any($1);
-  EOQ
-
-  param "sql_database_instance_names" {}
-}
-
-edge "sql_database_instance_to_sql_backup" {
-  title = "backup"
-
-  sql = <<-EOQ
-    select
-      id as to_id,
-      instance_name as from_id
-    from
-      gcp_sql_backup
-    where
-      instance_name = any($1);
   EOQ
 
   param "sql_database_instance_names" {}

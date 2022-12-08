@@ -1,21 +1,3 @@
-edge "pubsub_topic_to_kms_key" {
-  title = "encrypted with"
-
-  sql = <<-EOQ
-    select
-      p.name as from_id,
-      concat(k.name, '_key') as to_id
-    from
-      gcp_pubsub_topic p,
-      gcp_kms_key k
-    where
-      k.name = split_part(p.kms_key_name, 'cryptoKeys/', 2)
-      and p.name = any($1);
-  EOQ
-
-  param "pubsub_topic_names" {}
-}
-
 edge "pubsub_topic_to_iam_role" {
   title = "assumes"
 
@@ -35,17 +17,19 @@ edge "pubsub_topic_to_iam_role" {
   param "pubsub_topic_names" {}
 }
 
-edge "pubsub_topic_to_pubsub_subscription" {
-  title = "subscribed to"
+edge "pubsub_topic_to_kms_key" {
+  title = "encrypted with"
 
   sql = <<-EOQ
     select
-      s.topic_name as from_id,
-      s.name as to_id
+      p.name as from_id,
+      concat(k.name, '_key') as to_id
     from
-      gcp_pubsub_subscription s
+      gcp_pubsub_topic p,
+      gcp_kms_key k
     where
-      s.topic_name = any($1);
+      k.name = split_part(p.kms_key_name, 'cryptoKeys/', 2)
+      and p.name = any($1);
   EOQ
 
   param "pubsub_topic_names" {}
@@ -60,6 +44,22 @@ edge "pubsub_topic_to_pubsub_snapshot" {
       s.topic_name as to_id
     from
       gcp_pubsub_snapshot s
+    where
+      s.topic_name = any($1);
+  EOQ
+
+  param "pubsub_topic_names" {}
+}
+
+edge "pubsub_topic_to_pubsub_subscription" {
+  title = "subscribed to"
+
+  sql = <<-EOQ
+    select
+      s.topic_name as from_id,
+      s.name as to_id
+    from
+      gcp_pubsub_subscription s
     where
       s.topic_name = any($1);
   EOQ

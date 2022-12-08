@@ -6,7 +6,7 @@ locals {
 
 category "iam_role" {
   color = local.iam_color
-  icon  = "user-plus"
+  icon  = "heroicons-outline:user-plus"
   title = "IAM Role"
 }
 

@@ -6,6 +6,6 @@ locals {
 
 category "logging_bucket" {
   color = local.storage_color
-  icon  = "archive-box-arrow-down"
+  icon  = "heroicons-outline:archive-box-arrow-down"
   title = "Logging Bucket"
 }

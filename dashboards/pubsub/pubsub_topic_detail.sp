@@ -38,19 +38,6 @@ dashboard "pubsub_topic_detail" {
       title = "Relationships"
       type  = "graph"
 
-      with "kms_keys" {
-        sql = <<-EOQ
-          select
-            split_part(p.kms_key_name, 'cryptoKeys/', 2) as key_name
-          from
-            gcp_pubsub_topic p
-          where
-            p.name = $1;
-        EOQ
-
-        args = [self.input.name.value]
-      }
-
       with "iam_roles" {
         sql = <<-EOQ
           select
@@ -62,6 +49,19 @@ dashboard "pubsub_topic_detail" {
           where
             roles ->> 'role' = i.name
             and t.name = $1;
+        EOQ
+
+        args = [self.input.name.value]
+      }
+
+      with "kms_keys" {
+        sql = <<-EOQ
+          select
+            split_part(p.kms_key_name, 'cryptoKeys/', 2) as key_name
+          from
+            gcp_pubsub_topic p
+          where
+            p.name = $1;
         EOQ
 
         args = [self.input.name.value]

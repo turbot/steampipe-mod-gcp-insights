@@ -346,27 +346,27 @@ node "compute_forwarding_rule" {
   param "compute_forwarding_rule_ids" {}
 }
 
-node "compute_instance" {
-  category = category.compute_instance
+node "compute_image" {
+  category = category.compute_image
 
   sql = <<-EOQ
     select
-      id::text,
-      title,
+      i.id::text,
+      i.title,
       jsonb_build_object(
-        'ID', id,
-        'Name', name,
-        'Created Time', creation_timestamp,
-        'CPU Platform', cpu_platform,
-        'Status', status
+        'ID', i.id::text,
+        'Name', i.name,
+        'Created Time', i.creation_timestamp,
+        'Size(GB)', i.disk_size_gb,
+        'Status', i.status
       ) as properties
     from
-      gcp_compute_instance
+      gcp_compute_image i
     where
-      id = any($1);
+      i.id = any($1);
   EOQ
 
-  param "compute_instance_ids" {}
+  param "compute_image_ids" {}
 }
 
 node "compute_instance_group" {
@@ -414,27 +414,27 @@ node "compute_instance_template" {
   param "compute_instance_template_ids" {}
 }
 
-node "compute_image" {
-  category = category.compute_image
+node "compute_instance" {
+  category = category.compute_instance
 
   sql = <<-EOQ
     select
-      i.id::text,
-      i.title,
+      id::text,
+      title,
       jsonb_build_object(
-        'ID', i.id::text,
-        'Name', i.name,
-        'Created Time', i.creation_timestamp,
-        'Size(GB)', i.disk_size_gb,
-        'Status', i.status
+        'ID', id,
+        'Name', name,
+        'Created Time', creation_timestamp,
+        'CPU Platform', cpu_platform,
+        'Status', status
       ) as properties
     from
-      gcp_compute_image i
+      gcp_compute_instance
     where
-      i.id = any($1);
+      id = any($1);
   EOQ
 
-  param "compute_image_ids" {}
+  param "compute_instance_ids" {}
 }
 
 node "compute_network" {

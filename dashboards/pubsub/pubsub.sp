@@ -6,13 +6,13 @@ locals {
 
 category "pubsub_snapshot" {
   color = local.pubsub_color
-  icon  = "rss"
+  icon  = "heroicons-outline:rss"
   title = "Pub/Sub Snapshot"
 }
 
 category "pubsub_subscription" {
   color = local.pubsub_color
-  icon  = "rss"
+  icon  = "heroicons-outline:rss"
   title = "Pub/Sub Subscription"
 }
 

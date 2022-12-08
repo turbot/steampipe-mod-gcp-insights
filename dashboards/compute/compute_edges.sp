@@ -185,84 +185,6 @@ edge "compute_disk_to_kms_key" {
   param "compute_disk_ids" {}
 }
 
-## Compute Instance
-
-edge "compute_instance_to_compute_disk" {
-  title = "mounts"
-
-  sql = <<-EOQ
-    select
-      i.id::text as from_id,
-      d.id::text as to_id
-    from
-      gcp_compute_instance i,
-      gcp_compute_disk d,
-      jsonb_array_elements(disks) as disk
-    where
-      i.id = any($1)
-      and d.self_link = (disk ->> 'source');
-  EOQ
-
-  param "compute_instance_ids" {}
-}
-
-edge "compute_instance_to_compute_firewall" {
-  title = "firewall"
-
-  sql = <<-EOQ
-    select
-      i.id::text as from_id,
-      f.id::text as to_id
-    from
-      gcp_compute_instance i,
-      gcp_compute_firewall f,
-      jsonb_array_elements(network_interfaces) as ni
-    where
-      ni ->> 'network' = f.network
-      and i.id = any($1);
-  EOQ
-
-  param "compute_instance_ids" {}
-}
-
-edge "compute_instance_to_compute_subnetwork" {
-  title = "subnetwork"
-
-  sql = <<-EOQ
-    select
-      i.id::text as from_id,
-      s.id::text as to_id
-    from
-      gcp_compute_instance i,
-      gcp_compute_subnetwork s,
-      jsonb_array_elements(network_interfaces) as ni
-    where
-      ni ->> 'subnetwork' = s.self_link
-      and i.id = any($1);
-  EOQ
-
-  param "compute_instance_ids" {}
-}
-
-edge "compute_instance_to_service_account" {
-  title = "service account"
-
-  sql = <<-EOQ
-    select
-      i.id as from_id,
-      s.name as to_id
-    from
-      gcp_compute_instance i,
-      gcp_service_account s,
-      jsonb_array_elements(service_accounts) as sa
-    where
-      sa ->> 'email' = s.email
-      and i.id = any($1);
-  EOQ
-
-  param "compute_instance_ids" {}
-}
-
 ## Compute Image
 
 edge "compute_image_to_kms_key" {
@@ -380,6 +302,84 @@ edge "compute_instance_group_to_compute_subnetwork" {
   param "compute_instance_group_ids" {}
 }
 
+## Compute Instance
+
+edge "compute_instance_to_compute_disk" {
+  title = "mounts"
+
+  sql = <<-EOQ
+    select
+      i.id::text as from_id,
+      d.id::text as to_id
+    from
+      gcp_compute_instance i,
+      gcp_compute_disk d,
+      jsonb_array_elements(disks) as disk
+    where
+      i.id = any($1)
+      and d.self_link = (disk ->> 'source');
+  EOQ
+
+  param "compute_instance_ids" {}
+}
+
+edge "compute_instance_to_compute_firewall" {
+  title = "firewall"
+
+  sql = <<-EOQ
+    select
+      i.id::text as from_id,
+      f.id::text as to_id
+    from
+      gcp_compute_instance i,
+      gcp_compute_firewall f,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      ni ->> 'network' = f.network
+      and i.id = any($1);
+  EOQ
+
+  param "compute_instance_ids" {}
+}
+
+edge "compute_instance_to_compute_subnetwork" {
+  title = "subnetwork"
+
+  sql = <<-EOQ
+    select
+      i.id::text as from_id,
+      s.id::text as to_id
+    from
+      gcp_compute_instance i,
+      gcp_compute_subnetwork s,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      ni ->> 'subnetwork' = s.self_link
+      and i.id = any($1);
+  EOQ
+
+  param "compute_instance_ids" {}
+}
+
+edge "compute_instance_to_service_account" {
+  title = "service account"
+
+  sql = <<-EOQ
+    select
+      i.id as from_id,
+      s.name as to_id
+    from
+      gcp_compute_instance i,
+      gcp_service_account s,
+      jsonb_array_elements(service_accounts) as sa
+    where
+      sa ->> 'email' = s.email
+      and i.id = any($1);
+  EOQ
+
+  param "compute_instance_ids" {}
+}
+
 ## Compute Network
 
 edge "compute_network_to_compute_backend_service" {
@@ -446,6 +446,25 @@ edge "compute_network_to_compute_forwarding_rule" {
   param "compute_network_names" {}
 }
 
+edge "compute_network_to_compute_instance" {
+  title = "network"
+
+  sql = <<-EOQ
+    select
+      i.id::text as to_id,
+      n.name as from_id
+    from
+      gcp_compute_instance i,
+      gcp_compute_network n,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      n.self_link = ni ->> 'network'
+      and n.name = any($1);
+  EOQ
+
+  param "compute_network_names" {}
+}
+
 edge "compute_network_to_compute_router" {
   title = "router"
 
@@ -476,25 +495,6 @@ edge "compute_network_to_compute_subnetwork" {
       gcp_compute_network n
     where
       s.network = n.self_link
-      and n.name = any($1);
-  EOQ
-
-  param "compute_network_names" {}
-}
-
-edge "compute_network_to_compute_instance" {
-  title = "network"
-
-  sql = <<-EOQ
-    select
-      i.id::text as to_id,
-      n.name as from_id
-    from
-      gcp_compute_instance i,
-      gcp_compute_network n,
-      jsonb_array_elements(network_interfaces) as ni
-    where
-      n.self_link = ni ->> 'network'
       and n.name = any($1);
   EOQ
 
@@ -579,80 +579,6 @@ edge "compute_snapshot_to_kms_key" {
 
 ## Compute Subnetwork
 
-edge "compute_subnetwork_to_compute_instance" {
-  title = "compute instance"
-
-  sql = <<-EOQ
-    select
-      s.id::text as from_id,
-      i.id::text as to_id
-    from
-      gcp_compute_instance i,
-      gcp_compute_subnetwork s,
-      jsonb_array_elements(network_interfaces) as ni
-    where
-      ni ->> 'subnetwork' = s.self_link
-      and s.id = any($1);
-  EOQ
-
-  param "compute_subnetwork_ids" {}
-}
-
-edge "compute_subnetwork_to_compute_instance_group" {
-  title = "compute instance group"
-
-  sql = <<-EOQ
-    select
-      s.id::text as from_id,
-      g.id::text as to_id
-    from
-      gcp_compute_instance_group g,
-      gcp_compute_subnetwork s
-    where
-      g.subnetwork = s.self_link
-      and s.id = any($1);
-  EOQ
-
-  param "compute_subnetwork_ids" {}
-}
-
-edge "compute_subnetwork_to_compute_instance_template" {
-  title = "compute instance template"
-
-  sql = <<-EOQ
-    select
-      s.id::text as from_id,
-      t.id::text as to_id
-    from
-      gcp_compute_instance_template t,
-      jsonb_array_elements(instance_network_interfaces) ni,
-      gcp_compute_subnetwork s
-    where
-      ni ->> 'subnetwork' = s.self_link
-      and s.id = any($1);
-  EOQ
-
-  param "compute_subnetwork_ids" {}
-}
-
-edge "compute_subnetwork_to_kubernetes_cluster" {
-  title = "kubernetes cluster"
-
-  sql = <<-EOQ
-    select
-      s.id::text as from_id,
-      c.name as to_id
-    from
-      gcp_kubernetes_cluster c,
-      gcp_compute_subnetwork s
-    where
-      s.id = any($1)
-      and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
-  EOQ
-
-  param "compute_subnetwork_ids" {}
-}
-
 edge "compute_subnetwork_to_compute_address" {
   title = "compute address"
 
@@ -713,6 +639,62 @@ edge "compute_subnetwork_to_compute_forwarding_rule" {
   param "compute_subnetwork_ids" {}
 }
 
+edge "compute_subnetwork_to_compute_instance_group" {
+  title = "compute instance group"
+
+  sql = <<-EOQ
+    select
+      s.id::text as from_id,
+      g.id::text as to_id
+    from
+      gcp_compute_instance_group g,
+      gcp_compute_subnetwork s
+    where
+      g.subnetwork = s.self_link
+      and s.id = any($1);
+  EOQ
+
+  param "compute_subnetwork_ids" {}
+}
+
+edge "compute_subnetwork_to_compute_instance_template" {
+  title = "compute instance template"
+
+  sql = <<-EOQ
+    select
+      s.id::text as from_id,
+      t.id::text as to_id
+    from
+      gcp_compute_instance_template t,
+      jsonb_array_elements(instance_network_interfaces) ni,
+      gcp_compute_subnetwork s
+    where
+      ni ->> 'subnetwork' = s.self_link
+      and s.id = any($1);
+  EOQ
+
+  param "compute_subnetwork_ids" {}
+}
+
+edge "compute_subnetwork_to_compute_instance" {
+  title = "compute instance"
+
+  sql = <<-EOQ
+    select
+      s.id::text as from_id,
+      i.id::text as to_id
+    from
+      gcp_compute_instance i,
+      gcp_compute_subnetwork s,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      ni ->> 'subnetwork' = s.self_link
+      and s.id = any($1);
+  EOQ
+
+  param "compute_subnetwork_ids" {}
+}
+
 edge "compute_subnetwork_to_compute_network" {
   title = "network"
 
@@ -726,6 +708,24 @@ edge "compute_subnetwork_to_compute_network" {
     where
       s.network = n.self_link
       and s.id = any($1);
+  EOQ
+
+  param "compute_subnetwork_ids" {}
+}
+
+edge "compute_subnetwork_to_kubernetes_cluster" {
+  title = "kubernetes cluster"
+
+  sql = <<-EOQ
+    select
+      s.id::text as from_id,
+      c.name as to_id
+    from
+      gcp_kubernetes_cluster c,
+      gcp_compute_subnetwork s
+    where
+      s.id = any($1)
+      and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
   EOQ
 
   param "compute_subnetwork_ids" {}

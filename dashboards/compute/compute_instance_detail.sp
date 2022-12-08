@@ -62,22 +62,6 @@ dashboard "compute_instance_detail" {
       title = "Relationships"
       type  = "graph"
 
-      with "compute_instance_groups" {
-        sql = <<-EOQ
-          select
-            g.id::text as group_id
-          from
-            gcp_compute_instance as ins,
-            gcp_compute_instance_group as g,
-            jsonb_array_elements(instances) as i
-          where
-            (i ->> 'instance') = ins.self_link
-            and ins.id = $1;
-        EOQ
-
-        args = [self.input.instance_id.value]
-      }
-
       with "compute_disks" {
         sql = <<-EOQ
           select
@@ -109,17 +93,17 @@ dashboard "compute_instance_detail" {
         args = [self.input.instance_id.value]
       }
 
-      with "compute_subnets" {
+      with "compute_instance_groups" {
         sql = <<-EOQ
           select
-            s.id::text as subnetwork_id
+            g.id::text as group_id
           from
-            gcp_compute_instance i,
-            gcp_compute_subnetwork s,
-            jsonb_array_elements(network_interfaces) as ni
+            gcp_compute_instance as ins,
+            gcp_compute_instance_group as g,
+            jsonb_array_elements(instances) as i
           where
-            ni ->> 'subnetwork' = s.self_link
-            and i.id = $1;
+            (i ->> 'instance') = ins.self_link
+            and ins.id = $1;
         EOQ
 
         args = [self.input.instance_id.value]
@@ -135,6 +119,22 @@ dashboard "compute_instance_detail" {
             jsonb_array_elements(network_interfaces) as ni
           where
             ni ->> 'network' = n.self_link
+            and i.id = $1;
+        EOQ
+
+        args = [self.input.instance_id.value]
+      }
+
+      with "compute_subnets" {
+        sql = <<-EOQ
+          select
+            s.id::text as subnetwork_id
+          from
+            gcp_compute_instance i,
+            gcp_compute_subnetwork s,
+            jsonb_array_elements(network_interfaces) as ni
+          where
+            ni ->> 'subnetwork' = s.self_link
             and i.id = $1;
         EOQ
 
@@ -160,8 +160,8 @@ dashboard "compute_instance_detail" {
       nodes = [
         node.compute_disk,
         node.compute_firewall,
-        node.compute_instance,
         node.compute_instance_group,
+        node.compute_instance,
         node.compute_network,
         node.compute_subnetwork,
         node.service_account
@@ -169,11 +169,11 @@ dashboard "compute_instance_detail" {
 
       edges = [
         edge.compute_instance_group_to_compute_instance,
-        edge.compute_subnetwork_to_compute_network,
         edge.compute_instance_to_compute_disk,
-        edge.compute_instance_to_compute_subnetwork,
         edge.compute_instance_to_compute_firewall,
-        edge.compute_instance_to_service_account
+        edge.compute_instance_to_compute_subnetwork,
+        edge.compute_instance_to_service_account,
+        edge.compute_subnetwork_to_compute_network
       ]
 
       args = {

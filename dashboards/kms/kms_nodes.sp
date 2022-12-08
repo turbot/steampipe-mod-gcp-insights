@@ -1,24 +1,3 @@
-node "kms_key" {
-  category = category.kms_key
-
-  sql = <<-EOQ
-    select
-      name as id,
-      title,
-      jsonb_build_object(
-        'Name', name,
-        'Created Time', create_time,
-        'Location', location
-      ) as properties
-    from
-      gcp_kms_key
-    where
-      name = any($1);
-  EOQ
-
-  param "kms_key_names" {}
-}
-
 node "kms_key_ring" {
   category = category.kms_key_ring
 
@@ -64,4 +43,25 @@ node "kms_key_version" {
   EOQ
 
   param "kms_key_ring_names" {}
+}
+
+node "kms_key" {
+  category = category.kms_key
+
+  sql = <<-EOQ
+    select
+      name as id,
+      title,
+      jsonb_build_object(
+        'Name', name,
+        'Created Time', create_time,
+        'Location', location
+      ) as properties
+    from
+      gcp_kms_key
+    where
+      name = any($1);
+  EOQ
+
+  param "kms_key_names" {}
 }
