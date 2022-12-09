@@ -164,7 +164,7 @@ dashboard "compute_instance_detail" {
         node.compute_instance,
         node.compute_network,
         node.compute_subnetwork,
-        node.service_account
+        node.iam_service_account
       ]
 
       edges = [
@@ -172,7 +172,7 @@ dashboard "compute_instance_detail" {
         edge.compute_instance_to_compute_disk,
         edge.compute_instance_to_compute_firewall,
         edge.compute_instance_to_compute_subnetwork,
-        edge.compute_instance_to_service_account,
+        edge.compute_instance_to_iam_service_account,
         edge.compute_subnetwork_to_compute_network
       ]
 

@@ -1,24 +1,3 @@
-node "pubsub_topic" {
-  category = category.pubsub_topic
-
-  sql = <<-EOQ
-    select
-      name as id,
-      title,
-      jsonb_build_object(
-        'Name', name,
-        'Location', location,
-        'KMS Key', kms_key_name
-      ) as properties
-    from
-      gcp_pubsub_topic
-    where
-      name = any($1);
-  EOQ
-
-  param "pubsub_topic_names" {}
-}
-
 node "pubsub_snapshot" {
   category = category.pubsub_snapshot
 
@@ -61,4 +40,25 @@ node "pubsub_subscription" {
   EOQ
 
   param "pubsub_subscription_names" {}
+}
+
+node "pubsub_topic" {
+  category = category.pubsub_topic
+
+  sql = <<-EOQ
+    select
+      name as id,
+      title,
+      jsonb_build_object(
+        'Name', name,
+        'Location', location,
+        'KMS Key', kms_key_name
+      ) as properties
+    from
+      gcp_pubsub_topic
+    where
+      name = any($1);
+  EOQ
+
+  param "pubsub_topic_names" {}
 }

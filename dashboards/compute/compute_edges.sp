@@ -271,7 +271,7 @@ edge "compute_instance_group_to_compute_network" {
       n.id::text as to_id
     from
       gcp_compute_instance_group g
-        left join gcp_compute_subnetwork s 
+        left join gcp_compute_subnetwork s
         on g.subnetwork = s.self_link,
       gcp_compute_network n
     where
@@ -361,8 +361,8 @@ edge "compute_instance_to_compute_subnetwork" {
   param "compute_instance_ids" {}
 }
 
-edge "compute_instance_to_service_account" {
-  title = "service account"
+edge "compute_instance_to_iam_service_account" {
+  title = "iam service account"
 
   sql = <<-EOQ
     select

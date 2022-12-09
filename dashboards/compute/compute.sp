@@ -5,7 +5,7 @@ locals {
 }
 
 category "compute_address" {
-  color = local.network_color
+  color = local.networking_color
   icon  = "heroicons-outline:table-cells"
   title = "Compute Address"
 }
@@ -23,7 +23,7 @@ category "compute_backend_bucket" {
 }
 
 category "compute_backend_service" {
-  color = local.network_color
+  color = local.networking_color
   icon  = "heroicons-outline:wrench-screwdriver"
   title = "Compute Backend Service"
 }
@@ -36,13 +36,13 @@ category "compute_disk" {
 }
 
 category "compute_firewall" {
-  color = local.network_color
+  color = local.networking_color
   icon  = "heroicons-outline:fire"
   title = "Compute Firewall Rule"
 }
 
 category "compute_forwarding_rule" {
-  color = local.network_color
+  color = local.networking_color
   icon  = "heroicons-outline:arrow-right-on-rectangle"
   title = "Compute Forwarding Rule"
 }
@@ -74,14 +74,14 @@ category "compute_instance" {
 }
 
 category "compute_network" {
-  color = local.network_color
+  color = local.networking_color
   href  = "/gcp_insights.dashboard.compute_network_detail?input.network_name={{.properties.'Name' | @uri}}"
   icon  = "heroicons-outline:cloud"
   title = "Compute Network"
 }
 
 category "compute_network_interface" {
-  color = local.network_color
+  color = local.networking_color
   icon  = "text:NIC"
   title = "Compute Network Interface"
 }
@@ -93,7 +93,7 @@ category "compute_resource_policy" {
 }
 
 category "compute_router" {
-  color = local.network_color
+  color = local.networking_color
   icon  = "heroicons-outline:arrows-right-left"
   title = "Compute Router"
 }
@@ -105,38 +105,33 @@ category "compute_snapshot" {
 }
 
 category "compute_subnetwork" {
-  color = local.network_color
+  color = local.networking_color
   icon  = "heroicons-outline:share"
   href  = "/gcp_insights.dashboard.compute_subnetwork_detail?input.subnetwork_id={{.properties.'ID' | @uri}}"
   title = "Compute Subnetwork"
 }
 
 category "compute_target_https_proxy" {
-  color = local.network_color
+  color = local.networking_color
   icon  = "text:THP"
   title = "Compute Target HTTPS Proxy"
 }
 
 category "compute_target_pool" {
-  color = local.network_color
+  color = local.networking_color
   icon  = "heroicons-outline:arrow-down-on-square"
   title = "Compute Target Pool"
 }
 
 category "compute_target_ssl_proxy" {
-  color = local.network_color
+  color = local.networking_color
   icon  = "text:TSP"
   title = "Compute Target SSL Proxy"
 }
 
 category "compute_vpn_gateway" {
-  color = local.network_color
+  color = local.networking_color
   icon  = "text:VPNGW"
   title = "Compute VPN Gateway"
 }
 
-category "dns_policy" {
-  color = local.dns_color
-  icon  = "heroicons-outline:globe-alt"
-  title = "DNS Policy"
-}

@@ -10,8 +10,8 @@ category "iam_role" {
   title = "IAM Role"
 }
 
-category "service_account" {
+category "iam_service_account" {
   color = local.iam_color
   icon  = "text:SA"
-  title = "Service Account"
+  title = "IAM Service Account"
 }

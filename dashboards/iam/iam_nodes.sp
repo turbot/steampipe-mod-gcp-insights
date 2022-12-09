@@ -22,8 +22,8 @@ node "iam_role" {
   param "iam_role_ids" {}
 }
 
-node "service_account" {
-  category = category.service_account
+node "iam_service_account" {
+  category = category.iam_service_account
 
   sql = <<-EOQ
     select
