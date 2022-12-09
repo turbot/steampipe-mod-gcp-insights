@@ -175,20 +175,6 @@ dashboard "kms_key_detail" {
         args = [self.input.key_name.value]
       }
 
-      with "storage_buckets" {
-        sql = <<-EOQ
-          select
-            b.id as bucket_id
-          from
-            gcp_storage_bucket b,
-          where
-            b.default_kms_key_name is not null
-            and split_part(b.default_kms_key_name, 'cryptoKeys/', 2) = $1;
-        EOQ
-
-        args = [self.input.key_name.value]
-      }
-
       with "sql_backups" {
         sql = <<-EOQ
           select
@@ -215,15 +201,29 @@ dashboard "kms_key_detail" {
         args = [self.input.key_name.value]
       }
 
+      with "storage_buckets" {
+        sql = <<-EOQ
+          select
+            b.id as bucket_id
+          from
+            gcp_storage_bucket b,
+          where
+            b.default_kms_key_name is not null
+            and split_part(b.default_kms_key_name, 'cryptoKeys/', 2) = $1;
+        EOQ
+
+        args = [self.input.key_name.value]
+      }
+
       nodes = [
         node.bigquery_dataset,
         node.bigquery_table,
         node.compute_disk,
         node.compute_image,
         node.compute_snapshot,
+        node.kms_key,
         node.kms_key_ring,
         node.kms_key_version,
-        node.kms_key,
         node.kubernetes_cluster,
         node.pubsub_topic,
         node.sql_backup,

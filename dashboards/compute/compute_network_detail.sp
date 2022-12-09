@@ -209,7 +209,7 @@ dashboard "compute_network_detail" {
             gcp_kubernetes_cluster c
           where
             c.network = $1;
-            
+
         EOQ
 
         args = [self.input.network_name.value]
@@ -253,16 +253,16 @@ dashboard "compute_network_detail" {
         edge.compute_network_to_compute_subnetwork,
         edge.compute_network_to_dns_policy,
         edge.compute_network_to_kubernetes_cluster,
-        edge.compute_vpn_gateway_to_compute_network,
-        edge.compute_network_to_sql_database_instance
+        edge.compute_network_to_sql_database_instance,
+        edge.compute_vpn_gateway_to_compute_network
       ]
 
       args = {
-        compute_network_names       = [self.input.network_name.value]
         compute_backend_service_ids = with.compute_backend_services.rows[*].service_id
         compute_firewall_ids        = with.compute_firewalls.rows[*].firewall_id
         compute_forwarding_rule_ids = with.compute_forwarding_rules.rows[*].rule_id
         compute_instance_ids        = with.compute_instances.rows[*].instance_id
+        compute_network_names       = [self.input.network_name.value]
         compute_router_ids          = with.compute_routers.rows[*].router_id
         compute_subnetwork_ids      = with.compute_subnetworks.rows[*].subnetwork_id
         compute_vpn_gateway_ids     = with.compute_vpn_gateways.rows[*].gateway_id

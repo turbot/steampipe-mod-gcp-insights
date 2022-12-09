@@ -217,8 +217,8 @@ dashboard "kubernetes_cluster_detail" {
       nodes = [
         node.bigquery_dataset,
         node.compute_firewall,
-        node.compute_instance_group,
         node.compute_instance,
+        node.compute_instance_group,
         node.compute_network,
         node.compute_subnetwork,
         node.kms_key,

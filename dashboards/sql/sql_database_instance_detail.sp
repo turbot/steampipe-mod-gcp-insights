@@ -122,17 +122,17 @@ dashboard "sql_database_instance_detail" {
         node.sql_backup,
         node.sql_database,
         node.sql_database_instance,
-        node.sql_database_instance_to_database_instance_replica,
-        node.sql_database_instance_from_primary_database_instance
+        node.sql_database_instance_from_primary_database_instance,
+        node.sql_database_instance_to_database_instance_replica
       ]
 
       edges = [
+        edge.sql_database_instance_from_primary_database_instance,
         edge.sql_database_instance_to_compute_network,
-        edge.sql_database_instance_to_kms_key,
-        edge.sql_database_instance_to_sql_database,
-        edge.sql_database_instance_to_sql_backup,
         edge.sql_database_instance_to_database_instance_replica,
-        edge.sql_database_instance_from_primary_database_instance
+        edge.sql_database_instance_to_kms_key,
+        edge.sql_database_instance_to_sql_backup,
+        edge.sql_database_instance_to_sql_database
       ]
 
       args = {
@@ -409,7 +409,7 @@ query "sql_database_instance_encryption_detail" {
       gcp_kms_key as k
     where
       d.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2))
-      and d.name = $1; 
+      and d.name = $1;
   EOQ
 
   param "name" {}

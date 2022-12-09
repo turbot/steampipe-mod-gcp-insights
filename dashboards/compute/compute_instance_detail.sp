@@ -160,8 +160,8 @@ dashboard "compute_instance_detail" {
       nodes = [
         node.compute_disk,
         node.compute_firewall,
-        node.compute_instance_group,
         node.compute_instance,
+        node.compute_instance_group,
         node.compute_network,
         node.compute_subnetwork,
         node.iam_service_account

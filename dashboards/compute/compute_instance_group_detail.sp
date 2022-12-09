@@ -99,7 +99,7 @@ dashboard "compute_instance_group_detail" {
             n.name as network_name
           from
             gcp_compute_instance_group g
-              left join gcp_compute_subnetwork s 
+              left join gcp_compute_subnetwork s
               on g.subnetwork = s.self_link,
             gcp_compute_network n
           where
@@ -145,8 +145,8 @@ dashboard "compute_instance_group_detail" {
         node.compute_autoscaler,
         node.compute_backend_service,
         node.compute_firewall,
-        node.compute_instance_group,
         node.compute_instance,
+        node.compute_instance_group,
         node.compute_network,
         node.compute_subnetwork,
         node.kubernetes_cluster
