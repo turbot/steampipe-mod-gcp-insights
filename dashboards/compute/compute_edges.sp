@@ -657,25 +657,6 @@ edge "compute_subnetwork_to_compute_instance_group" {
   param "compute_subnetwork_ids" {}
 }
 
-edge "compute_subnetwork_to_compute_instance_template" {
-  title = "compute instance template"
-
-  sql = <<-EOQ
-    select
-      s.id::text as from_id,
-      t.id::text as to_id
-    from
-      gcp_compute_instance_template t,
-      jsonb_array_elements(instance_network_interfaces) ni,
-      gcp_compute_subnetwork s
-    where
-      ni ->> 'subnetwork' = s.self_link
-      and s.id = any($1);
-  EOQ
-
-  param "compute_subnetwork_ids" {}
-}
-
 edge "compute_subnetwork_to_compute_instance" {
   title = "compute instance"
 
@@ -687,6 +668,25 @@ edge "compute_subnetwork_to_compute_instance" {
       gcp_compute_instance i,
       gcp_compute_subnetwork s,
       jsonb_array_elements(network_interfaces) as ni
+    where
+      ni ->> 'subnetwork' = s.self_link
+      and s.id = any($1);
+  EOQ
+
+  param "compute_subnetwork_ids" {}
+}
+
+edge "compute_subnetwork_to_compute_instance_template" {
+  title = "compute instance template"
+
+  sql = <<-EOQ
+    select
+      s.id::text as from_id,
+      t.id::text as to_id
+    from
+      gcp_compute_instance_template t,
+      jsonb_array_elements(instance_network_interfaces) ni,
+      gcp_compute_subnetwork s
     where
       ni ->> 'subnetwork' = s.self_link
       and s.id = any($1);

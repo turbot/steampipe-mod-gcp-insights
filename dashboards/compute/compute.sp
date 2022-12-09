@@ -53,6 +53,13 @@ category "compute_image" {
   title = "Compute Image"
 }
 
+category "compute_instance" {
+  color = local.compute_color
+  icon  = "heroicons-outline:cpu-chip"
+  href  = "/gcp_insights.dashboard.compute_instance_detail?input.instance_id={{.properties.'ID' | @uri}}"
+  title = "Compute Instance"
+}
+
 category "compute_instance_group" {
   color = local.compute_color
   icon  = "heroicons-outline:rectangle-stack"
@@ -64,13 +71,6 @@ category "compute_instance_template" {
   color = local.compute_color
   icon  = "heroicons-outline:newspaper"
   title = "Compute Instance Template"
-}
-
-category "compute_instance" {
-  color = local.compute_color
-  icon  = "heroicons-outline:cpu-chip"
-  href  = "/gcp_insights.dashboard.compute_instance_detail?input.instance_id={{.properties.'ID' | @uri}}"
-  title = "Compute Instance"
 }
 
 category "compute_network" {

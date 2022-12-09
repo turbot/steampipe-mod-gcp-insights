@@ -16,6 +16,32 @@ edge "sql_backup_to_kms_key" {
   param "sql_backup_ids" {}
 }
 
+edge "sql_database_instance_from_primary_database_instance" {
+  title = "replicated from"
+
+  sql = <<-EOQ
+    with master_instance as (
+      select
+        split_part(master_instance_name, ':', 2) as mname,
+        name
+      from
+        gcp_sql_database_instance
+      where
+        name = any($1)
+    )
+    select
+      i.name as from_id,
+      m.name as to_id
+    from
+      gcp_sql_database_instance as i,
+      master_instance as m
+    where
+      i.name = m.mname;
+  EOQ
+
+  param "sql_database_instance_names" {}
+}
+
 edge "sql_database_instance_to_compute_network" {
   title = "network"
 
@@ -29,6 +55,22 @@ edge "sql_database_instance_to_compute_network" {
     where
       SPLIT_PART(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
       and i.name = any($1);
+  EOQ
+
+  param "sql_database_instance_names" {}
+}
+
+edge "sql_database_instance_to_database_instance_replica" {
+  title = "replica"
+
+  sql = <<-EOQ
+    select
+      name as to_id,
+      SPLIT_PART(master_instance_name, ':', 2) as from_id
+    from
+      gcp_sql_database_instance
+    where
+      SPLIT_PART(master_instance_name, ':', 2) = any($1);
   EOQ
 
   param "sql_database_instance_names" {}
@@ -84,44 +126,3 @@ edge "sql_database_instance_to_sql_database" {
   param "sql_database_instance_names" {}
 }
 
-edge "sql_database_instance_to_database_instance_replica" {
-  title = "replica"
-
-  sql = <<-EOQ
-    select
-      name as to_id,
-      SPLIT_PART(master_instance_name, ':', 2) as from_id
-    from
-      gcp_sql_database_instance
-    where
-      SPLIT_PART(master_instance_name, ':', 2) = any($1);
-  EOQ
-
-  param "sql_database_instance_names" {}
-}
-
-edge "sql_database_instance_from_primary_database_instance" {
-  title = "replicated from"
-
-  sql = <<-EOQ
-    with master_instance as (
-      select 
-        split_part(master_instance_name, ':', 2) as mname,
-        name
-      from  
-        gcp_sql_database_instance 
-      where 
-        name = any($1)
-    )
-    select
-      i.name as from_id,
-      m.name as to_id
-    from
-      gcp_sql_database_instance as i,
-      master_instance as m
-    where
-      i.name = m.mname;
-  EOQ
-
-  param "sql_database_instance_names" {}
-}

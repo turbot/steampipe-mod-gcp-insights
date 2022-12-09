@@ -187,9 +187,9 @@ dashboard "compute_subnetwork_detail" {
       nodes = [
         node.compute_address,
         node.compute_forwarding_rule,
+        node.compute_instance,
         node.compute_instance_group,
         node.compute_instance_template,
-        node.compute_instance,
         node.compute_network,
         node.compute_subnetwork,
         node.kubernetes_cluster
@@ -199,9 +199,9 @@ dashboard "compute_subnetwork_detail" {
         edge.compute_network_to_compute_subnetwork,
         edge.compute_subnetwork_to_compute_address,
         edge.compute_subnetwork_to_compute_forwarding_rule,
+        edge.compute_subnetwork_to_compute_instance,
         edge.compute_subnetwork_to_compute_instance_group,
         edge.compute_subnetwork_to_compute_instance_template,
-        edge.compute_subnetwork_to_compute_instance,
         edge.compute_subnetwork_to_kubernetes_cluster
       ]
 

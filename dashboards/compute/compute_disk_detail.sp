@@ -139,34 +139,27 @@ dashboard "compute_disk_detail" {
 
       nodes = [
         node.compute_disk,
+        node.compute_disk_from_compute_disk,
+        node.compute_disk_from_compute_image,
+        node.compute_disk_from_compute_snapshot,
+        node.compute_disk_to_compute_disk,
+        node.compute_disk_to_compute_image,
+        node.compute_disk_to_compute_snapshot,
         node.compute_instance,
         node.compute_resource_policy,
-        node.kms_key,
-
-        node.compute_disk_to_compute_disk,
-        node.compute_disk_from_compute_disk,
-
-        node.compute_disk_to_compute_image,
-        node.compute_disk_from_compute_image,
-
-        node.compute_disk_to_compute_snapshot,
-        node.compute_disk_from_compute_snapshot
+        node.kms_key
       ]
 
       edges = [
-        edge.compute_instance_to_compute_disk,
-        edge.compute_disk_to_kms_key,
-        edge.compute_disk_to_compute_resource_policy,
-
-        edge.compute_disk_to_compute_disk,
         edge.compute_disk_from_compute_disk,
-
-        edge.compute_disk_to_compute_image,
         edge.compute_disk_from_compute_image,
-
+        edge.compute_disk_from_compute_snapshot,
+        edge.compute_disk_to_compute_disk,
+        edge.compute_disk_to_compute_image,
+        edge.compute_disk_to_compute_resource_policy,
         edge.compute_disk_to_compute_snapshot,
-        edge.compute_disk_from_compute_snapshot
-
+        edge.compute_disk_to_kms_key,
+        edge.compute_instance_to_compute_disk
       ]
 
       args = {

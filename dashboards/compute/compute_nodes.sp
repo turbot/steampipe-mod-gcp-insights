@@ -369,6 +369,29 @@ node "compute_image" {
   param "compute_image_ids" {}
 }
 
+node "compute_instance" {
+  category = category.compute_instance
+
+  sql = <<-EOQ
+    select
+      id::text,
+      title,
+      jsonb_build_object(
+        'ID', id,
+        'Name', name,
+        'Created Time', creation_timestamp,
+        'CPU Platform', cpu_platform,
+        'Status', status
+      ) as properties
+    from
+      gcp_compute_instance
+    where
+      id = any($1);
+  EOQ
+
+  param "compute_instance_ids" {}
+}
+
 node "compute_instance_group" {
   category = category.compute_instance_group
 
@@ -412,29 +435,6 @@ node "compute_instance_template" {
   EOQ
 
   param "compute_instance_template_ids" {}
-}
-
-node "compute_instance" {
-  category = category.compute_instance
-
-  sql = <<-EOQ
-    select
-      id::text,
-      title,
-      jsonb_build_object(
-        'ID', id,
-        'Name', name,
-        'Created Time', creation_timestamp,
-        'CPU Platform', cpu_platform,
-        'Status', status
-      ) as properties
-    from
-      gcp_compute_instance
-    where
-      id = any($1);
-  EOQ
-
-  param "compute_instance_ids" {}
 }
 
 node "compute_network" {
