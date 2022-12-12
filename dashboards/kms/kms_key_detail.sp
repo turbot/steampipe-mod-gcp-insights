@@ -97,6 +97,8 @@ dashboard "kms_key_detail" {
             gcp_kms_key_version k
           where
             d.disk_encryption_key is not null
+            and split_part(d.disk_encryption_key ->> 'kmsKeyName', 'cryptoKeyVersions/', 2) = k.crypto_key_version::text
+            and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.name
             and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = $1;
         EOQ
 
@@ -106,11 +108,12 @@ dashboard "kms_key_detail" {
       with "compute_images" {
         sql = <<-EOQ
           select
-            i.id as iamge_id
+            i.id as image_id
           from
             gcp_compute_image as i
           where
-            split_part(i.image_encryption_key->>'kmsKeyName', '/', -3) = $1;
+            i.image_encryption_key is not null
+            and split_part(i.image_encryption_key->>'kmsKeyName', '/', 8) = $1;
         EOQ
 
         args = [self.input.key_name.value]
@@ -234,7 +237,7 @@ dashboard "kms_key_detail" {
       edges = [
         edge.bigquery_dataset_to_kms_key,
         edge.bigquery_table_to_kms_key,
-        edge.compute_disk_to_kms_key,
+        edge.compute_disk_to_kms_key_version,
         edge.compute_image_to_kms_key,
         edge.compute_snapshot_to_kms_key,
         edge.kms_key_ring_to_kms_key,

@@ -185,6 +185,26 @@ edge "compute_disk_to_kms_key" {
   param "compute_disk_ids" {}
 }
 
+edge "compute_disk_to_kms_key_version" {
+  title = "encrypted with"
+
+  sql = <<-EOQ
+    select
+      d.id::text as from_id,
+      k.name || '_' || k.crypto_key_version as to_id
+    from
+      gcp_compute_disk d,
+      gcp_kms_key_version k
+    where
+      d.disk_encryption_key is not null
+      and split_part(d.disk_encryption_key ->> 'kmsKeyName', 'cryptoKeyVersions/', 2) = k.crypto_key_version::text
+      and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.name
+      and d.id = any($1);
+  EOQ
+
+  param "compute_disk_ids" {}
+}
+
 ## Compute Image
 
 edge "compute_image_to_kms_key" {
@@ -192,13 +212,13 @@ edge "compute_image_to_kms_key" {
 
   sql = <<-EOQ
     select
-      i.id as from_id,
+      i.id::text as from_id,
       k.name as to_id
     from
       gcp_compute_image as i,
       gcp_kms_key as k
     where
-      split_part(i.image_encryption_key->>'kmsKeyName', '/', -3) = k.name
+      split_part(i.image_encryption_key->>'kmsKeyName', '/', 8) = k.name
       and i.id = any($1);
   EOQ
 
