@@ -187,7 +187,7 @@ node "compute_disk_from_compute_snapshot" {
 
   sql = <<-EOQ
     select
-      s.id::text,
+      s.name,
       s.title,
       jsonb_build_object(
         'Name', s.name,
@@ -262,7 +262,7 @@ node "compute_disk_to_compute_snapshot" {
 
   sql = <<-EOQ
     select
-      s.id::text as id,
+      s.name as id,
       s.title,
       jsonb_build_object(
         'Name', s.name,

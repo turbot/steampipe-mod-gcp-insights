@@ -80,7 +80,7 @@ edge "compute_disk_from_compute_snapshot" {
 
   sql = <<-EOQ
     select
-      s.id::text as from_id,
+      s.name as from_id,
       d.id::text as to_id
     from
       gcp_compute_disk d,
@@ -154,7 +154,7 @@ edge "compute_disk_to_compute_snapshot" {
   sql = <<-EOQ
     select
       d.id::text as from_id,
-      s.id::text as to_id
+      s.name as to_id
     from
       gcp_compute_disk d,
       gcp_compute_snapshot s
