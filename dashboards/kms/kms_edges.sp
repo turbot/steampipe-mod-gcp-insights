@@ -21,7 +21,7 @@ edge "kms_key_to_kms_key_version" {
 
   sql = <<-EOQ
     select
-      $1 as from_id,
+      v.name as from_id,
       v.name || '_' || v.crypto_key_version as to_id
     from
       gcp_kms_key_version v
@@ -29,5 +29,5 @@ edge "kms_key_to_kms_key_version" {
       v.name = any($1);
   EOQ
 
-  param "kms_key_ring_names" {}
+  param "kms_key_names" {}
 }

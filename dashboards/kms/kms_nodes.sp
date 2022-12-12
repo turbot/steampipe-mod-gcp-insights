@@ -63,5 +63,5 @@ node "kms_key_version" {
       v.name = any($1);
   EOQ
 
-  param "kms_key_ring_names" {}
+  param "kms_key_names" {}
 }

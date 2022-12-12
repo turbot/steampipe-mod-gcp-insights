@@ -11,7 +11,7 @@ category "pubsub_snapshot" {
 }
 
 category "pubsub_subscription" {
-  color = local.pubsub_color
+  color = local.application_integration_color
   icon  = "sensors"
   title = "Pub/Sub Subscription"
 }

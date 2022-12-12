@@ -83,11 +83,12 @@ dashboard "compute_instance_detail" {
           select
             f.id::text as firewall_id
           from
-            gcp_compute_instance_group g,
-            gcp_compute_firewall f
+            gcp_compute_instance i,
+            gcp_compute_firewall f,
+            jsonb_array_elements(network_interfaces) as ni
           where
-            g.network = f.network
-            and g.id = $1;
+            ni ->> 'network' = f.network
+            and i.id = $1;
         EOQ
 
         args = [self.input.instance_id.value]

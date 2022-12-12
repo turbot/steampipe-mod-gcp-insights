@@ -96,7 +96,7 @@ dashboard "kms_key_detail" {
             gcp_compute_disk d,
             gcp_kms_key_version k
           where
-            and d.disk_encryption_key is not null
+            d.disk_encryption_key is not null
             and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = $1;
         EOQ
 
@@ -119,7 +119,7 @@ dashboard "kms_key_detail" {
       with "compute_snapshots" {
         sql = <<-EOQ
           select
-            s.id as snapshot_id
+            s.name as snapshot_name
           from
             gcp_compute_snapshot s,
             gcp_kms_key_version v
@@ -135,7 +135,7 @@ dashboard "kms_key_detail" {
       with "kms_key_rings" {
         sql = <<-EOQ
           select
-            concat(p.name, '_key_ring') as ring_name
+            p.name as ring_name
           from
             gcp_kms_key_ring p,
             gcp_kms_key k
@@ -206,7 +206,7 @@ dashboard "kms_key_detail" {
           select
             b.id as bucket_id
           from
-            gcp_storage_bucket b,
+            gcp_storage_bucket b
           where
             b.default_kms_key_name is not null
             and split_part(b.default_kms_key_name, 'cryptoKeys/', 2) = $1;
@@ -251,7 +251,7 @@ dashboard "kms_key_detail" {
         bigquery_table_ids          = with.bigquery_tables.rows[*].table_id
         compute_disk_ids            = with.compute_disks.rows[*].disk_id
         compute_image_ids           = with.compute_images.rows[*].image_id
-        compute_snapshot_ids        = with.compute_snapshots.rows[*].snapshot_id
+        compute_snapshot_names      = with.compute_snapshots.rows[*].snapshot_name
         kms_key_names               = [self.input.key_name.value]
         kms_key_ring_names          = with.kms_key_rings.rows[*].ring_name
         kubernetes_cluster_names    = with.kubernetes_clusters.rows[*].cluster_name

@@ -366,7 +366,7 @@ edge "compute_instance_to_iam_service_account" {
 
   sql = <<-EOQ
     select
-      i.id as from_id,
+      i.id::text as from_id,
       s.name as to_id
     from
       gcp_compute_instance i,
@@ -563,7 +563,7 @@ edge "compute_snapshot_to_kms_key" {
 
   sql = <<-EOQ
     select
-      s.id::text as from_id,
+      s.name as from_id,
       v.name || '_' || v.crypto_key_version as to_id
     from
       gcp_compute_snapshot s,
@@ -574,7 +574,7 @@ edge "compute_snapshot_to_kms_key" {
       and s.id = any($1);
   EOQ
 
-  param "compute_snapshot_ids" {}
+  param "compute_snapshot_names" {}
 }
 
 ## Compute Subnetwork

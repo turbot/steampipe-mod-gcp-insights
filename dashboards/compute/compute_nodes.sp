@@ -506,7 +506,7 @@ node "compute_snapshot" {
 
   sql = <<-EOQ
     select
-      s.id:text,
+      s.name,
       s.title,
       jsonb_build_object(
         'Name', s.name,
@@ -517,10 +517,10 @@ node "compute_snapshot" {
     from
       gcp_compute_snapshot s
     where
-      s.id = any($1);
+      s.name = any($1);
   EOQ
 
-  param "compute_snapshot_ids" {}
+  param "compute_snapshot_names" {}
 }
 
 node "compute_subnetwork" {

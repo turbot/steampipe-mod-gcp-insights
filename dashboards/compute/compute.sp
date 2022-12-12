@@ -53,13 +53,6 @@ category "compute_image" {
   title = "Compute Image"
 }
 
-category "compute_instance" {
-  color = local.compute_color
-  icon  = "heroicons-outline:cpu-chip"
-  href  = "/gcp_insights.dashboard.compute_instance_detail?input.instance_id={{.properties.'ID' | @uri}}"
-  title = "Compute Instance"
-}
-
 category "compute_instance_group" {
   color = local.compute_color
   icon  = "heroicons-outline:rectangle-stack"
@@ -88,7 +81,7 @@ category "compute_network" {
 }
 
 category "compute_network_interface" {
-  color = local.network_color
+  color = local.networking_color
   icon  = "memory"
   title = "Compute Network Interface"
 }
@@ -137,7 +130,7 @@ category "compute_target_ssl_proxy" {
 }
 
 category "compute_vpn_gateway" {
-  color = local.network_color
+  color = local.networking_color
   icon  = "vpn_lock"
   title = "Compute VPN Gateway"
 }
