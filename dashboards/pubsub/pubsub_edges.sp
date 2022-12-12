@@ -57,7 +57,7 @@ edge "pubsub_topic_to_pubsub_subscription" {
   sql = <<-EOQ
     select
       s.topic_name as from_id,
-      s.name as to_id
+      s.name || 'subscription' as to_id
     from
       gcp_pubsub_subscription s
     where

@@ -24,7 +24,7 @@ node "pubsub_subscription" {
   category = category.pubsub_subscription
 
   sql = <<-EOQ
-  select
+    select
       k.name || 'subscription' as id,
       k.title,
       jsonb_build_object(
