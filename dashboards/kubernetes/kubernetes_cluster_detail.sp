@@ -236,7 +236,7 @@ dashboard "kubernetes_cluster_detail" {
         edge.kubernetes_cluster_to_kms_key,
         edge.kubernetes_cluster_to_kubernetes_node_pool,
         edge.kubernetes_cluster_to_pubsub_topic,
-        edge.kubernetes_node_pool_to_compute_instance_group,
+        edge.kubernetes_node_pool_to_compute_instance_group
       ]
 
       args = {
