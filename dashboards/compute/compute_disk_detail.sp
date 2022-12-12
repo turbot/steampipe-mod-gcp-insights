@@ -95,6 +95,19 @@ dashboard "compute_disk_detail" {
         args = [self.input.disk_id.value]
       }
 
+      with "from_disks" {
+        sql = <<-EOQ
+          select
+            d.source_disk_id::text as disk_id
+          from
+            gcp_compute_disk d
+          where
+            d.id = $1;
+        EOQ
+
+        args = [self.input.disk_id.value]
+      }
+
       with "kms_keys" {
         sql = <<-EOQ
           select
@@ -119,19 +132,6 @@ dashboard "compute_disk_detail" {
             gcp_compute_disk d
           where
             d.source_disk_id = $1;
-        EOQ
-
-        args = [self.input.disk_id.value]
-      }
-
-      with "from_disks" {
-        sql = <<-EOQ
-          select
-            d.source_disk_id::text as disk_id
-          from
-            gcp_compute_disk d
-          where
-            d.id = $1;
         EOQ
 
         args = [self.input.disk_id.value]
