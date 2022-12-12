@@ -11,14 +11,14 @@ category "pubsub_snapshot" {
 }
 
 category "pubsub_subscription" {
-  color = local.application_integration_color
-  icon  = "heroicons-outline:rss"
+  color = local.pubsub_color
+  icon  = "sensors"
   title = "Pub/Sub Subscription"
 }
 
 category "pubsub_topic" {
   color = local.application_integration_color
   href  = "/gcp_insights.dashboard.pubsub_topic_detail?input.name={{.properties.'Name' | @uri}}"
-  icon  = "text:topic"
+  icon  = "podcasts"
   title = "Pub/Sub Topic"
 }

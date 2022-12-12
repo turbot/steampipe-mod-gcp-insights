@@ -49,7 +49,7 @@ category "compute_forwarding_rule" {
 
 category "compute_image" {
   color = local.compute_color
-  icon  = "text:image"
+  icon  = "developer-board"
   title = "Compute Image"
 }
 
@@ -73,6 +73,13 @@ category "compute_instance_template" {
   title = "Compute Instance Template"
 }
 
+category "compute_instance" {
+  color = local.compute_color
+  icon  = "dns"
+  href  = "/gcp_insights.dashboard.compute_instance_detail?input.instance_id={{.properties.'ID' | @uri}}"
+  title = "Compute Instance"
+}
+
 category "compute_network" {
   color = local.networking_color
   href  = "/gcp_insights.dashboard.compute_network_detail?input.network_name={{.properties.'Name' | @uri}}"
@@ -81,8 +88,8 @@ category "compute_network" {
 }
 
 category "compute_network_interface" {
-  color = local.networking_color
-  icon  = "text:NIC"
+  color = local.network_color
+  icon  = "memory"
   title = "Compute Network Interface"
 }
 
@@ -130,8 +137,8 @@ category "compute_target_ssl_proxy" {
 }
 
 category "compute_vpn_gateway" {
-  color = local.networking_color
-  icon  = "text:VPNGW"
+  color = local.network_color
+  icon  = "vpn_lock"
   title = "Compute VPN Gateway"
 }
 

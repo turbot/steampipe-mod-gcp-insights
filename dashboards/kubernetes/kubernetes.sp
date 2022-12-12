@@ -5,14 +5,14 @@ locals {
 }
 
 category "kubernetes_cluster" {
-  color = local.containers_color
-  icon  = "heroicons-outline:cog"
+  color = local.kubernetes_color
+  icon  = "hub"
   href  = "/gcp_insights.dashboard.kubernetes_cluster_detail?input.cluster_name={{.properties.'Name' | @uri}}"
   title = "Kubernetes Cluster"
 }
 
 category "kubernetes_node_pool" {
-  color = local.containers_color
-  icon  = "text:pool"
+  color = local.kubernetes_color
+  icon  = "device-hub"
   title = "Kubernetes Node Pool"
 }
