@@ -551,7 +551,7 @@ edge "compute_network_to_kubernetes_cluster" {
       gcp_kubernetes_cluster c,
       gcp_compute_network n
     where
-      n.name = $1
+      n.name = any($1)
       and n.name = c.network
   EOQ
 

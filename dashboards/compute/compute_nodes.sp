@@ -431,7 +431,7 @@ node "compute_instance_template" {
     from
       gcp_compute_instance_template t
     where
-      t.id = $1;
+      t.id = any($1);
   EOQ
 
   param "compute_instance_template_ids" {}
