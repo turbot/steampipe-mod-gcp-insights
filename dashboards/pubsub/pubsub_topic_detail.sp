@@ -32,110 +32,110 @@ dashboard "pubsub_topic_detail" {
     }
   }
 
-  container {
+  // container {
 
-    graph {
-      title = "Relationships"
-      type  = "graph"
+  //   graph {
+  //     title = "Relationships"
+  //     type  = "graph"
 
-      with "iam_roles" {
-        sql = <<-EOQ
-          select
-            i.role_id as role_id
-          from
-            gcp_iam_role i,
-            gcp_pubsub_topic t,
-            jsonb_array_elements(t.iam_policy->'bindings') as roles
-          where
-            roles ->> 'role' = i.name
-            and t.name = $1;
-        EOQ
+  //     with "iam_roles" {
+  //       sql = <<-EOQ
+  //         select
+  //           i.role_id as role_id
+  //         from
+  //           gcp_iam_role i,
+  //           gcp_pubsub_topic t,
+  //           jsonb_array_elements(t.iam_policy->'bindings') as roles
+  //         where
+  //           roles ->> 'role' = i.name
+  //           and t.name = $1;
+  //       EOQ
 
-        args = [self.input.name.value]
-      }
+  //       args = [self.input.name.value]
+  //     }
 
-      with "kms_keys" {
-        sql = <<-EOQ
-          select
-            split_part(p.kms_key_name, 'cryptoKeys/', 2) as key_name
-          from
-            gcp_pubsub_topic p
-          where
-            p.name = $1;
-        EOQ
+  //     with "kms_keys" {
+  //       sql = <<-EOQ
+  //         select
+  //           split_part(p.kms_key_name, 'cryptoKeys/', 2) as key_name
+  //         from
+  //           gcp_pubsub_topic p
+  //         where
+  //           p.name = $1;
+  //       EOQ
 
-        args = [self.input.name.value]
-      }
+  //       args = [self.input.name.value]
+  //     }
 
-      with "kubernetes_clusters" {
-        sql = <<-EOQ
-          select
-            c.name as cluster_name
-          from
-            gcp_kubernetes_cluster c,
-            gcp_pubsub_topic t
-          where
-            t.name = $1
-            and c.notification_config is not null
-            and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
-        EOQ
+  //     with "kubernetes_clusters" {
+  //       sql = <<-EOQ
+  //         select
+  //           c.name as cluster_name
+  //         from
+  //           gcp_kubernetes_cluster c,
+  //           gcp_pubsub_topic t
+  //         where
+  //           t.name = $1
+  //           and c.notification_config is not null
+  //           and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
+  //       EOQ
 
-        args = [self.input.name.value]
-      }
+  //       args = [self.input.name.value]
+  //     }
 
-      with "pubsub_snapshots" {
-        sql = <<-EOQ
-          select
-            s.name as snapshot_name
-          from
-            gcp_pubsub_snapshot s
-          where
-            s.topic_name = $1;
-        EOQ
+  //     with "pubsub_snapshots" {
+  //       sql = <<-EOQ
+  //         select
+  //           s.name as snapshot_name
+  //         from
+  //           gcp_pubsub_snapshot s
+  //         where
+  //           s.topic_name = $1;
+  //       EOQ
 
-        args = [self.input.name.value]
-      }
+  //       args = [self.input.name.value]
+  //     }
 
-      with "pubsub_subscriptions" {
-        sql = <<-EOQ
-          select
-            s.name as subscription_name
-          from
-            gcp_pubsub_subscription s
-          where
-            s.topic_name = $1;
-        EOQ
+  //     with "pubsub_subscriptions" {
+  //       sql = <<-EOQ
+  //         select
+  //           s.name as subscription_name
+  //         from
+  //           gcp_pubsub_subscription s
+  //         where
+  //           s.topic_name = $1;
+  //       EOQ
 
-        args = [self.input.name.value]
-      }
+  //       args = [self.input.name.value]
+  //     }
 
-      nodes = [
-        node.iam_role,
-        node.kms_key,
-        node.kubernetes_cluster,
-        node.pubsub_snapshot,
-        node.pubsub_subscription,
-        node.pubsub_topic
-      ]
+  //     nodes = [
+  //       node.iam_role,
+  //       node.kms_key,
+  //       node.kubernetes_cluster,
+  //       node.pubsub_snapshot,
+  //       node.pubsub_subscription,
+  //       node.pubsub_topic
+  //     ]
 
-      edges = [
-        edge.kubernetes_cluster_to_pubsub_topic,
-        edge.pubsub_topic_to_iam_role,
-        edge.pubsub_topic_to_kms_key,
-        edge.pubsub_topic_to_pubsub_snapshot,
-        edge.pubsub_topic_to_pubsub_subscription
-      ]
+  //     edges = [
+  //       edge.kubernetes_cluster_to_pubsub_topic,
+  //       edge.pubsub_topic_to_iam_role,
+  //       edge.pubsub_topic_to_kms_key,
+  //       edge.pubsub_topic_to_pubsub_snapshot,
+  //       edge.pubsub_topic_to_pubsub_subscription
+  //     ]
 
-      args = {
-        iam_role_ids              = with.iam_roles.rows[*].role_id
-        kms_key_names             = with.kms_keys.rows[*].key_name
-        kubernetes_cluster_names  = with.kubernetes_clusters.rows[*].cluster_name
-        pubsub_snapshot_names     = with.pubsub_snapshots.rows[*].snapshot_name
-        pubsub_subscription_names = with.pubsub_subscriptions.rows[*].subscription_name
-        pubsub_topic_names        = [self.input.name.value]
-      }
-    }
-  }
+  //     args = {
+  //       iam_role_ids              = with.iam_roles.rows[*].role_id
+  //       kms_key_names             = with.kms_keys.rows[*].key_name
+  //       kubernetes_cluster_names  = with.kubernetes_clusters.rows[*].cluster_name
+  //       pubsub_snapshot_names     = with.pubsub_snapshots.rows[*].snapshot_name
+  //       pubsub_subscription_names = with.pubsub_subscriptions.rows[*].subscription_name
+  //       pubsub_topic_names        = [self.input.name.value]
+  //     }
+  //   }
+  // }
 
   container {
 
@@ -157,7 +157,6 @@ dashboard "pubsub_topic_detail" {
         title = "Tags"
         width = 6
         query = query.pubsub_topic_tags
-        param "name" {}
         args = {
           name = self.input.name.value
         }
@@ -170,7 +169,6 @@ dashboard "pubsub_topic_detail" {
       table {
         title = "Subscription Details"
         query = query.pubsub_topic_subscription_details
-        param "name" {}
         args = {
           name = self.input.name.value
         }
@@ -179,7 +177,6 @@ dashboard "pubsub_topic_detail" {
       table {
         title = "Encryption Details"
         query = query.pubsub_topic_encryption_details
-        param "name" {}
         args = {
           name = self.input.name.value
         }

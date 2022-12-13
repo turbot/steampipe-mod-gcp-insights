@@ -68,81 +68,81 @@ dashboard "sql_database_instance_detail" {
     }
   }
 
-  container {
+  // container {
 
-    graph {
-      title = "Relationships"
-      type  = "graph"
+  //   graph {
+  //     title = "Relationships"
+  //     type  = "graph"
 
-      with "compute_networks" {
-        sql = <<-EOQ
-          select
-            n.name as network_name
-          from
-            gcp_sql_database_instance as i,
-            gcp_compute_network as n
-          where
-            SPLIT_PART(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
-            and i.name = $1;
-        EOQ
+  //     with "compute_networks" {
+  //       sql = <<-EOQ
+  //         select
+  //           n.name as network_name
+  //         from
+  //           gcp_sql_database_instance as i,
+  //           gcp_compute_network as n
+  //         where
+  //           SPLIT_PART(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
+  //           and i.name = $1;
+  //       EOQ
 
-        args = [self.input.database_instance_name.value]
-      }
+  //       args = [self.input.database_instance_name.value]
+  //     }
 
-      with "kms_keys" {
-        sql = <<-EOQ
-          select
-            k.name as key_name
-          from
-            gcp_sql_database_instance as i,
-            gcp_kms_key as k
-          where
-            i.name = $1 and i.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2));
-        EOQ
+  //     with "kms_keys" {
+  //       sql = <<-EOQ
+  //         select
+  //           k.name as key_name
+  //         from
+  //           gcp_sql_database_instance as i,
+  //           gcp_kms_key as k
+  //         where
+  //           i.name = $1 and i.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2));
+  //       EOQ
 
-        args = [self.input.database_instance_name.value]
-      }
+  //       args = [self.input.database_instance_name.value]
+  //     }
 
-      with "sql_backups" {
-        sql = <<-EOQ
-          select
-            id as backup_id
-          from
-            gcp_sql_backup
-          where
-            instance_name = any($1);
-        EOQ
+  //     with "sql_backups" {
+  //       sql = <<-EOQ
+  //         select
+  //           id as backup_id
+  //         from
+  //           gcp_sql_backup
+  //         where
+  //           instance_name = any($1);
+  //       EOQ
 
-        args = [self.input.database_instance_name.value]
-      }
+  //       args = [self.input.database_instance_name.value]
+  //     }
 
-      nodes = [
-        node.compute_network,
-        node.kms_key,
-        node.sql_backup,
-        node.sql_database,
-        node.sql_database_instance,
-        node.sql_database_instance_from_primary_database_instance,
-        node.sql_database_instance_to_database_instance_replica
-      ]
+  //     nodes = [
+  //       node.compute_network,
+  //       node.kms_key,
+  //       node.sql_backup,
+  //       node.sql_database,
+  //       node.sql_database_instance,
+  //       node.sql_database_instance_from_primary_database_instance,
+  //       node.sql_database_instance_to_database_instance_replica
+  //     ]
 
-      edges = [
-        edge.sql_database_instance_from_primary_database_instance,
-        edge.sql_database_instance_to_compute_network,
-        edge.sql_database_instance_to_database_instance_replica,
-        edge.sql_database_instance_to_kms_key,
-        edge.sql_database_instance_to_sql_backup,
-        edge.sql_database_instance_to_sql_database
-      ]
+  //     edges = [
+  //       edge.sql_database_instance_from_primary_database_instance,
+  //       edge.sql_database_instance_to_compute_network,
+  //       edge.sql_database_instance_to_database_instance_replica,
+  //       edge.sql_database_instance_to_kms_key,
+  //       edge.sql_database_instance_to_sql_backup,
+  //       edge.sql_database_instance_to_sql_database
+  //     ]
 
-      args = {
-        compute_network_names       = with.compute_networks.rows[*].network_name
-        kms_key_names               = with.kms_keys.rows[*].key_name
-        sql_backup_ids              = with.sql_backups.rows[*].backup_id
-        sql_database_instance_names = [self.input.database_instance_name.value]
-      }
-    }
-  }
+  //     args = {
+  //       compute_network_names       = with.compute_networks.rows[*].network_name
+  //       kms_key_names               = with.kms_keys.rows[*].key_name
+  //       sql_backup_ids              = with.sql_backups.rows[*].backup_id
+  //       sql_database_instance_names = [self.input.database_instance_name.value]
+  //     }
+  //   }
+  // }
 
   container {
 

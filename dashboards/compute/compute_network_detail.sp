@@ -64,211 +64,317 @@ dashboard "compute_network_detail" {
     }
   }
 
+  with "compute_backend_services" {
+    sql = <<-EOQ
+      select
+        bs.id::text as service_id
+      from
+        gcp_compute_backend_service bs,
+        gcp_compute_network n
+      where
+        bs.network = n.self_link
+        and n.name = $1;
+    EOQ
+
+    args = [self.input.network_name.value]
+  }
+
+  with "compute_firewalls" {
+    sql = <<-EOQ
+      select
+        f.id::text as firewall_id
+      from
+        gcp_compute_firewall f,
+        gcp_compute_network n
+      where
+        f.network = n.self_link
+        and n.name = $1;
+    EOQ
+
+    args = [self.input.network_name.value]
+  }
+
+  with "compute_forwarding_rules" {
+    sql = <<-EOQ
+      select
+        fr.id::text as rule_id
+      from
+        gcp_compute_forwarding_rule fr,
+        gcp_compute_network n
+      where
+        split_part(fr.network, 'networks/', 2) = $1
+
+      union
+
+      select
+        fr.id::text as rule_id
+      from
+        gcp_compute_global_forwarding_rule fr,
+        gcp_compute_network n
+      where
+        split_part(fr.network, 'networks/', 2) = $1;
+    EOQ
+
+    args = [self.input.network_name.value]
+  }
+
+  with "compute_instances" {
+    sql = <<-EOQ
+      select
+        i.id::text as instance_id
+      from
+        gcp_compute_instance i,
+        gcp_compute_network n,
+        jsonb_array_elements(network_interfaces) as ni
+      where
+        n.self_link = ni ->> 'network'
+        and n.name = $1;
+    EOQ
+
+    args = [self.input.network_name.value]
+  }
+
+  with "compute_routers" {
+    sql = <<-EOQ
+      select
+        r.id::text as router_id
+      from
+        gcp_compute_router r,
+        gcp_compute_network n
+      where
+        r.network = n.self_link
+        and n.name = $1;
+    EOQ
+
+    args = [self.input.network_name.value]
+  }
+
+  with "compute_subnetworks" {
+    sql = <<-EOQ
+      select
+        s.id as subnetwork_id
+      from
+        gcp_compute_subnetwork s,
+        gcp_compute_network n
+      where
+        s.network = n.self_link
+        and n.name = $1;
+    EOQ
+
+    args = [self.input.network_name.value]
+  }
+
+  with "compute_vpn_gateways" {
+    sql = <<-EOQ
+      select
+        g.id::text as gateway_id
+      from
+        gcp_compute_vpn_gateway g,
+        gcp_compute_network n
+      where
+        g.network = n.self_link
+        and n.name = $1;
+    EOQ
+
+    args = [self.input.network_name.value]
+  }
+
+  with "dns_policies" {
+    sql = <<-EOQ
+      select
+        p.id::text as policy_id
+      from
+        gcp_dns_policy p,
+        jsonb_array_elements(p.networks) pn,
+        gcp_compute_network n
+      where
+        pn ->> 'networkUrl' = n.self_link
+        and n.name = $1;
+    EOQ
+
+    args = [self.input.network_name.value]
+  }
+
+  with "kubernetes_clusters" {
+    sql = <<-EOQ
+      select
+        c.name as cluster_name
+      from
+        gcp_kubernetes_cluster c
+      where
+        c.network = $1;
+
+    EOQ
+
+    args = [self.input.network_name.value]
+  }
+
+  with "sql_database_instances" {
+    sql = <<-EOQ
+      select
+        i.name as instance_id
+      from
+        gcp_sql_database_instance i,
+        gcp_compute_network n
+      where
+        n.self_link like '%' || (i.ip_configuration ->> 'privateNetwork') || '%'
+        and n.name = $1;
+    EOQ
+
+    args = [self.input.network_name.value]
+  }
+
   container {
 
     graph {
       title = "Relationships"
       type  = "graph"
 
-      with "compute_backend_services" {
-        sql = <<-EOQ
-          select
-            bs.id::text as service_id
-          from
-            gcp_compute_backend_service bs,
-            gcp_compute_network n
-          where
-            bs.network = n.self_link
-            and n.name = $1;
-        EOQ
-
-        args = [self.input.network_name.value]
+      node {
+        base = node.compute_backend_service
+        args = {
+          compute_backend_service_ids = with.compute_backend_services.rows[*].service_id
+        }
       }
 
-      with "compute_firewalls" {
-        sql = <<-EOQ
-          select
-            f.id::text as firewall_id
-          from
-            gcp_compute_firewall f,
-            gcp_compute_network n
-          where
-            f.network = n.self_link
-            and n.name = $1;
-        EOQ
-
-        args = [self.input.network_name.value]
+      node {
+        base = node.compute_firewall
+        args = {
+          compute_firewall_ids = with.compute_firewalls.rows[*].firewall_id
+        }
       }
 
-      with "compute_forwarding_rules" {
-        sql = <<-EOQ
-          select
-            fr.id::text as rule_id
-          from
-            gcp_compute_forwarding_rule fr,
-            gcp_compute_network n
-          where
-            split_part(fr.network, 'networks/', 2) = $1
-
-          union
-
-          select
-            fr.id::text as rule_id
-          from
-            gcp_compute_global_forwarding_rule fr,
-            gcp_compute_network n
-          where
-            split_part(fr.network, 'networks/', 2) = $1;
-        EOQ
-
-        args = [self.input.network_name.value]
+      node {
+        base = node.compute_forwarding_rule
+        args = {
+          compute_forwarding_rule_ids = with.compute_forwarding_rules.rows[*].rule_id
+        }
       }
 
-      with "compute_instances" {
-        sql = <<-EOQ
-          select
-            i.id::text as instance_id
-          from
-            gcp_compute_instance i,
-            gcp_compute_network n,
-            jsonb_array_elements(network_interfaces) as ni
-          where
-            n.self_link = ni ->> 'network'
-            and n.name = $1;
-        EOQ
-
-        args = [self.input.network_name.value]
+      node {
+        base = node.compute_instance
+        args = {
+          compute_instance_ids = with.compute_instances.rows[*].instance_id
+        }
       }
 
-      with "compute_routers" {
-        sql = <<-EOQ
-          select
-            r.id::text as router_id
-          from
-            gcp_compute_router r,
-            gcp_compute_network n
-          where
-            r.network = n.self_link
-            and n.name = $1;
-        EOQ
-
-        args = [self.input.network_name.value]
+      node {
+        base = node.compute_network
+        args = {
+          compute_network_names = [self.input.network_name.value]
+        }
       }
 
-      with "compute_subnetworks" {
-        sql = <<-EOQ
-          select
-            s.id as subnetwork_id
-          from
-            gcp_compute_subnetwork s,
-            gcp_compute_network n
-          where
-            s.network = n.self_link
-            and n.name = $1;
-        EOQ
-
-        args = [self.input.network_name.value]
+      node {
+        base = node.compute_router
+        args = {
+          compute_router_ids = with.compute_routers.rows[*].router_id
+        }
       }
 
-      with "compute_vpn_gateways" {
-        sql = <<-EOQ
-          select
-            g.id::text as gateway_id
-          from
-            gcp_compute_vpn_gateway g,
-            gcp_compute_network n
-          where
-            g.network = n.self_link
-            and n.name = $1;
-        EOQ
-
-        args = [self.input.network_name.value]
+      node {
+        base = node.compute_subnetwork
+        args = {
+          compute_subnetwork_ids = with.compute_subnetworks.rows[*].subnetwork_id
+        }
       }
 
-      with "dns_policies" {
-        sql = <<-EOQ
-          select
-            p.id::text as policy_id
-          from
-            gcp_dns_policy p,
-            jsonb_array_elements(p.networks) pn,
-            gcp_compute_network n
-          where
-            pn ->> 'networkUrl' = n.self_link
-            and n.name = $1;
-        EOQ
-
-        args = [self.input.network_name.value]
+      node {
+        base = node.compute_vpn_gateway
+        args = {
+          compute_vpn_gateway_ids = with.compute_vpn_gateways.rows[*].gateway_id
+        }
       }
 
-      with "kubernetes_clusters" {
-        sql = <<-EOQ
-          select
-            c.name as cluster_name
-          from
-            gcp_kubernetes_cluster c
-          where
-            c.network = $1;
-
-        EOQ
-
-        args = [self.input.network_name.value]
+      node {
+        base = node.dns_policy
+        args = {
+          dns_policy_ids = with.dns_policies.rows[*].policy_id
+        }
       }
 
-      with "sql_database_instances" {
-        sql = <<-EOQ
-          select
-            i.name as instance_id
-          from
-            gcp_sql_database_instance i,
-            gcp_compute_network n
-          where
-            n.self_link like '%' || (i.ip_configuration ->> 'privateNetwork') || '%'
-            and n.name = $1;
-        EOQ
-
-        args = [self.input.network_name.value]
+      node {
+        base = node.kubernetes_cluster
+        args = {
+          kubernetes_cluster_names = with.kubernetes_clusters.rows[*].cluster_name
+        }
       }
 
-      nodes = [
-        node.compute_backend_service,
-        node.compute_firewall,
-        node.compute_forwarding_rule,
-        node.compute_instance,
-        node.compute_network,
-        node.compute_router,
-        node.compute_subnetwork,
-        node.compute_vpn_gateway,
-        node.dns_policy,
-        node.kubernetes_cluster,
-        node.sql_database_instance
-      ]
+      node {
+        base = node.sql_database_instance
+        args = {
+          sql_database_instance_names = with.sql_database_instances.rows[*].instance_id
+        }
+      }
 
-      edges = [
-        edge.compute_network_to_compute_backend_service,
-        edge.compute_network_to_compute_firewall,
-        edge.compute_network_to_compute_forwarding_rule,
-        edge.compute_network_to_compute_instance,
-        edge.compute_network_to_compute_router,
-        edge.compute_network_to_compute_subnetwork,
-        edge.compute_network_to_dns_policy,
-        edge.compute_network_to_kubernetes_cluster,
-        edge.compute_network_to_sql_database_instance,
-        edge.compute_vpn_gateway_to_compute_network
-      ]
+      edge {
+        base = edge.compute_network_to_compute_backend_service
+        args = {
+          compute_network_names = [self.input.network_name.value]
+        }
+      }
 
-      args = {
-        compute_backend_service_ids = with.compute_backend_services.rows[*].service_id
-        compute_firewall_ids        = with.compute_firewalls.rows[*].firewall_id
-        compute_forwarding_rule_ids = with.compute_forwarding_rules.rows[*].rule_id
-        compute_instance_ids        = with.compute_instances.rows[*].instance_id
-        compute_network_names       = [self.input.network_name.value]
-        compute_router_ids          = with.compute_routers.rows[*].router_id
-        compute_subnetwork_ids      = with.compute_subnetworks.rows[*].subnetwork_id
-        compute_vpn_gateway_ids     = with.compute_vpn_gateways.rows[*].gateway_id
-        dns_policy_ids              = with.dns_policies.rows[*].policy_id
-        kubernetes_cluster_names    = with.kubernetes_clusters.rows[*].cluster_name
-        sql_database_instance_names = with.sql_database_instances.rows[*].instance_id
+      edge {
+        base = edge.compute_network_to_compute_firewall
+        args = {
+          compute_network_names = [self.input.network_name.value]
+        }
+      }
+
+      edge {
+        base = edge.compute_network_to_compute_forwarding_rule
+        args = {
+          compute_network_names = [self.input.network_name.value]
+        }
+      }
+
+      edge {
+        base = edge.compute_network_to_compute_instance
+        args = {
+          compute_network_names = [self.input.network_name.value]
+        }
+      }
+
+      edge {
+        base = edge.compute_network_to_compute_router
+        args = {
+          compute_network_names = [self.input.network_name.value]
+        }
+      }
+
+      edge {
+        base = edge.compute_network_to_compute_subnetwork
+        args = {
+          compute_network_names = [self.input.network_name.value]
+        }
+      }
+
+      edge {
+        base = edge.compute_network_to_dns_policy
+        args = {
+          compute_network_names = [self.input.network_name.value]
+        }
+      }
+
+      edge {
+        base = edge.compute_network_to_kubernetes_cluster
+        args = {
+          compute_network_names = [self.input.network_name.value]
+        }
+      }
+
+      edge {
+        base = edge.compute_network_to_sql_database_instance
+        args = {
+          compute_network_names = [self.input.network_name.value]
+        }
+      }
+
+      edge {
+        base = edge.compute_vpn_gateway_to_compute_network
+        args = {
+          compute_vpn_gateway_ids = with.compute_vpn_gateways.rows[*].gateway_id
+        }
       }
     }
   }

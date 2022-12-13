@@ -49,172 +49,246 @@ dashboard "compute_subnetwork_detail" {
 
   }
 
+  with "compute_addresses" {
+    sql = <<-EOQ
+      select
+        a.id::text as address_id
+      from
+        gcp_compute_address a,
+        gcp_compute_subnetwork s
+      where
+        s.id = $1
+        and s.self_link = a.subnetwork
+
+      union
+
+      select
+        a.id::text as address_id
+      from
+        gcp_compute_global_address a,
+        gcp_compute_subnetwork s
+      where
+        s.id = $1
+        and s.self_link = a.subnetwork;
+    EOQ
+
+    args = [self.input.subnetwork_id.value]
+  }
+
+  with "compute_forwarding_rules" {
+    sql = <<-EOQ
+      select
+        r.id::text as rule_id
+      from
+        gcp_compute_forwarding_rule r,
+        gcp_compute_subnetwork s
+      where
+        s.id = $1
+        and split_part(r.subnetwork, 'subnetworks/', 2) = s.name
+
+      union
+
+      select
+        r.id::text as rule_id
+      from
+        gcp_compute_global_forwarding_rule r,
+        gcp_compute_subnetwork s
+      where
+        s.id = $1
+        and split_part(r.subnetwork, 'subnetworks/', 2) = s.name;
+    EOQ
+
+    args = [self.input.subnetwork_id.value]
+  }
+
+  with "compute_instance_groups" {
+    sql = <<-EOQ
+      select
+        g.id::text as group_id
+      from
+        gcp_compute_instance_group g,
+        gcp_compute_subnetwork s
+      where
+        g.subnetwork = s.self_link
+        and s.id = $1;
+    EOQ
+
+    args = [self.input.subnetwork_id.value]
+  }
+
+  with "compute_instance_templates" {
+    sql = <<-EOQ
+      select
+        t.id::text as template_id
+      from
+        gcp_compute_instance_template t,
+        jsonb_array_elements(instance_network_interfaces) ni,
+        gcp_compute_subnetwork s
+      where
+        ni ->> 'subnetwork' = s.self_link
+        and s.id = $1;
+    EOQ
+
+    args = [self.input.subnetwork_id.value]
+  }
+
+  with "compute_instances" {
+    sql = <<-EOQ
+      select
+        i.id::text as instance_id
+      from
+        gcp_compute_instance i,
+        gcp_compute_subnetwork s,
+        jsonb_array_elements(network_interfaces) as ni
+      where
+        ni ->> 'subnetwork' = s.self_link
+        and s.id = $1;
+    EOQ
+
+    args = [self.input.subnetwork_id.value]
+  }
+
+  with "compute_networks" {
+    sql = <<-EOQ
+      select
+        n.name as network_name
+      from
+        gcp_compute_subnetwork s,
+        gcp_compute_network n
+      where
+        s.network = n.self_link
+        and s.id = $1;
+    EOQ
+
+    args = [self.input.subnetwork_id.value]
+  }
+
+  with "kubernetes_clusters" {
+    sql = <<-EOQ
+      select
+        c.name as cluster_name
+      from
+        gcp_kubernetes_cluster c,
+        gcp_compute_subnetwork s
+      where
+        s.id = $1
+        and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
+    EOQ
+
+    args = [self.input.subnetwork_id.value]
+  }
+
   container {
 
     graph {
       title = "Relationships"
       type  = "graph"
 
-      with "compute_addresses" {
-        sql = <<-EOQ
-          select
-            a.id::text as address_id
-          from
-            gcp_compute_address a,
-            gcp_compute_subnetwork s
-          where
-            s.id = $1
-            and s.self_link = a.subnetwork
-
-          union
-
-          select
-            a.id::text as address_id
-          from
-            gcp_compute_global_address a,
-            gcp_compute_subnetwork s
-          where
-            s.id = $1
-            and s.self_link = a.subnetwork;
-        EOQ
-
-        args = [self.input.subnetwork_id.value]
+      node {
+        base = node.compute_address
+        args = {
+          compute_address_ids = with.compute_addresses.rows[*].address_id
+        }
       }
 
-      with "compute_forwarding_rules" {
-        sql = <<-EOQ
-          select
-            r.id::text as rule_id
-          from
-            gcp_compute_forwarding_rule r,
-            gcp_compute_subnetwork s
-          where
-            s.id = $1
-            and split_part(r.subnetwork, 'subnetworks/', 2) = s.name
-
-          union
-
-          select
-            r.id::text as rule_id
-          from
-            gcp_compute_global_forwarding_rule r,
-            gcp_compute_subnetwork s
-          where
-            s.id = $1
-            and split_part(r.subnetwork, 'subnetworks/', 2) = s.name;
-        EOQ
-
-        args = [self.input.subnetwork_id.value]
+      node {
+        base = node.compute_forwarding_rule
+        args = {
+          compute_forwarding_rule_ids = with.compute_forwarding_rules.rows[*].rule_id
+        }
       }
 
-      with "compute_instance_groups" {
-        sql = <<-EOQ
-          select
-            g.id::text as group_id
-          from
-            gcp_compute_instance_group g,
-            gcp_compute_subnetwork s
-          where
-            g.subnetwork = s.self_link
-            and s.id = $1;
-        EOQ
-
-        args = [self.input.subnetwork_id.value]
+      node {
+        base = node.compute_instance
+        args = {
+          compute_instance_ids = with.compute_instances.rows[*].instance_id
+        }
       }
 
-      with "compute_instance_templates" {
-        sql = <<-EOQ
-          select
-            t.id::text as template_id
-          from
-            gcp_compute_instance_template t,
-            jsonb_array_elements(instance_network_interfaces) ni,
-            gcp_compute_subnetwork s
-          where
-            ni ->> 'subnetwork' = s.self_link
-            and s.id = $1;
-        EOQ
-
-        args = [self.input.subnetwork_id.value]
+      node {
+        base = node.compute_instance_group
+        args = {
+          compute_instance_group_ids = with.compute_instance_groups.rows[*].group_id
+        }
       }
 
-      with "compute_instances" {
-        sql = <<-EOQ
-          select
-            i.id::text as instance_id
-          from
-            gcp_compute_instance i,
-            gcp_compute_subnetwork s,
-            jsonb_array_elements(network_interfaces) as ni
-          where
-            ni ->> 'subnetwork' = s.self_link
-            and s.id = $1;
-        EOQ
-
-        args = [self.input.subnetwork_id.value]
+      node {
+        base = node.compute_instance_template
+        args = {
+          compute_instance_template_ids = with.compute_instance_templates.rows[*].template_id
+        }
       }
 
-      with "compute_networks" {
-        sql = <<-EOQ
-          select
-            n.name as network_name
-          from
-            gcp_compute_subnetwork s,
-            gcp_compute_network n
-          where
-            s.network = n.self_link
-            and s.id = $1;
-        EOQ
-
-        args = [self.input.subnetwork_id.value]
+      node {
+        base = node.compute_network
+        args = {
+          compute_network_names = with.compute_networks.rows[*].network_name
+        }
       }
 
-      with "kubernetes_clusters" {
-        sql = <<-EOQ
-          select
-            c.name as cluster_name
-          from
-            gcp_kubernetes_cluster c,
-            gcp_compute_subnetwork s
-          where
-            s.id = $1
-            and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
-        EOQ
-
-        args = [self.input.subnetwork_id.value]
+      node {
+        base = node.compute_subnetwork
+        args = {
+          compute_subnetwork_ids = [self.input.subnetwork_id.value]
+        }
       }
 
-      nodes = [
-        node.compute_address,
-        node.compute_forwarding_rule,
-        node.compute_instance,
-        node.compute_instance_group,
-        node.compute_instance_template,
-        node.compute_network,
-        node.compute_subnetwork,
-        node.kubernetes_cluster
-      ]
-
-      edges = [
-        edge.compute_network_to_compute_subnetwork,
-        edge.compute_subnetwork_to_compute_address,
-        edge.compute_subnetwork_to_compute_forwarding_rule,
-        edge.compute_subnetwork_to_compute_instance,
-        edge.compute_subnetwork_to_compute_instance_group,
-        edge.compute_subnetwork_to_compute_instance_template,
-        edge.compute_subnetwork_to_kubernetes_cluster
-      ]
-
-      args = {
-        compute_address_ids           = with.compute_addresses.rows[*].address_id
-        compute_forwarding_rule_ids   = with.compute_forwarding_rules.rows[*].rule_id
-        compute_instance_group_ids    = with.compute_instance_groups.rows[*].group_id
-        compute_instance_ids          = with.compute_instances.rows[*].instance_id
-        compute_instance_template_ids = with.compute_instance_templates.rows[*].template_id
-        compute_network_names         = with.compute_networks.rows[*].network_name
-        compute_subnetwork_ids        = [self.input.subnetwork_id.value]
-        kubernetes_cluster_names      = with.kubernetes_clusters.rows[*].cluster_name
+      node {
+        base = node.kubernetes_cluster
+        args = {
+          kubernetes_cluster_names = with.kubernetes_clusters.rows[*].cluster_name
+        }
       }
+
+      edge {
+        base = edge.compute_network_to_compute_subnetwork
+        args = {
+          compute_network_names = with.compute_networks.rows[*].network_name
+        }
+      }
+
+      edge {
+        base = edge.compute_subnetwork_to_compute_address
+        args = {
+          compute_subnetwork_ids = [self.input.subnetwork_id.value]
+        }
+      }
+
+      edge {
+        base = edge.compute_subnetwork_to_compute_forwarding_rule
+        args = {
+          compute_subnetwork_ids = [self.input.subnetwork_id.value]
+        }
+      }
+
+      edge {
+        base = edge.compute_subnetwork_to_compute_instance
+        args = {
+          compute_subnetwork_ids = [self.input.subnetwork_id.value]
+        }
+      }
+
+      edge {
+        base = edge.compute_subnetwork_to_compute_instance_group
+        args = {
+          compute_subnetwork_ids = [self.input.subnetwork_id.value]
+        }
+      }
+
+      edge {
+        base = edge.compute_subnetwork_to_compute_instance_template
+        args = {
+          compute_subnetwork_ids = [self.input.subnetwork_id.value]
+        }
+      }
+
+      edge {
+        base = edge.compute_subnetwork_to_kubernetes_cluster
+        args = {
+          compute_subnetwork_ids = [self.input.subnetwork_id.value]
+        }
+      }
+
     }
   }
 

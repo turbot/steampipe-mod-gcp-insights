@@ -65,194 +65,194 @@ dashboard "kubernetes_cluster_detail" {
 
   }
 
-  container {
+  // container {
 
-    graph {
-      title = "Relationships"
-      type  = "graph"
+  //   graph {
+  //     title = "Relationships"
+  //     type  = "graph"
 
 
-      with "bigquery_datasets" {
-        sql = <<-EOQ
-          select
-            d.id as dataset_id
-          from
-            gcp_kubernetes_cluster c,
-            gcp_bigquery_dataset d
-          where
-            c.resource_usage_export_config -> 'bigqueryDestination' ->> 'datasetId' = d.dataset_id
-            and c.name = $1
-        EOQ
+  //     with "bigquery_datasets" {
+  //       sql = <<-EOQ
+  //         select
+  //           d.id as dataset_id
+  //         from
+  //           gcp_kubernetes_cluster c,
+  //           gcp_bigquery_dataset d
+  //         where
+  //           c.resource_usage_export_config -> 'bigqueryDestination' ->> 'datasetId' = d.dataset_id
+  //           and c.name = $1
+  //       EOQ
 
-        args = [self.input.cluster_name.value]
-      }
+  //       args = [self.input.cluster_name.value]
+  //     }
 
-      with "compute_firewalls" {
-        sql = <<-EOQ
-          select
-            f.id::text as firewall_id
-          from
-            gcp_kubernetes_cluster c,
-            gcp_compute_network n,
-            gcp_compute_firewall f
-          where
-            c.network = n.name
-            and n.self_link = f.network
-            and c.name = $1;
-        EOQ
+  //     with "compute_firewalls" {
+  //       sql = <<-EOQ
+  //         select
+  //           f.id::text as firewall_id
+  //         from
+  //           gcp_kubernetes_cluster c,
+  //           gcp_compute_network n,
+  //           gcp_compute_firewall f
+  //         where
+  //           c.network = n.name
+  //           and n.self_link = f.network
+  //           and c.name = $1;
+  //       EOQ
 
-        args = [self.input.cluster_name.value]
-      }
+  //       args = [self.input.cluster_name.value]
+  //     }
 
-      with "compute_instance_groups" {
-        sql = <<-EOQ
-          select
-            g.id::text as group_id
-          from
-            gcp_kubernetes_node_pool p,
-            gcp_compute_instance_group g,
-            jsonb_array_elements_text(instance_group_urls) ig
-          where
-            p.cluster_name = $1
-            and split_part(ig, 'instanceGroupManagers/', 2) = g.name;
-        EOQ
+  //     with "compute_instance_groups" {
+  //       sql = <<-EOQ
+  //         select
+  //           g.id::text as group_id
+  //         from
+  //           gcp_kubernetes_node_pool p,
+  //           gcp_compute_instance_group g,
+  //           jsonb_array_elements_text(instance_group_urls) ig
+  //         where
+  //           p.cluster_name = $1
+  //           and split_part(ig, 'instanceGroupManagers/', 2) = g.name;
+  //       EOQ
 
-        args = [self.input.cluster_name.value]
-      }
+  //       args = [self.input.cluster_name.value]
+  //     }
 
-      with "compute_instances" {
-        sql = <<-EOQ
-          select
-            i.id::text as instance_id
-          from
-            gcp_kubernetes_node_pool p,
-            gcp_compute_instance_group g,
-            jsonb_array_elements_text(instance_group_urls) ig,
-            jsonb_array_elements(g.instances) g_ins,
-            gcp_compute_instance i
-          where
-            p.cluster_name = $1
-            and split_part(ig, 'instanceGroupManagers/', 2) = g.name
-            and i.self_link = (g_ins ->> 'instance')
-        EOQ
+  //     with "compute_instances" {
+  //       sql = <<-EOQ
+  //         select
+  //           i.id::text as instance_id
+  //         from
+  //           gcp_kubernetes_node_pool p,
+  //           gcp_compute_instance_group g,
+  //           jsonb_array_elements_text(instance_group_urls) ig,
+  //           jsonb_array_elements(g.instances) g_ins,
+  //           gcp_compute_instance i
+  //         where
+  //           p.cluster_name = $1
+  //           and split_part(ig, 'instanceGroupManagers/', 2) = g.name
+  //           and i.self_link = (g_ins ->> 'instance')
+  //       EOQ
 
-        args = [self.input.cluster_name.value]
-      }
+  //       args = [self.input.cluster_name.value]
+  //     }
 
-      with "compute_networks" {
-        sql = <<-EOQ
-          select
-            n.name as network_name
-          from
-            gcp_kubernetes_cluster c,
-            gcp_compute_network n
-          where
-            c.name = $1
-            and c.network = n.name;
-        EOQ
+  //     with "compute_networks" {
+  //       sql = <<-EOQ
+  //         select
+  //           n.name as network_name
+  //         from
+  //           gcp_kubernetes_cluster c,
+  //           gcp_compute_network n
+  //         where
+  //           c.name = $1
+  //           and c.network = n.name;
+  //       EOQ
 
-        args = [self.input.cluster_name.value]
-      }
+  //       args = [self.input.cluster_name.value]
+  //     }
 
-      with "compute_subnets" {
-        sql = <<-EOQ
-          select
-            s.id::text as subnetwork_id
-          from
-            gcp_kubernetes_cluster c,
-            gcp_compute_subnetwork s
-          where
-            c.name = $1
-            and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
-        EOQ
+  //     with "compute_subnets" {
+  //       sql = <<-EOQ
+  //         select
+  //           s.id::text as subnetwork_id
+  //         from
+  //           gcp_kubernetes_cluster c,
+  //           gcp_compute_subnetwork s
+  //         where
+  //           c.name = $1
+  //           and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
+  //       EOQ
 
-        args = [self.input.cluster_name.value]
-      }
+  //       args = [self.input.cluster_name.value]
+  //     }
 
-      with "kms_keys" {
-        sql = <<-EOQ
-          select
-            k.name as key_name
-          from
-            gcp_kubernetes_cluster c,
-            gcp_kms_key k
-          where
-            c.database_encryption_key_name is not null
-            and split_part(c.database_encryption_key_name, 'cryptoKeys/', 2) = k.name
-            and c.name = $1;
-        EOQ
+  //     with "kms_keys" {
+  //       sql = <<-EOQ
+  //         select
+  //           k.name as key_name
+  //         from
+  //           gcp_kubernetes_cluster c,
+  //           gcp_kms_key k
+  //         where
+  //           c.database_encryption_key_name is not null
+  //           and split_part(c.database_encryption_key_name, 'cryptoKeys/', 2) = k.name
+  //           and c.name = $1;
+  //       EOQ
 
-        args = [self.input.cluster_name.value]
-      }
+  //       args = [self.input.cluster_name.value]
+  //     }
 
-      with "kubernetes_node_pools" {
-        sql = <<-EOQ
-          select
-            p.name as pool_name
-          from
-            gcp_kubernetes_node_pool p
-          where
-            p.cluster_name = $1;
-        EOQ
+  //     with "kubernetes_node_pools" {
+  //       sql = <<-EOQ
+  //         select
+  //           p.name as pool_name
+  //         from
+  //           gcp_kubernetes_node_pool p
+  //         where
+  //           p.cluster_name = $1;
+  //       EOQ
 
-        args = [self.input.cluster_name.value]
-      }
+  //       args = [self.input.cluster_name.value]
+  //     }
 
-      with "pubsub_topics" {
-        sql = <<-EOQ
-          select
-            t.name as topic_name
-          from
-            gcp_kubernetes_cluster c,
-            gcp_pubsub_topic t
-          where
-            c.name = $1
-            and c.notification_config is not null
-            and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
-        EOQ
+  //     with "pubsub_topics" {
+  //       sql = <<-EOQ
+  //         select
+  //           t.name as topic_name
+  //         from
+  //           gcp_kubernetes_cluster c,
+  //           gcp_pubsub_topic t
+  //         where
+  //           c.name = $1
+  //           and c.notification_config is not null
+  //           and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
+  //       EOQ
 
-        args = [self.input.cluster_name.value]
-      }
+  //       args = [self.input.cluster_name.value]
+  //     }
 
-      nodes = [
-        node.bigquery_dataset,
-        node.compute_firewall,
-        node.compute_instance,
-        node.compute_instance_group,
-        node.compute_network,
-        node.compute_subnetwork,
-        node.kms_key,
-        node.kubernetes_cluster,
-        node.kubernetes_node_pool,
-        node.pubsub_topic
-      ]
+  //     nodes = [
+  //       node.bigquery_dataset,
+  //       node.compute_firewall,
+  //       node.compute_instance,
+  //       node.compute_instance_group,
+  //       node.compute_network,
+  //       node.compute_subnetwork,
+  //       node.kms_key,
+  //       node.kubernetes_cluster,
+  //       node.kubernetes_node_pool,
+  //       node.pubsub_topic
+  //     ]
 
-      edges = [
-        edge.compute_instance_group_to_compute_instance,
-        edge.compute_subnetwork_to_compute_network,
-        edge.kubernetes_cluster_to_bigquery_dataset,
-        edge.kubernetes_cluster_to_compute_firewall,
-        edge.kubernetes_cluster_to_compute_subnetwork,
-        edge.kubernetes_cluster_to_kms_key,
-        edge.kubernetes_cluster_to_kubernetes_node_pool,
-        edge.kubernetes_cluster_to_pubsub_topic,
-        edge.kubernetes_node_pool_to_compute_instance_group
-      ]
+  //     edges = [
+  //       edge.compute_instance_group_to_compute_instance,
+  //       edge.compute_subnetwork_to_compute_network,
+  //       edge.kubernetes_cluster_to_bigquery_dataset,
+  //       edge.kubernetes_cluster_to_compute_firewall,
+  //       edge.kubernetes_cluster_to_compute_subnetwork,
+  //       edge.kubernetes_cluster_to_kms_key,
+  //       edge.kubernetes_cluster_to_kubernetes_node_pool,
+  //       edge.kubernetes_cluster_to_pubsub_topic,
+  //       edge.kubernetes_node_pool_to_compute_instance_group
+  //     ]
 
-      args = {
-        bigquery_dataset_ids       = with.bigquery_datasets.rows[*].dataset_id
-        compute_firewall_ids       = with.compute_firewalls.rows[*].firewall_id
-        compute_instance_group_ids = with.compute_instance_groups.rows[*].group_id
-        compute_instance_ids       = with.compute_instances.rows[*].instance_id
-        compute_network_names      = with.compute_networks.rows[*].network_name
-        compute_subnetwork_ids     = with.compute_subnets.rows[*].subnetwork_id
-        kms_key_names              = with.kms_keys.rows[*].key_name
-        kubernetes_cluster_names   = [self.input.cluster_name.value]
-        kubernetes_node_pool_names = with.kubernetes_node_pools.rows[*].pool_name
-        pubsub_topic_names         = with.pubsub_topics.rows[*].topic_name
-      }
-    }
-  }
+  //     args = {
+  //       bigquery_dataset_ids       = with.bigquery_datasets.rows[*].dataset_id
+  //       compute_firewall_ids       = with.compute_firewalls.rows[*].firewall_id
+  //       compute_instance_group_ids = with.compute_instance_groups.rows[*].group_id
+  //       compute_instance_ids       = with.compute_instances.rows[*].instance_id
+  //       compute_network_names      = with.compute_networks.rows[*].network_name
+  //       compute_subnetwork_ids     = with.compute_subnets.rows[*].subnetwork_id
+  //       kms_key_names              = with.kms_keys.rows[*].key_name
+  //       kubernetes_cluster_names   = [self.input.cluster_name.value]
+  //       kubernetes_node_pool_names = with.kubernetes_node_pools.rows[*].pool_name
+  //       pubsub_topic_names         = with.pubsub_topics.rows[*].topic_name
+  //     }
+  //   }
+  // }
 
   container {
     width = 6

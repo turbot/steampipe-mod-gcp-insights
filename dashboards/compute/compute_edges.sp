@@ -39,60 +39,6 @@ edge "compute_backend_service_to_compute_instance_group" {
 
 ## Compute Disk
 
-edge "compute_disk_from_compute_disk" {
-  title = "cloned to"
-
-  sql = <<-EOQ
-    select
-      cd.id::text as from_id,
-      d.id::text as to_id
-    from
-      gcp_compute_disk d,
-      gcp_compute_disk cd
-    where
-      d.id = any($1)
-      and d.source_disk_id = cd.id::text;
-  EOQ
-
-  param "compute_disk_ids" {}
-}
-
-edge "compute_disk_from_compute_image" {
-  title = "created from"
-
-  sql = <<-EOQ
-    select
-      i.name as from_id,
-      d.id::text as to_id
-    from
-      gcp_compute_disk d,
-      gcp_compute_image i
-    where
-      d.id = any($1)
-      and d.source_image = i.self_link;
-  EOQ
-
-  param "compute_disk_ids" {}
-}
-
-edge "compute_disk_from_compute_snapshot" {
-  title = "created from"
-
-  sql = <<-EOQ
-    select
-      s.name as from_id,
-      d.id::text as to_id
-    from
-      gcp_compute_disk d,
-      gcp_compute_snapshot s
-    where
-      d.id = any($1)
-      and d.source_snapshot = s.self_link;
-  EOQ
-
-  param "compute_disk_ids" {}
-}
-
 edge "compute_disk_to_compute_disk" {
   title = "cloned to"
 
@@ -206,6 +152,24 @@ edge "compute_disk_to_kms_key_version" {
 }
 
 ## Compute Image
+
+edge "compute_image_to_compute_disk" {
+  title = "created from"
+
+  sql = <<-EOQ
+    select
+      i.name as from_id,
+      d.id::text as to_id
+    from
+      gcp_compute_disk d,
+      gcp_compute_image i
+    where
+      d.id = any($1)
+      and d.source_image = i.self_link;
+  EOQ
+
+  param "compute_image_ids" {}
+}
 
 edge "compute_image_to_kms_key" {
   title = "encrypted with"
@@ -467,7 +431,7 @@ edge "compute_network_to_compute_forwarding_rule" {
 }
 
 edge "compute_network_to_compute_instance" {
-  title = "network"
+  title = "compute instance"
 
   sql = <<-EOQ
     select
@@ -541,7 +505,7 @@ edge "compute_network_to_dns_policy" {
 }
 
 edge "compute_network_to_kubernetes_cluster" {
-  title = "network"
+  title = "kubernetes cluster"
 
   sql = <<-EOQ
     select
@@ -577,6 +541,24 @@ edge "compute_network_to_sql_database_instance" {
 }
 
 ## Compute Snapshot
+
+edge "compute_snapshot_to_compute_disk" {
+  title = "created from"
+
+  sql = <<-EOQ
+    select
+      s.name as from_id,
+      d.id::text as to_id
+    from
+      gcp_compute_disk d,
+      gcp_compute_snapshot s
+    where
+      d.id = any($1)
+      and d.source_snapshot = s.self_link;
+  EOQ
+
+  param "compute_snapshot_names" {}
+}
 
 edge "compute_snapshot_to_kms_key" {
   title = "encrypted with"

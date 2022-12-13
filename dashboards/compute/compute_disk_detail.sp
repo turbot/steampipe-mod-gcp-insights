@@ -57,118 +57,280 @@ dashboard "compute_disk_detail" {
 
   }
 
+  with "compute_instances" {
+    sql = <<-EOQ
+      select
+        i.id::text as instance_id
+      from
+        gcp_compute_disk d,
+        gcp_compute_instance i,
+        jsonb_array_elements(disks) as disk
+      where
+        d.self_link = (disk ->> 'source')
+        and d.id = $1;
+    EOQ
+
+    args = [self.input.disk_id.value]
+  }
+
+  with "compute_resource_policies" {
+    sql = <<-EOQ
+      select
+        r.id as policy_id
+      from
+        gcp_compute_disk d,
+        jsonb_array_elements_text(resource_policies) as rp,
+        gcp_compute_resource_policy r
+      where
+        d.id = $1
+        and rp = r.self_link;
+    EOQ
+
+    args = [self.input.disk_id.value]
+  }
+
+  with "from_compute_disks" {
+    sql = <<-EOQ
+      select
+        d.source_disk_id as disk_id
+      from
+        gcp_compute_disk d
+      where
+        d.id = $1;
+    EOQ
+
+    args = [self.input.disk_id.value]
+  }
+
+  with "from_compute_images" {
+    sql = <<-EOQ
+      select
+        i.id as image_id
+      from
+        gcp_compute_disk d,
+        gcp_compute_image i
+      where
+        d.id = $1
+        and d.source_image = i.self_link;
+    EOQ
+
+    args = [self.input.disk_id.value]
+  }
+
+  with "from_compute_snapshots" {
+    sql = <<-EOQ
+      select
+        s.name as snapshot_name
+      from
+        gcp_compute_disk d,
+        gcp_compute_snapshot s
+      where
+        d.id = $1
+        and d.source_snapshot = s.self_link;
+    EOQ
+
+    args = [self.input.disk_id.value]
+  }
+
+  with "kms_keys" {
+    sql = <<-EOQ
+      select
+        k.name as key_name
+      from
+        gcp_compute_disk d,
+        gcp_kms_key k
+      where
+        d.disk_encryption_key is not null
+        and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.name
+        and d.id = $1;
+    EOQ
+
+    args = [self.input.disk_id.value]
+  }
+
+  with "to_compute_disks" {
+    sql = <<-EOQ
+      
+      select
+        cd.id::text as disk_id
+      from
+        gcp_compute_disk d,
+        gcp_compute_disk cd
+      where
+        d.id = $1
+        and d.id::text = cd.source_disk_id;
+    EOQ
+
+    args = [self.input.disk_id.value]
+  }
+
+  with "to_compute_images" {
+    sql = <<-EOQ
+      select
+        i.id::text as image_id
+      from
+        gcp_compute_disk d,
+        gcp_compute_image i
+      where
+        d.id = $1
+        and d.self_link = i.source_disk;
+    EOQ
+
+    args = [self.input.disk_id.value]
+  }
+
+  with "to_compute_snapshots" {
+    sql = <<-EOQ
+      select
+        s.name as snapshot_name
+      from
+        gcp_compute_disk d,
+        gcp_compute_snapshot s
+      where
+        d.id = $1
+        and d.self_link = s.source_disk;
+    EOQ
+
+    args = [self.input.disk_id.value]
+  }
+
   container {
 
     graph {
       title = "Relationships"
       type  = "graph"
 
-      with "compute_instances" {
-        sql = <<-EOQ
-          select
-            i.id::text as instance_id
-          from
-            gcp_compute_disk d,
-            gcp_compute_instance i,
-            jsonb_array_elements(disks) as disk
-          where
-            d.self_link = (disk ->> 'source')
-            and d.id = $1;
-        EOQ
-
-        args = [self.input.disk_id.value]
+      node {
+        base = node.compute_disk
+        args = {
+          compute_disk_ids = [self.input.disk_id.value]
+        }
       }
 
-      with "compute_resource_policies" {
-        sql = <<-EOQ
-          select
-            r.id as policy_id
-          from
-            gcp_compute_disk d,
-            jsonb_array_elements_text(resource_policies) as rp,
-            gcp_compute_resource_policy r
-          where
-            d.id = $1
-            and rp = r.self_link;
-        EOQ
-
-        args = [self.input.disk_id.value]
+      node {
+        base = node.compute_disk
+        args = {
+          compute_disk_ids = with.from_compute_disks.rows[*].disk_id
+        }
       }
 
-      with "from_disks" {
-        sql = <<-EOQ
-          select
-            d.source_disk_id::text as disk_id
-          from
-            gcp_compute_disk d
-          where
-            d.id = $1;
-        EOQ
-
-        args = [self.input.disk_id.value]
+      node {
+        base = node.compute_disk
+        args = {
+          compute_disk_ids = with.to_compute_disks.rows[*].disk_id
+        }
       }
 
-      with "kms_keys" {
-        sql = <<-EOQ
-          select
-            k.name as key_name
-          from
-            gcp_compute_disk d,
-            gcp_kms_key k
-          where
-            d.disk_encryption_key is not null
-            and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.name
-            and d.id = $1;
-        EOQ
-
-        args = [self.input.disk_id.value]
+      node {
+        base = node.compute_image
+        args = {
+          compute_image_ids = with.from_compute_images.rows[*].image_id
+        }
       }
 
-      with "to_disks" {
-        sql = <<-EOQ
-          select
-            d.id::text as disk_id
-          from
-            gcp_compute_disk d
-          where
-            d.source_disk_id = $1;
-        EOQ
-
-        args = [self.input.disk_id.value]
+      node {
+        base = node.compute_image
+        args = {
+          compute_image_ids = with.to_compute_images.rows[*].image_id
+        }
       }
 
-      nodes = [
-        node.compute_disk,
-        node.compute_disk_from_compute_disk,
-        node.compute_disk_from_compute_image,
-        node.compute_disk_from_compute_snapshot,
-        node.compute_disk_to_compute_disk,
-        node.compute_disk_to_compute_image,
-        node.compute_disk_to_compute_snapshot,
-        node.compute_instance,
-        node.compute_resource_policy,
-        node.kms_key
-      ]
+      node {
+        base = node.compute_snapshot
+        args = {
+          compute_snapshot_names = with.from_compute_snapshots.rows[*].snapshot_name
+        }
+      }
 
-      edges = [
-        edge.compute_disk_from_compute_disk,
-        edge.compute_disk_from_compute_image,
-        edge.compute_disk_from_compute_snapshot,
-        edge.compute_disk_to_compute_disk,
-        edge.compute_disk_to_compute_image,
-        edge.compute_disk_to_compute_resource_policy,
-        edge.compute_disk_to_compute_snapshot,
-        edge.compute_disk_to_kms_key,
-        edge.compute_instance_to_compute_disk
-      ]
+      node {
+        base = node.compute_snapshot
+        args = {
+          compute_snapshot_names = with.to_compute_snapshots.rows[*].snapshot_name
+        }
+      }
 
-      args = {
-        compute_disk_ids            = [self.input.disk_id.value]
-        compute_instance_ids        = with.compute_instances.rows[*].instance_id
-        compute_resource_policy_ids = with.compute_resource_policies.rows[*].policy_id
-        from_disk_ids               = with.from_disks.rows[*].disk_id
-        kms_key_names               = with.kms_keys.rows[*].key_name
-        to_disk_ids                 = with.to_disks.rows[*].disk_id
+      node {
+        base = node.compute_instance
+        args = {
+          compute_instance_ids = with.compute_instances.rows[*].instance_id
+        }
+      }
+
+      node {
+        base = node.compute_resource_policy
+        args = {
+          compute_resource_policy_ids = with.compute_resource_policies.rows[*].policy_id
+        }
+      }
+
+      node {
+        base = node.kms_key
+        args = {
+          kms_key_names = with.kms_keys.rows[*].key_name
+        }
+      }
+
+      edge {
+        base = edge.compute_disk_to_compute_disk
+        args = {
+          compute_disk_ids = with.from_compute_disks.rows[*].disk_id
+        }
+      }
+
+      edge {
+        base = edge.compute_disk_to_compute_disk
+        args = {
+          compute_disk_ids = [self.input.disk_id.value]
+        }
+      }
+
+      edge {
+        base = edge.compute_image_to_compute_disk
+        args = {
+          compute_image_ids = with.from_compute_images.rows[*].image_id
+        }
+      }
+
+      edge {
+        base = edge.compute_disk_to_compute_image
+        args = {
+          compute_disk_ids = [self.input.disk_id.value]
+        }
+      }
+
+      edge {
+        base = edge.compute_disk_to_compute_resource_policy
+        args = {
+          compute_disk_ids = [self.input.disk_id.value]
+        }
+      }
+
+      edge {
+        base = edge.compute_snapshot_to_compute_disk
+        args = {
+          compute_snapshot_names = with.from_compute_snapshots.rows[*].snapshot_name
+        }
+      }
+
+      edge {
+        base = edge.compute_disk_to_compute_snapshot
+        args = {
+          compute_disk_ids = [self.input.disk_id.value]
+        }
+      }
+
+      edge {
+        base = edge.compute_disk_to_kms_key
+        args = {
+          compute_disk_ids = [self.input.disk_id.value]
+        }
+      }
+
+      edge {
+        base = edge.compute_instance_to_compute_disk
+        args = {
+          compute_instance_ids = with.compute_instances.rows[*].instance_id
+        }
       }
     }
   }
@@ -386,18 +548,6 @@ query "compute_disk_encryption_status" {
 
   param "id" {}
 }
-
-## Graph - start
-
-### Nodes -
-
-
-
-### Edges -
-
-
-
-## Graph - end
 
 query "compute_disk_overview" {
   sql = <<-EOQ

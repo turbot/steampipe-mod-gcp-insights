@@ -56,135 +56,197 @@ dashboard "compute_instance_detail" {
     }
   }
 
+  with "compute_disks" {
+    sql = <<-EOQ
+      select
+        d.id::text as disk_id
+      from
+        gcp_compute_instance i,
+        gcp_compute_disk d,
+        jsonb_array_elements(disks) as disk
+      where
+        d.self_link = (disk ->> 'source')
+        and i.id = $1;
+    EOQ
+
+    args = [self.input.instance_id.value]
+  }
+
+  with "compute_firewalls" {
+    sql = <<-EOQ
+      select
+        f.id::text as firewall_id
+      from
+        gcp_compute_instance i,
+        gcp_compute_firewall f,
+        jsonb_array_elements(network_interfaces) as ni
+      where
+        ni ->> 'network' = f.network
+        and i.id = $1;
+    EOQ
+
+    args = [self.input.instance_id.value]
+  }
+
+  with "compute_instance_groups" {
+    sql = <<-EOQ
+      select
+        g.id::text as group_id
+      from
+        gcp_compute_instance as ins,
+        gcp_compute_instance_group as g,
+        jsonb_array_elements(instances) as i
+      where
+        (i ->> 'instance') = ins.self_link
+        and ins.id = $1;
+    EOQ
+
+    args = [self.input.instance_id.value]
+  }
+
+  with "compute_networks" {
+    sql = <<-EOQ
+      select
+        n.name as network_name
+      from
+        gcp_compute_instance i,
+        gcp_compute_network n,
+        jsonb_array_elements(network_interfaces) as ni
+      where
+        ni ->> 'network' = n.self_link
+        and i.id = $1;
+    EOQ
+
+    args = [self.input.instance_id.value]
+  }
+
+  with "compute_subnets" {
+    sql = <<-EOQ
+      select
+        s.id::text as subnetwork_id
+      from
+        gcp_compute_instance i,
+        gcp_compute_subnetwork s,
+        jsonb_array_elements(network_interfaces) as ni
+      where
+        ni ->> 'subnetwork' = s.self_link
+        and i.id = $1;
+    EOQ
+
+    args = [self.input.instance_id.value]
+  }
+
+  with "iam_service_accounts" {
+    sql = <<-EOQ
+      select
+        s.name as account_name
+      from
+        gcp_compute_instance i,
+        gcp_service_account s,
+        jsonb_array_elements(service_accounts) as sa
+      where
+        sa ->> 'email' = s.email
+        and i.id = $1;
+    EOQ
+
+    args = [self.input.instance_id.value]
+  }
+
   container {
 
     graph {
       title = "Relationships"
       type  = "graph"
 
-      with "compute_disks" {
-        sql = <<-EOQ
-          select
-            d.id::text as disk_id
-          from
-            gcp_compute_instance i,
-            gcp_compute_disk d,
-            jsonb_array_elements(disks) as disk
-          where
-            d.self_link = (disk ->> 'source')
-            and i.id = $1;
-        EOQ
-
-        args = [self.input.instance_id.value]
+      node {
+        base = node.compute_disk
+        args = {
+          compute_disk_ids = with.compute_disks.rows[*].disk_id
+        }
       }
 
-      with "compute_firewalls" {
-        sql = <<-EOQ
-          select
-            f.id::text as firewall_id
-          from
-            gcp_compute_instance i,
-            gcp_compute_firewall f,
-            jsonb_array_elements(network_interfaces) as ni
-          where
-            ni ->> 'network' = f.network
-            and i.id = $1;
-        EOQ
-
-        args = [self.input.instance_id.value]
+      node {
+        base = node.compute_firewall
+        args = {
+          compute_firewall_ids = with.compute_firewalls.rows[*].firewall_id
+        }
       }
 
-      with "compute_instance_groups" {
-        sql = <<-EOQ
-          select
-            g.id::text as group_id
-          from
-            gcp_compute_instance as ins,
-            gcp_compute_instance_group as g,
-            jsonb_array_elements(instances) as i
-          where
-            (i ->> 'instance') = ins.self_link
-            and ins.id = $1;
-        EOQ
-
-        args = [self.input.instance_id.value]
+      node {
+        base = node.compute_instance
+        args = {
+          compute_instance_ids = [self.input.instance_id.value]
+        }
       }
 
-      with "compute_networks" {
-        sql = <<-EOQ
-          select
-            n.name as network_name
-          from
-            gcp_compute_instance i,
-            gcp_compute_network n,
-            jsonb_array_elements(network_interfaces) as ni
-          where
-            ni ->> 'network' = n.self_link
-            and i.id = $1;
-        EOQ
-
-        args = [self.input.instance_id.value]
+      node {
+        base = node.compute_instance_group
+        args = {
+          compute_instance_group_ids = with.compute_instance_groups.rows[*].group_id
+        }
       }
 
-      with "compute_subnets" {
-        sql = <<-EOQ
-          select
-            s.id::text as subnetwork_id
-          from
-            gcp_compute_instance i,
-            gcp_compute_subnetwork s,
-            jsonb_array_elements(network_interfaces) as ni
-          where
-            ni ->> 'subnetwork' = s.self_link
-            and i.id = $1;
-        EOQ
-
-        args = [self.input.instance_id.value]
+      node {
+        base = node.compute_network
+        args = {
+          compute_network_names = with.compute_networks.rows[*].network_name
+        }
       }
 
-      with "iam_service_accounts" {
-        sql = <<-EOQ
-          select
-            s.name as account_name
-          from
-            gcp_compute_instance i,
-            gcp_service_account s,
-            jsonb_array_elements(service_accounts) as sa
-          where
-            sa ->> 'email' = s.email
-            and i.id = $1;
-        EOQ
-
-        args = [self.input.instance_id.value]
+      node {
+        base = node.compute_subnetwork
+        args = {
+          compute_subnetwork_ids = with.compute_subnets.rows[*].subnetwork_id
+        }
       }
 
-      nodes = [
-        node.compute_disk,
-        node.compute_firewall,
-        node.compute_instance,
-        node.compute_instance_group,
-        node.compute_network,
-        node.compute_subnetwork,
-        node.iam_service_account
-      ]
+      node {
+        base = node.iam_service_account
+        args = {
+          iam_service_account_names = with.iam_service_accounts.rows[*].account_name
+        }
+      }
 
-      edges = [
-        edge.compute_instance_group_to_compute_instance,
-        edge.compute_instance_to_compute_disk,
-        edge.compute_instance_to_compute_firewall,
-        edge.compute_instance_to_compute_subnetwork,
-        edge.compute_instance_to_iam_service_account,
-        edge.compute_subnetwork_to_compute_network
-      ]
+      edge {
+        base = edge.compute_instance_group_to_compute_instance
+        args = {
+          compute_instance_group_ids = with.compute_instance_groups.rows[*].group_id
+        }
+      }
 
-      args = {
-        compute_disk_ids           = with.compute_disks.rows[*].disk_id
-        compute_firewall_ids       = with.compute_firewalls.rows[*].firewall_id
-        compute_instance_group_ids = with.compute_instance_groups.rows[*].group_id
-        compute_instance_ids       = [self.input.instance_id.value]
-        compute_network_names      = with.compute_networks.rows[*].network_name
-        compute_subnetwork_ids     = with.compute_subnets.rows[*].subnetwork_id
-        iam_service_account_names  = with.iam_service_accounts.rows[*].account_name
+      edge {
+        base = edge.compute_instance_to_compute_disk
+        args = {
+          compute_instance_ids = [self.input.instance_id.value]
+        }
+      }
+
+      edge {
+        base = edge.compute_instance_to_compute_firewall
+        args = {
+          compute_instance_ids = [self.input.instance_id.value]
+        }
+      }
+
+      edge {
+        base = edge.compute_instance_to_compute_subnetwork
+        args = {
+          compute_instance_ids = [self.input.instance_id.value]
+        }
+      }
+
+      edge {
+        base = edge.compute_instance_to_iam_service_account
+        args = {
+          compute_instance_ids = [self.input.instance_id.value]
+        }
+      }
+
+      edge {
+        base = edge.compute_subnetwork_to_compute_network
+        args = {
+          compute_subnetwork_ids = with.compute_subnets.rows[*].subnetwork_id
+        }
       }
     }
   }

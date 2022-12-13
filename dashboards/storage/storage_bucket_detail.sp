@@ -65,78 +65,78 @@ dashboard "storage_bucket_detail" {
 
   }
 
-  container {
+  // container {
 
-    graph {
-      title = "Relationships"
-      type  = "graph"
+  //   graph {
+  //     title = "Relationships"
+  //     type  = "graph"
 
-      with "compute_backend_buckets" {
-        sql = <<-EOQ
-          select
-            c.id::text as bucket_id
-          from
-            gcp_storage_bucket b,
-            gcp_compute_backend_bucket c
-          where
-            b.id = $1
-            and b.name = c.bucket_name;
-        EOQ
+  //     with "compute_backend_buckets" {
+  //       sql = <<-EOQ
+  //         select
+  //           c.id::text as bucket_id
+  //         from
+  //           gcp_storage_bucket b,
+  //           gcp_compute_backend_bucket c
+  //         where
+  //           b.id = $1
+  //           and b.name = c.bucket_name;
+  //       EOQ
 
-        args = [self.input.bucket_id.value]
-      }
+  //       args = [self.input.bucket_id.value]
+  //     }
 
-      with "kms_keys" {
-        sql = <<-EOQ
-          select
-            split_part(b.default_kms_key_name, 'cryptoKeys/', 2) as key_name
-          from
-            gcp_storage_bucket b
-          where
-            b.id = $1
-            and b.default_kms_key_name is not null;
-        EOQ
+  //     with "kms_keys" {
+  //       sql = <<-EOQ
+  //         select
+  //           split_part(b.default_kms_key_name, 'cryptoKeys/', 2) as key_name
+  //         from
+  //           gcp_storage_bucket b
+  //         where
+  //           b.id = $1
+  //           and b.default_kms_key_name is not null;
+  //       EOQ
 
-        args = [self.input.bucket_id.value]
-      }
+  //       args = [self.input.bucket_id.value]
+  //     }
 
-      with "logging_buckets" {
-        sql = <<-EOQ
-          select
-            l.name as bucket_name
-          from
-            gcp_storage_bucket b,
-            gcp_logging_bucket l
-          where
-            b.id = $1
-            and b.log_bucket is not null
-            and b.log_bucket = l.name;
-        EOQ
+  //     with "logging_buckets" {
+  //       sql = <<-EOQ
+  //         select
+  //           l.name as bucket_name
+  //         from
+  //           gcp_storage_bucket b,
+  //           gcp_logging_bucket l
+  //         where
+  //           b.id = $1
+  //           and b.log_bucket is not null
+  //           and b.log_bucket = l.name;
+  //       EOQ
 
-        args = [self.input.bucket_id.value]
-      }
+  //       args = [self.input.bucket_id.value]
+  //     }
 
-      nodes = [
-        node.compute_backend_bucket,
-        node.kms_key,
-        node.logging_bucket,
-        node.storage_bucket
-      ]
+  //     nodes = [
+  //       node.compute_backend_bucket,
+  //       node.kms_key,
+  //       node.logging_bucket,
+  //       node.storage_bucket
+  //     ]
 
-      edges = [
-        edge.compute_backend_bucket_to_storage_bucket,
-        edge.storage_bucket_to_kms_key,
-        edge.storage_bucket_to_logging_bucket
-      ]
+  //     edges = [
+  //       edge.compute_backend_bucket_to_storage_bucket,
+  //       edge.storage_bucket_to_kms_key,
+  //       edge.storage_bucket_to_logging_bucket
+  //     ]
 
-      args = {
-        compute_backend_bucket_ids = with.compute_backend_buckets.rows[*].bucket_id
-        kms_key_names              = with.kms_keys.rows[*].key_name
-        logging_bucket_names       = with.logging_buckets.rows[*].bucket_name
-        storage_bucket_ids         = [self.input.bucket_id.value]
-      }
-    }
-  }
+  //     args = {
+  //       compute_backend_bucket_ids = with.compute_backend_buckets.rows[*].bucket_id
+  //       kms_key_names              = with.kms_keys.rows[*].key_name
+  //       logging_bucket_names       = with.logging_buckets.rows[*].bucket_name
+  //       storage_bucket_ids         = [self.input.bucket_id.value]
+  //     }
+  //   }
+  // }
 
   container {
 
@@ -158,7 +158,6 @@ dashboard "storage_bucket_detail" {
         title = "Tags"
         width = 6
         query = query.storage_bucket_tags_detail
-        param "arn" {}
         args = {
           id = self.input.bucket_id.value
         }
