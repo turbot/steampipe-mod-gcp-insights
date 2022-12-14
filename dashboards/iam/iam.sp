@@ -12,6 +12,6 @@ category "iam_role" {
 
 category "iam_service_account" {
   color = local.iam_color
-  icon  = "text:SA"
+  icon  = "settings-account-box"
   title = "IAM Service Account"
 }
