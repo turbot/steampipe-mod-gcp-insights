@@ -152,7 +152,7 @@ dashboard "compute_network_detail" {
   with "compute_subnetworks" {
     sql = <<-EOQ
       select
-        s.id as subnetwork_id
+        s.id::text as subnetwork_id
       from
         gcp_compute_subnetwork s,
         gcp_compute_network n

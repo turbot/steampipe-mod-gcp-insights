@@ -6,16 +6,16 @@ edge "compute_backend_bucket_to_storage_bucket" {
   sql = <<-EOQ
     select
       c.id::text as from_id,
-      b.id as to_id
+      b.id::text as to_id
     from
       gcp_storage_bucket b,
       gcp_compute_backend_bucket c
     where
-      b.id = any($1)
+      c.id = any($1)
       and b.name = c.bucket_name;
   EOQ
 
-  param "storage_bucket_ids" {}
+  param "compute_backend_bucket_ids" {}
 }
 
 edge "compute_backend_service_to_compute_instance_group" {
@@ -472,7 +472,7 @@ edge "compute_network_to_compute_subnetwork" {
 
   sql = <<-EOQ
     select
-      n.id::text as from_id,
+      n.name as from_id,
       s.id::text as to_id
     from
       gcp_compute_subnetwork s,

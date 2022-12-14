@@ -68,81 +68,185 @@ dashboard "sql_database_instance_detail" {
     }
   }
 
-  // container {
+  with "compute_networks" {
+    sql = <<-EOQ
+      select
+        n.name as network_name
+      from
+        gcp_sql_database_instance as i,
+        gcp_compute_network as n
+      where
+        SPLIT_PART(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
+        and i.name = $1;
+    EOQ
 
-  //   graph {
-  //     title = "Relationships"
-  //     type  = "graph"
+    args = [self.input.database_instance_name.value]
+  }
 
-  //     with "compute_networks" {
-  //       sql = <<-EOQ
-  //         select
-  //           n.name as network_name
-  //         from
-  //           gcp_sql_database_instance as i,
-  //           gcp_compute_network as n
-  //         where
-  //           SPLIT_PART(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
-  //           and i.name = $1;
-  //       EOQ
+  with "from_sql_database_instance" {
+    sql = <<-EOQ
+      select 
+        split_part(master_instance_name, ':', 2) as instance_name 
+      from  
+        gcp_sql_database_instance 
+      where 
+        name = $1;
+    EOQ
 
-  //       args = [self.input.database_instance_name.value]
-  //     }
+    args = [self.input.database_instance_name.value]
+  }
 
-  //     with "kms_keys" {
-  //       sql = <<-EOQ
-  //         select
-  //           k.name as key_name
-  //         from
-  //           gcp_sql_database_instance as i,
-  //           gcp_kms_key as k
-  //         where
-  //           i.name = $1 and i.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2));
-  //       EOQ
+  with "kms_keys" {
+    sql = <<-EOQ
+      select
+        k.name as key_name
+      from
+        gcp_sql_database_instance as i,
+        gcp_kms_key as k
+      where
+        i.name = $1 and i.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2));
+    EOQ
 
-  //       args = [self.input.database_instance_name.value]
-  //     }
+    args = [self.input.database_instance_name.value]
+  }
 
-  //     with "sql_backups" {
-  //       sql = <<-EOQ
-  //         select
-  //           id as backup_id
-  //         from
-  //           gcp_sql_backup
-  //         where
-  //           instance_name = any($1);
-  //       EOQ
+  with "sql_backups" {
+    sql = <<-EOQ
+      select
+        id::text as backup_id
+      from
+        gcp_sql_backup
+      where
+        instance_name = $1;
+    EOQ
 
-  //       args = [self.input.database_instance_name.value]
-  //     }
+    args = [self.input.database_instance_name.value]
+  }
 
-  //     nodes = [
-  //       node.compute_network,
-  //       node.kms_key,
-  //       node.sql_backup,
-  //       node.sql_database,
-  //       node.sql_database_instance,
-  //       node.sql_database_instance_from_primary_database_instance,
-  //       node.sql_database_instance_to_database_instance_replica
-  //     ]
+  with "sql_database" {
+    sql = <<-EOQ
+      select
+        d.name as database_name
+      from
+        gcp_sql_database d
+      where
+        d.instance_name = $1;
+    EOQ
 
-  //     edges = [
-  //       edge.sql_database_instance_from_primary_database_instance,
-  //       edge.sql_database_instance_to_compute_network,
-  //       edge.sql_database_instance_to_database_instance_replica,
-  //       edge.sql_database_instance_to_kms_key,
-  //       edge.sql_database_instance_to_sql_backup,
-  //       edge.sql_database_instance_to_sql_database
-  //     ]
+    args = [self.input.database_instance_name.value]
+  }
 
-  //     args = {
-  //       compute_network_names       = with.compute_networks.rows[*].network_name
-  //       kms_key_names               = with.kms_keys.rows[*].key_name
-  //       sql_backup_ids              = with.sql_backups.rows[*].backup_id
-  //       sql_database_instance_names = [self.input.database_instance_name.value]
-  //     }
-  //   }
-  // }
+  with "to_sql_database_instance" {
+    sql = <<-EOQ
+      select
+        name as instance_name
+      from
+        gcp_sql_database_instance
+      where
+        split_part(master_instance_name, ':', 2) = $1;
+    EOQ
+
+    args = [self.input.database_instance_name.value]
+  }
+
+  container {
+
+    graph {
+      title = "Relationships"
+      type  = "graph"
+
+      node {
+        base = node.compute_network
+        args = {
+          compute_network_names = with.compute_networks.rows[*].network_name
+        }
+      }
+
+      node {
+        base = node.kms_key
+        args = {
+          kms_key_names = with.kms_keys.rows[*].key_name
+        }
+      }
+
+      node {
+        base = node.sql_backup
+        args = {
+          sql_backup_ids = with.sql_backups.rows[*].backup_id
+        }
+      }
+
+      node {
+        base = node.sql_database
+        args = {
+          sql_database_names = with.sql_database.rows[*].database_name
+        }
+      }
+
+      node {
+        base = node.sql_database_instance
+        args = {
+          sql_database_instance_names = [self.input.database_instance_name.value]
+        }
+      }
+
+      node {
+        base = node.sql_database_instance
+        args = {
+          sql_database_names = with.from_sql_database_instance.rows[*].instance_name
+        }
+      }
+
+      node {
+        base = node.sql_database_instance
+        args = {
+          sql_database_names = with.to_sql_database_instance.rows[*].instance_name
+        }
+      }
+
+      edge {
+        base = edge.sql_database_instance_to_compute_network
+        args = {
+          sql_database_instance_names = [self.input.database_instance_name.value]
+        }
+      }
+
+      edge {
+        base = edge.sql_database_instance_to_kms_key
+        args = {
+          sql_database_instance_names = [self.input.database_instance_name.value]
+        }
+      }
+
+      edge {
+        base = edge.sql_database_instance_to_sql_backup
+        args = {
+          sql_database_instance_names = [self.input.database_instance_name.value]
+        }
+      }
+
+      edge {
+        base = edge.sql_database_instance_to_sql_database
+        args = {
+          sql_database_instance_names = [self.input.database_instance_name.value]
+        }
+      }
+
+      edge {
+        base = edge.sql_database_instance_to_sql_database_instance
+        args = {
+          sql_database_instance_names = [self.input.database_instance_name.value]
+        }
+      }
+
+      edge {
+        base = edge.sql_database_instance_to_sql_database_instance
+        args = {
+          sql_database_instance_names = with.from_sql_database_instance.rows[*].instance_name
+        }
+      }
+    }
+  }
 
   container {
 
