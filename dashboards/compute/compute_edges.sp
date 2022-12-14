@@ -189,6 +189,25 @@ edge "compute_image_to_kms_key" {
   param "compute_image_ids" {}
 }
 
+edge "compute_image_to_kms_key_version" {
+  title = "encrypted with"
+
+  sql = <<-EOQ
+    select
+      i.id::text as from_id,
+      k.name || '_' || k.crypto_key_version as to_id
+    from
+      gcp_compute_image as i,
+      gcp_kms_key_version as k
+    where
+      split_part(i.image_encryption_key->>'kmsKeyName', '/', 8) = k.name
+      and split_part(i.image_encryption_key ->> 'kmsKeyName', 'cryptoKeyVersions/', 2) = k.crypto_key_version::text
+      and i.id = any($1);
+  EOQ
+
+  param "compute_image_ids" {}
+}
+
 ## Compute Instance Group
 
 edge "compute_instance_group_to_compute_autoscaler" {
@@ -566,6 +585,24 @@ edge "compute_snapshot_to_kms_key" {
   sql = <<-EOQ
     select
       s.name as from_id,
+      k.name as to_id
+    from
+      gcp_compute_snapshot s,
+      gcp_kms_key k
+    where
+      split_part(s.kms_key_name, '/', 8) = k.name
+      and s.name = any($1);
+  EOQ
+
+  param "compute_snapshot_names" {}
+}
+
+edge "compute_snapshot_to_kms_key_version" {
+  title = "encrypted with"
+
+  sql = <<-EOQ
+    select
+      s.name as from_id,
       v.name || '_' || v.crypto_key_version as to_id
     from
       gcp_compute_snapshot s,
@@ -573,7 +610,7 @@ edge "compute_snapshot_to_kms_key" {
     where
       v.crypto_key_version::text = split_part(s.kms_key_name, 'cryptoKeyVersions/', 2)
       and split_part(s.kms_key_name, '/', 8) = v.name
-      and s.id = any($1);
+      and s.name = any($1);
   EOQ
 
   param "compute_snapshot_names" {}

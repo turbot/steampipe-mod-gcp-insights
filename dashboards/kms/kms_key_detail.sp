@@ -338,14 +338,14 @@ dashboard "kms_key_detail" {
       }
 
       edge {
-        base = edge.compute_image_to_kms_key
+        base = edge.compute_image_to_kms_key_version
         args = {
           compute_image_ids = with.compute_images.rows[*].image_id
         }
       }
 
       edge {
-        base = edge.compute_snapshot_to_kms_key
+        base = edge.compute_snapshot_to_kms_key_version
         args = {
           compute_snapshot_names = with.compute_snapshots.rows[*].snapshot_name
         }
