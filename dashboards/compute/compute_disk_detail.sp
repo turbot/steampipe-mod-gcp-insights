@@ -18,180 +18,78 @@ dashboard "compute_disk_detail" {
     card {
       width = 2
       query = query.compute_disk_storage
-      args = {
-        id = self.input.disk_id.value
-      }
+      args  = [self.input.disk_id.value]
     }
 
     card {
       width = 2
       query = query.compute_disk_status
-      args = {
-        id = self.input.disk_id.value
-      }
+      args  = [self.input.disk_id.value]
     }
 
     card {
       width = 2
       query = query.compute_disk_type
-      args = {
-        id = self.input.disk_id.value
-      }
+      args  = [self.input.disk_id.value]
     }
 
     card {
       width = 2
       query = query.compute_disk_encryption
-      args = {
-        id = self.input.disk_id.value
-      }
+      args  = [self.input.disk_id.value]
     }
 
     card {
       width = 2
       query = query.compute_disk_attached_instances_count
-      args = {
-        id = self.input.disk_id.value
-      }
+      args  = [self.input.disk_id.value]
     }
 
   }
 
   with "compute_instances" {
-    sql = <<-EOQ
-      select
-        i.id::text as instance_id
-      from
-        gcp_compute_disk d,
-        gcp_compute_instance i,
-        jsonb_array_elements(disks) as disk
-      where
-        d.self_link = (disk ->> 'source')
-        and d.id = $1;
-    EOQ
-
-    args = [self.input.disk_id.value]
+    query = query.compute_disk_compute_instances
+    args  = [self.input.disk_id.value]
   }
 
   with "compute_resource_policies" {
-    sql = <<-EOQ
-      select
-        r.id as policy_id
-      from
-        gcp_compute_disk d,
-        jsonb_array_elements_text(resource_policies) as rp,
-        gcp_compute_resource_policy r
-      where
-        d.id = $1
-        and rp = r.self_link;
-    EOQ
-
-    args = [self.input.disk_id.value]
+    query = query.compute_disk_compute_resource_policies
+    args  = [self.input.disk_id.value]
   }
 
   with "from_compute_disks" {
-    sql = <<-EOQ
-      select
-        d.source_disk_id as disk_id
-      from
-        gcp_compute_disk d
-      where
-        d.id = $1;
-    EOQ
-
-    args = [self.input.disk_id.value]
+    query = query.compute_disk_from_compute_disks
+    args  = [self.input.disk_id.value]
   }
 
   with "from_compute_images" {
-    sql = <<-EOQ
-      select
-        i.id as image_id
-      from
-        gcp_compute_disk d,
-        gcp_compute_image i
-      where
-        d.id = $1
-        and d.source_image = i.self_link;
-    EOQ
-
-    args = [self.input.disk_id.value]
+    query = query.compute_disk_from_compute_images
+    args  = [self.input.disk_id.value]
   }
 
   with "from_compute_snapshots" {
-    sql = <<-EOQ
-      select
-        s.name as snapshot_name
-      from
-        gcp_compute_disk d,
-        gcp_compute_snapshot s
-      where
-        d.id = $1
-        and d.source_snapshot = s.self_link;
-    EOQ
-
-    args = [self.input.disk_id.value]
+    query = query.compute_disk_from_compute_snapshots
+    args  = [self.input.disk_id.value]
   }
 
   with "kms_keys" {
-    sql = <<-EOQ
-      select
-        k.name as key_name
-      from
-        gcp_compute_disk d,
-        gcp_kms_key k
-      where
-        d.disk_encryption_key is not null
-        and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.name
-        and d.id = $1;
-    EOQ
-
-    args = [self.input.disk_id.value]
+    query = query.compute_disk_kms_keys
+    args  = [self.input.disk_id.value]
   }
 
   with "to_compute_disks" {
-    sql = <<-EOQ
-      
-      select
-        cd.id::text as disk_id
-      from
-        gcp_compute_disk d,
-        gcp_compute_disk cd
-      where
-        d.id = $1
-        and d.id::text = cd.source_disk_id;
-    EOQ
-
-    args = [self.input.disk_id.value]
+    query = query.compute_disk_to_compute_disks
+    args  = [self.input.disk_id.value]
   }
 
   with "to_compute_images" {
-    sql = <<-EOQ
-      select
-        i.id::text as image_id
-      from
-        gcp_compute_disk d,
-        gcp_compute_image i
-      where
-        d.id = $1
-        and d.self_link = i.source_disk;
-    EOQ
-
-    args = [self.input.disk_id.value]
+    query = query.compute_disk_to_compute_images
+    args  = [self.input.disk_id.value]
   }
 
   with "to_compute_snapshots" {
-    sql = <<-EOQ
-      select
-        s.name as snapshot_name
-      from
-        gcp_compute_disk d,
-        gcp_compute_snapshot s
-      where
-        d.id = $1
-        and d.self_link = s.source_disk;
-    EOQ
-
-    args = [self.input.disk_id.value]
+    query = query.compute_disk_to_compute_snapshots
+    args  = [self.input.disk_id.value]
   }
 
   container {
@@ -346,18 +244,14 @@ dashboard "compute_disk_detail" {
         type  = "line"
         width = 6
         query = query.compute_disk_overview
-        args = {
-          id = self.input.disk_id.value
-        }
+        args  = [self.input.disk_id.value]
       }
 
       table {
         title = "Tags"
         width = 6
         query = query.compute_disk_tags
-        args = {
-          id = self.input.disk_id.value
-        }
+        args  = [self.input.disk_id.value]
       }
     }
 
@@ -368,9 +262,7 @@ dashboard "compute_disk_detail" {
       table {
         title = "Attached To"
         query = query.compute_disk_attached_instances
-        args = {
-          id = self.input.disk_id.value
-        }
+        args  = [self.input.disk_id.value]
 
         column "Name" {
           href = "${dashboard.compute_instance_detail.url_path}?input.instance_id={{.'Instance ID' | @uri}}"
@@ -380,9 +272,7 @@ dashboard "compute_disk_detail" {
       table {
         title = "Encryption Details"
         query = query.compute_disk_encryption_status
-        args = {
-          id = self.input.disk_id.value
-        }
+        args  = [self.input.disk_id.value]
       }
     }
   }
@@ -396,9 +286,7 @@ dashboard "compute_disk_detail" {
       type  = "line"
       width = 6
       query = query.compute_disk_read_throughput
-      args = {
-        id = self.input.disk_id.value
-      }
+      args  = [self.input.disk_id.value]
     }
 
     chart {
@@ -406,14 +294,13 @@ dashboard "compute_disk_detail" {
       type  = "line"
       width = 6
       query = query.compute_disk_write_throughput
-      args = {
-        id = self.input.disk_id.value
-      }
+      args  = [self.input.disk_id.value]
     }
 
   }
-
 }
+
+# Input queries
 
 query "compute_disk_input" {
   sql = <<-EOQ
@@ -432,6 +319,8 @@ query "compute_disk_input" {
   EOQ
 }
 
+# Card queries
+
 query "compute_disk_storage" {
   sql = <<-EOQ
     select
@@ -442,8 +331,6 @@ query "compute_disk_storage" {
     where
       id = $1;
   EOQ
-
-  param "id" {}
 }
 
 query "compute_disk_status" {
@@ -456,8 +343,6 @@ query "compute_disk_status" {
     where
       id = $1;
   EOQ
-
-  param "id" {}
 }
 
 query "compute_disk_type" {
@@ -470,8 +355,6 @@ query "compute_disk_type" {
     where
       id = $1;
   EOQ
-
-  param "id" {}
 }
 
 query "compute_disk_attached_instances_count" {
@@ -491,8 +374,6 @@ query "compute_disk_attached_instances_count" {
     where
       id = $1;
   EOQ
-
-  param "id" {}
 }
 
 query "compute_disk_encryption" {
@@ -505,8 +386,6 @@ query "compute_disk_encryption" {
     where
       id = $1;
   EOQ
-
-  param "id" {}
 }
 
 query "compute_disk_attached_instances" {
@@ -527,8 +406,6 @@ query "compute_disk_attached_instances" {
       disks as d
       left join gcp_compute_instance as i on i.self_link = d.instance_selflink;
   EOQ
-
-  param "id" {}
 }
 
 query "compute_disk_encryption_status" {
@@ -545,9 +422,129 @@ query "compute_disk_encryption_status" {
     where
       id = $1;
   EOQ
-
-  param "id" {}
 }
+
+# With queries
+
+query "compute_disk_compute_instances" {
+  sql = <<-EOQ
+    select
+      i.id::text as instance_id
+    from
+      gcp_compute_disk d,
+      gcp_compute_instance i,
+      jsonb_array_elements(disks) as disk
+    where
+      d.self_link = (disk ->> 'source')
+      and d.id = $1;
+  EOQ
+}
+
+query "compute_disk_compute_resource_policies" {
+  sql = <<-EOQ
+    select
+      r.id as policy_id
+    from
+      gcp_compute_disk d,
+      jsonb_array_elements_text(resource_policies) as rp,
+      gcp_compute_resource_policy r
+    where
+      d.id = $1
+      and rp = r.self_link;
+  EOQ
+}
+
+query "compute_disk_from_compute_disks" {
+  sql = <<-EOQ
+    select
+      d.source_disk_id as disk_id
+    from
+      gcp_compute_disk d
+    where
+      d.id = $1;
+  EOQ
+}
+
+query "compute_disk_from_compute_images" {
+  sql = <<-EOQ
+    select
+      i.id as image_id
+    from
+      gcp_compute_disk d,
+      gcp_compute_image i
+    where
+      d.id = $1
+      and d.source_image = i.self_link;
+  EOQ
+}
+
+query "compute_disk_from_compute_snapshots" {
+  sql = <<-EOQ
+    select
+      s.name as snapshot_name
+    from
+      gcp_compute_disk d,
+      gcp_compute_snapshot s
+    where
+      d.id = $1
+      and d.source_snapshot = s.self_link;
+  EOQ
+}
+
+query "compute_disk_kms_keys" {
+  sql = <<-EOQ
+    select
+      k.name as key_name
+    from
+      gcp_compute_disk d,
+      gcp_kms_key k
+    where
+      d.disk_encryption_key is not null
+      and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.name
+      and d.id = $1;
+  EOQ
+}
+
+query "compute_disk_to_compute_disks" {
+  sql = <<-EOQ
+    select
+      cd.id::text as disk_id
+    from
+      gcp_compute_disk d,
+      gcp_compute_disk cd
+    where
+      d.id = $1
+      and d.id::text = cd.source_disk_id;
+  EOQ
+}
+
+query "compute_disk_to_compute_images" {
+  sql = <<-EOQ
+    select
+      i.id::text as image_id
+    from
+      gcp_compute_disk d,
+      gcp_compute_image i
+    where
+      d.id = $1
+      and d.self_link = i.source_disk;
+  EOQ
+}
+
+query "compute_disk_to_compute_snapshots" {
+  sql = <<-EOQ
+    select
+      s.name as snapshot_name
+    from
+      gcp_compute_disk d,
+      gcp_compute_snapshot s
+    where
+      d.id = $1
+      and d.self_link = s.source_disk;
+  EOQ
+}
+
+# Other queries
 
 query "compute_disk_overview" {
   sql = <<-EOQ
@@ -563,8 +560,6 @@ query "compute_disk_overview" {
     where
       id = $1
   EOQ
-
-  param "id" {}
 }
 
 query "compute_disk_tags" {
@@ -586,8 +581,6 @@ query "compute_disk_tags" {
     order by
       key;
   EOQ
-
-  param "id" {}
 }
 
 query "compute_disk_read_throughput" {
@@ -603,8 +596,6 @@ query "compute_disk_read_throughput" {
     order by
       timestamp;
   EOQ
-
-  param "id" {}
 }
 
 query "compute_disk_write_throughput" {
@@ -620,6 +611,4 @@ query "compute_disk_write_throughput" {
     order by
       timestamp;
   EOQ
-
-  param "id" {}
 }

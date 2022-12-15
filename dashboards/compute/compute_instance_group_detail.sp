@@ -18,121 +18,44 @@ dashboard "compute_instance_group_detail" {
     card {
       width = 2
       query = query.compute_instance_group_size
-      args = {
-        id = self.input.group_id.value
-      }
+      args  = [self.input.group_id.value]
     }
 
   }
 
   with "compute_autoscalers" {
-    sql = <<-EOQ
-      select
-        a.id::text as autoscaler_id
-      from
-        gcp_compute_instance_group g,
-        gcp_compute_autoscaler a
-      where
-        g.name = split_part(a.target, 'instanceGroupManagers/', 2)
-        and g.id = $1;
-    EOQ
-
-    args = [self.input.group_id.value]
+    query = query.compute_instance_group_compute_autoscalers
+    args  = [self.input.group_id.value]
   }
 
   with "compute_backend_services" {
-    sql = <<-EOQ
-      select
-        bs.id::text as service_id
-      from
-        gcp_compute_instance_group g,
-        gcp_compute_backend_service bs,
-        jsonb_array_elements(bs.backends) b
-      where
-        b ->> 'group' = g.self_link
-        and g.id = $1;
-    EOQ
-
-    args = [self.input.group_id.value]
+    query = query.compute_instance_group_compute_backend_services
+    args  = [self.input.group_id.value]
   }
 
   with "compute_firewalls" {
-    sql = <<-EOQ
-      select
-        f.id::text as firewall_id
-      from
-        gcp_compute_instance_group g,
-        gcp_compute_firewall f
-      where
-        g.network = f.network
-        and g.id = $1;
-    EOQ
-
-    args = [self.input.group_id.value]
+    query = query.compute_instance_group_compute_firewalls
+    args  = [self.input.group_id.value]
   }
 
   with "compute_instances" {
-    sql = <<-EOQ
-      select
-        i.id::text as instance_id
-      from
-        gcp_compute_instance as i,
-        gcp_compute_instance_group as g,
-        jsonb_array_elements(instances) as ins
-      where
-        g.id = $1
-        and (ins ->> 'instance') = i.self_link;
-    EOQ
-
-    args = [self.input.group_id.value]
+    query = query.compute_instance_group_compute_instances
+    args  = [self.input.group_id.value]
   }
 
   with "compute_networks" {
-    sql = <<-EOQ
-      select
-        n.name as network_name
-      from
-        gcp_compute_instance_group g
-          left join gcp_compute_subnetwork s
-          on g.subnetwork = s.self_link,
-        gcp_compute_network n
-      where
-        g.network = n.self_link
-        and g.id = $1;
-    EOQ
-
-    args = [self.input.group_id.value]
+    query = query.compute_instance_group_compute_networks
+    args  = [self.input.group_id.value]
   }
 
   with "compute_subnets" {
-    sql = <<-EOQ
-      select
-        s.id::text as subnetwork_id
-      from
-        gcp_compute_instance_group g,
-        gcp_compute_subnetwork s
-      where
-        g.subnetwork = s.self_link
-        and g.id = $1;
-    EOQ
-
-    args = [self.input.group_id.value]
+    query = query.compute_instance_group_compute_subnets
+    args  = [self.input.group_id.value]
   }
 
   with "kubernetes_clusters" {
-    sql = <<-EOQ
-      select
-        c.name as cluster_name
-      from
-        gcp_kubernetes_cluster c,
-        gcp_compute_instance_group g,
-        jsonb_array_elements_text(instance_group_urls) ig
-      where
-        split_part(ig, 'instanceGroupManagers/', 2) = g.name
-        and g.id = $1;
-    EOQ
-
-    args = [self.input.group_id.value]
+    query = query.compute_instance_group_kubernetes_clusters
+    args  = [self.input.group_id.value]
   }
 
   container {
@@ -257,9 +180,7 @@ dashboard "compute_instance_group_detail" {
         title = "Overview"
         type  = "line"
         query = query.compute_instance_group_overview
-        args = {
-          id = self.input.group_id.value
-        }
+        args  = [self.input.group_id.value]
 
       }
     }
@@ -270,9 +191,7 @@ dashboard "compute_instance_group_detail" {
       table {
         title = "Attached Instances"
         query = query.compute_instance_group_attached_instances
-        args = {
-          id = self.input.group_id.value
-        }
+        args  = [self.input.group_id.value]
       }
     }
 
@@ -286,9 +205,7 @@ dashboard "compute_instance_group_detail" {
       table {
         title = "Network Detail"
         query = query.compute_instance_group_network_detail
-        args = {
-          id = self.input.group_id.value
-        }
+        args  = [self.input.group_id.value]
       }
 
     }
@@ -299,15 +216,15 @@ dashboard "compute_instance_group_detail" {
       table {
         title = "Firewall Details"
         query = query.compute_instance_firewall_detail
-        args = {
-          id = self.input.group_id.value
-        }
+        args  = [self.input.group_id.value]
       }
 
     }
   }
 
 }
+
+# Input queries
 
 query "compute_instance_group_input" {
   sql = <<-EOQ
@@ -326,6 +243,8 @@ query "compute_instance_group_input" {
   EOQ
 }
 
+# Card queries
+
 query "compute_instance_group_size" {
   sql = <<-EOQ
     select
@@ -336,11 +255,107 @@ query "compute_instance_group_size" {
     where
       id = $1;
   EOQ
-
-  param "id" {}
-
 }
 
+# With queries
+
+query "compute_instance_group_compute_autoscalers" {
+  sql = <<-EOQ
+    select
+      a.id::text as autoscaler_id
+    from
+      gcp_compute_instance_group g,
+      gcp_compute_autoscaler a
+    where
+      g.name = split_part(a.target, 'instanceGroupManagers/', 2)
+      and g.id = $1;
+  EOQ
+}
+
+query "compute_instance_group_compute_backend_services" {
+  sql = <<-EOQ
+    select
+      bs.id::text as service_id
+    from
+      gcp_compute_instance_group g,
+      gcp_compute_backend_service bs,
+      jsonb_array_elements(bs.backends) b
+    where
+      b ->> 'group' = g.self_link
+      and g.id = $1;
+  EOQ
+}
+
+query "compute_instance_group_compute_firewalls" {
+  sql = <<-EOQ
+    select
+      f.id::text as firewall_id
+    from
+      gcp_compute_instance_group g,
+      gcp_compute_firewall f
+    where
+      g.network = f.network
+      and g.id = $1;
+  EOQ
+}
+
+query "compute_instance_group_compute_instances" {
+  sql = <<-EOQ
+    select
+      i.id::text as instance_id
+    from
+      gcp_compute_instance as i,
+      gcp_compute_instance_group as g,
+      jsonb_array_elements(instances) as ins
+    where
+      g.id = $1
+      and (ins ->> 'instance') = i.self_link;
+  EOQ
+}
+
+query "compute_instance_group_compute_networks" {
+  sql = <<-EOQ
+    select
+      n.name as network_name
+    from
+      gcp_compute_instance_group g
+        left join gcp_compute_subnetwork s
+        on g.subnetwork = s.self_link,
+      gcp_compute_network n
+    where
+      g.network = n.self_link
+      and g.id = $1;
+  EOQ
+}
+
+query "compute_instance_group_compute_subnets" {
+  sql = <<-EOQ
+    select
+      s.id::text as subnetwork_id
+    from
+      gcp_compute_instance_group g,
+      gcp_compute_subnetwork s
+    where
+      g.subnetwork = s.self_link
+      and g.id = $1;
+  EOQ
+}
+
+query "compute_instance_group_kubernetes_clusters" {
+  sql = <<-EOQ
+    select
+      c.name as cluster_name
+    from
+      gcp_kubernetes_cluster c,
+      gcp_compute_instance_group g,
+      jsonb_array_elements_text(instance_group_urls) ig
+    where
+      split_part(ig, 'instanceGroupManagers/', 2) = g.name
+      and g.id = $1;
+  EOQ
+}
+
+# Other queries
 query "compute_instance_group_overview" {
   sql = <<-EOQ
     select
@@ -356,8 +371,6 @@ query "compute_instance_group_overview" {
     where
       id = $1;
   EOQ
-
-  param "id" {}
 }
 
 query "compute_instance_group_attached_instances" {
@@ -376,8 +389,6 @@ query "compute_instance_group_attached_instances" {
       g.id = $1
       and i.self_link = ins ->> 'instance';
   EOQ
-
-  param "id" {}
 }
 
 query "compute_instance_group_network_detail" {
@@ -396,8 +407,6 @@ query "compute_instance_group_network_detail" {
       and g.subnetwork = s.self_link
       and g.id = $1;
   EOQ
-
-  param "id" {}
 }
 
 query "compute_instance_firewall_detail" {
@@ -416,6 +425,4 @@ query "compute_instance_firewall_detail" {
       g.network = f.network
       and g.id = $1;
   EOQ
-
-  param "id" {}
 }

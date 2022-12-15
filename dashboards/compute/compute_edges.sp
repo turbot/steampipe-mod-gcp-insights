@@ -780,7 +780,7 @@ edge "compute_vpn_gateway_to_compute_network" {
       g.id::text as from_id,
       n.name as to_id
     from
-      gcp_compute_vpn_gateway g,
+      gcp_compute_ha_vpn_gateway g,
       gcp_compute_network n
     where
       g.network = n.self_link

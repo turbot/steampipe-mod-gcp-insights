@@ -18,193 +18,84 @@ dashboard "kubernetes_cluster_detail" {
     card {
       query = query.kubernetes_cluster_node
       width = 2
-      args = {
-        name = self.input.cluster_name.value
-      }
+      args  = [self.input.cluster_name.value]
     }
 
     card {
       query = query.kubernetes_cluster_autopilot_enabled
       width = 2
-      args = {
-        name = self.input.cluster_name.value
-      }
+      args  = [self.input.cluster_name.value]
     }
 
     card {
       query = query.kubernetes_cluster_database_encryption
       width = 2
-      args = {
-        name = self.input.cluster_name.value
-      }
+      args  = [self.input.cluster_name.value]
     }
 
     card {
       query = query.kubernetes_cluster_degraded
       width = 2
-      args = {
-        name = self.input.cluster_name.value
-      }
+      args  = [self.input.cluster_name.value]
     }
 
     card {
       query = query.kubernetes_cluster_shielded_nodes_disabled
       width = 2
-      args = {
-        name = self.input.cluster_name.value
-      }
+      args  = [self.input.cluster_name.value]
     }
 
     card {
       query = query.kubernetes_cluster_auto_repair_disabled
       width = 2
-      args = {
-        name = self.input.cluster_name.value
-      }
+      args  = [self.input.cluster_name.value]
     }
 
   }
 
   with "bigquery_datasets" {
-    sql = <<-EOQ
-      select
-        d.id as dataset_id
-      from
-        gcp_kubernetes_cluster c,
-        gcp_bigquery_dataset d
-      where
-        c.resource_usage_export_config -> 'bigqueryDestination' ->> 'datasetId' = d.dataset_id
-        and c.name = $1
-    EOQ
-
-    args = [self.input.cluster_name.value]
+    query = query.kubernetes_cluster_bigquery_datasets
+    args  = [self.input.cluster_name.value]
   }
 
   with "compute_firewalls" {
-    sql = <<-EOQ
-      select
-        f.id::text as firewall_id
-      from
-        gcp_kubernetes_cluster c,
-        gcp_compute_network n,
-        gcp_compute_firewall f
-      where
-        c.network = n.name
-        and n.self_link = f.network
-        and c.name = $1;
-    EOQ
-
-    args = [self.input.cluster_name.value]
+    query = query.kubernetes_cluster_compute_firewalls
+    args  = [self.input.cluster_name.value]
   }
 
   with "compute_instance_groups" {
-    sql = <<-EOQ
-      select
-        g.id::text as group_id
-      from
-        gcp_kubernetes_node_pool p,
-        gcp_compute_instance_group g,
-        jsonb_array_elements_text(instance_group_urls) ig
-      where
-        p.cluster_name = $1
-        and split_part(ig, 'instanceGroupManagers/', 2) = g.name;
-    EOQ
-
-    args = [self.input.cluster_name.value]
+    query = query.kubernetes_cluster_compute_instance_groups
+    args  = [self.input.cluster_name.value]
   }
 
   with "compute_instances" {
-    sql = <<-EOQ
-      select
-        i.id::text as instance_id
-      from
-        gcp_kubernetes_node_pool p,
-        gcp_compute_instance_group g,
-        jsonb_array_elements_text(instance_group_urls) ig,
-        jsonb_array_elements(g.instances) g_ins,
-        gcp_compute_instance i
-      where
-        p.cluster_name = $1
-        and split_part(ig, 'instanceGroupManagers/', 2) = g.name
-        and i.self_link = (g_ins ->> 'instance')
-    EOQ
-
-    args = [self.input.cluster_name.value]
+    query = query.kubernetes_cluster_compute_instances
+    args  = [self.input.cluster_name.value]
   }
 
   with "compute_networks" {
-    sql = <<-EOQ
-      select
-        n.name as network_name
-      from
-        gcp_kubernetes_cluster c,
-        gcp_compute_network n
-      where
-        c.name = $1
-        and c.network = n.name;
-    EOQ
-
-    args = [self.input.cluster_name.value]
+    query = query.kubernetes_cluster_compute_networks
+    args  = [self.input.cluster_name.value]
   }
 
   with "compute_subnets" {
-    sql = <<-EOQ
-      select
-        s.id::text as subnetwork_id
-      from
-        gcp_kubernetes_cluster c,
-        gcp_compute_subnetwork s
-      where
-        c.name = $1
-        and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
-    EOQ
-
-    args = [self.input.cluster_name.value]
+    query = query.kubernetes_cluster_compute_subnets
+    args  = [self.input.cluster_name.value]
   }
 
   with "kms_keys" {
-    sql = <<-EOQ
-      select
-        k.name as key_name
-      from
-        gcp_kubernetes_cluster c,
-        gcp_kms_key k
-      where
-        c.database_encryption_key_name is not null
-        and split_part(c.database_encryption_key_name, 'cryptoKeys/', 2) = k.name
-        and c.name = $1;
-    EOQ
-
-    args = [self.input.cluster_name.value]
+    query = query.kubernetes_cluster_kms_keys
+    args  = [self.input.cluster_name.value]
   }
 
   with "kubernetes_node_pools" {
-    sql = <<-EOQ
-      select
-        p.name as pool_name
-      from
-        gcp_kubernetes_node_pool p
-      where
-        p.cluster_name = $1;
-    EOQ
-
-    args = [self.input.cluster_name.value]
+    query = query.kubernetes_cluster_kubernetes_node_pools
+    args  = [self.input.cluster_name.value]
   }
 
   with "pubsub_topics" {
-    sql = <<-EOQ
-      select
-        t.name as topic_name
-      from
-        gcp_kubernetes_cluster c,
-        gcp_pubsub_topic t
-      where
-        c.name = $1
-        and c.notification_config is not null
-        and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
-    EOQ
-
-    args = [self.input.cluster_name.value]
+    query = query.kubernetes_cluster_pubsub_topics
+    args  = [self.input.cluster_name.value]
   }
 
   container {
@@ -356,18 +247,14 @@ dashboard "kubernetes_cluster_detail" {
       type  = "line"
       width = 6
       query = query.kubernetes_cluster_overview
-      args = {
-        name = self.input.cluster_name.value
-      }
+      args  = [self.input.cluster_name.value]
     }
 
     table {
       title = "Tags"
       width = 6
       query = query.kubernetes_cluster_tags
-      args = {
-        name = self.input.cluster_name.value
-      }
+      args  = [self.input.cluster_name.value]
     }
 
   }
@@ -378,17 +265,13 @@ dashboard "kubernetes_cluster_detail" {
     table {
       title = "IP Allocation Policy"
       query = query.kubernetes_cluster_ip_allocation_policy
-      args = {
-        name = self.input.cluster_name.value
-      }
+      args  = [self.input.cluster_name.value]
     }
 
     table {
       title = "Network Configuration"
       query = query.kubernetes_cluster_network_config
-      args = {
-        name = self.input.cluster_name.value
-      }
+      args  = [self.input.cluster_name.value]
     }
 
   }
@@ -399,18 +282,14 @@ dashboard "kubernetes_cluster_detail" {
       title = "Notification Configuration"
       width = 6
       query = query.kubernetes_cluster_notification_config
-      args = {
-        name = self.input.cluster_name.value
-      }
+      args  = [self.input.cluster_name.value]
     }
 
     table {
       title = "Logging & Monitoring"
       width = 6
       query = query.kubernetes_cluster_lm
-      args = {
-        name = self.input.cluster_name.value
-      }
+      args  = [self.input.cluster_name.value]
     }
 
   }
@@ -420,30 +299,26 @@ dashboard "kubernetes_cluster_detail" {
     table {
       title = "Node Configuration"
       query = query.kubernetes_cluster_node_detail
-      args = {
-        name = self.input.cluster_name.value
-      }
+      args  = [self.input.cluster_name.value]
     }
 
     table {
       title = "Private Cluster Configuration"
       query = query.kubernetes_cluster_private_cluster_config
-      args = {
-        name = self.input.cluster_name.value
-      }
+      args  = [self.input.cluster_name.value]
     }
 
     table {
       title = "Add-ons Configuration"
       query = query.kubernetes_cluster_addons_config
-      args = {
-        name = self.input.cluster_name.value
-      }
+      args  = [self.input.cluster_name.value]
     }
 
   }
 
 }
+
+# Input queries
 
 query "kubernetes_cluster_input" {
   sql = <<-EOQ
@@ -461,6 +336,8 @@ query "kubernetes_cluster_input" {
   EOQ
 }
 
+# Card queries
+
 query "kubernetes_cluster_node" {
   sql = <<-EOQ
     select
@@ -470,8 +347,6 @@ query "kubernetes_cluster_node" {
     where
       name = $1;
   EOQ
-
-  param "name" {}
 }
 
 query "kubernetes_cluster_autopilot_enabled" {
@@ -483,8 +358,6 @@ query "kubernetes_cluster_autopilot_enabled" {
     where
       name = $1;
   EOQ
-
-  param "name" {}
 }
 
 query "kubernetes_cluster_database_encryption" {
@@ -498,8 +371,6 @@ query "kubernetes_cluster_database_encryption" {
     where
       name = $1;
   EOQ
-
-  param "name" {}
 }
 
 query "kubernetes_cluster_degraded" {
@@ -513,8 +384,6 @@ query "kubernetes_cluster_degraded" {
     where
       name = $1;
   EOQ
-
-  param "name" {}
 }
 
 query "kubernetes_cluster_shielded_nodes_disabled" {
@@ -528,8 +397,6 @@ query "kubernetes_cluster_shielded_nodes_disabled" {
     where
       name = $1;
   EOQ
-
-  param "name" {}
 }
 
 query "kubernetes_cluster_auto_repair_disabled" {
@@ -544,10 +411,135 @@ query "kubernetes_cluster_auto_repair_disabled" {
     where
       name = $1;
   EOQ
-
-  param "name" {}
 }
 
+# With queries
+
+query "kubernetes_cluster_bigquery_datasets" {
+  sql = <<-EOQ
+    select
+      d.id as dataset_id
+    from
+      gcp_kubernetes_cluster c,
+      gcp_bigquery_dataset d
+    where
+      c.resource_usage_export_config -> 'bigqueryDestination' ->> 'datasetId' = d.dataset_id
+      and c.name = $1;
+  EOQ
+}
+
+query "kubernetes_cluster_compute_firewalls" {
+  sql = <<-EOQ
+    select
+      f.id::text as firewall_id
+    from
+      gcp_kubernetes_cluster c,
+      gcp_compute_network n,
+      gcp_compute_firewall f
+    where
+      c.network = n.name
+      and n.self_link = f.network
+      and c.name = $1;
+  EOQ
+}
+
+query "kubernetes_cluster_compute_instance_groups" {
+  sql = <<-EOQ
+    select
+      g.id::text as group_id
+    from
+      gcp_kubernetes_node_pool p,
+      gcp_compute_instance_group g,
+      jsonb_array_elements_text(instance_group_urls) ig
+    where
+      p.cluster_name = $1
+      and split_part(ig, 'instanceGroupManagers/', 2) = g.name;
+  EOQ
+}
+
+query "kubernetes_cluster_compute_instances" {
+  sql = <<-EOQ
+    select
+      i.id::text as instance_id
+    from
+      gcp_kubernetes_node_pool p,
+      gcp_compute_instance_group g,
+      jsonb_array_elements_text(instance_group_urls) ig,
+      jsonb_array_elements(g.instances) g_ins,
+      gcp_compute_instance i
+    where
+      p.cluster_name = $1
+      and split_part(ig, 'instanceGroupManagers/', 2) = g.name
+      and i.self_link = (g_ins ->> 'instance');
+  EOQ
+}
+
+query "kubernetes_cluster_compute_networks" {
+  sql = <<-EOQ
+    select
+      n.name as network_name
+    from
+      gcp_kubernetes_cluster c,
+      gcp_compute_network n
+    where
+      c.name = $1
+      and c.network = n.name;
+  EOQ
+}
+
+query "kubernetes_cluster_compute_subnets" {
+  sql = <<-EOQ
+    select
+      s.id::text as subnetwork_id
+    from
+      gcp_kubernetes_cluster c,
+      gcp_compute_subnetwork s
+    where
+      c.name = $1
+      and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
+  EOQ
+}
+
+query "kubernetes_cluster_kms_keys" {
+  sql = <<-EOQ
+    select
+      k.name as key_name
+    from
+      gcp_kubernetes_cluster c,
+      gcp_kms_key k
+    where
+      c.database_encryption_key_name is not null
+      and split_part(c.database_encryption_key_name, 'cryptoKeys/', 2) = k.name
+      and c.name = $1;
+  EOQ
+}
+
+query "kubernetes_cluster_kubernetes_node_pools" {
+  sql = <<-EOQ
+    select
+      p.name as pool_name
+    from
+      gcp_kubernetes_node_pool p
+    where
+      p.cluster_name = $1;
+  EOQ
+}
+
+query "kubernetes_cluster_pubsub_topics" {
+  sql = <<-EOQ
+    select
+      t.name as topic_name
+    from
+      gcp_kubernetes_cluster c,
+      gcp_pubsub_topic t
+    where
+      c.name = $1
+      and c.notification_config is not null
+      and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
+  EOQ
+}
+
+# Other queries
 query "kubernetes_cluster_overview" {
   sql = <<-EOQ
     select
@@ -563,7 +555,6 @@ query "kubernetes_cluster_overview" {
       name = $1;
   EOQ
 
-  param "name" {}
 }
 
 query "kubernetes_cluster_tags" {
@@ -586,7 +577,6 @@ query "kubernetes_cluster_tags" {
       key;
     EOQ
 
-  param "name" {}
 }
 
 query "kubernetes_cluster_ip_allocation_policy" {
@@ -603,7 +593,6 @@ query "kubernetes_cluster_ip_allocation_policy" {
       name = $1;
   EOQ
 
-  param "name" {}
 }
 
 query "kubernetes_cluster_addons_config" {
@@ -621,7 +610,6 @@ query "kubernetes_cluster_addons_config" {
       name = $1;
   EOQ
 
-  param "name" {}
 }
 
 query "kubernetes_cluster_network_config" {
@@ -637,7 +625,6 @@ query "kubernetes_cluster_network_config" {
       name = $1;
   EOQ
 
-  param "name" {}
 }
 
 query "kubernetes_cluster_lm" {
@@ -651,7 +638,6 @@ query "kubernetes_cluster_lm" {
       name = $1;
   EOQ
 
-  param "name" {}
 }
 
 query "kubernetes_cluster_notification_config" {
@@ -664,8 +650,6 @@ query "kubernetes_cluster_notification_config" {
     where
       name = $1;
   EOQ
-
-  param "name" {}
 }
 
 query "kubernetes_cluster_private_cluster_config" {
@@ -681,8 +665,6 @@ query "kubernetes_cluster_private_cluster_config" {
     where
       name = $1;
   EOQ
-
-  param "name" {}
 }
 
 query "kubernetes_cluster_node_detail" {
@@ -704,6 +686,4 @@ query "kubernetes_cluster_node_detail" {
     where
       name = $1;
   EOQ
-
-  param "name" {}
 }

@@ -18,89 +18,39 @@ dashboard "pubsub_topic_detail" {
     card {
       width = 2
       query = query.pubsub_topic_encryption
-      args = {
-        name = self.input.name.value
-      }
+      args  = [self.input.name.value]
     }
 
     card {
       width = 2
       query = query.pubsub_topic_labeled
-      args = {
-        name = self.input.name.value
-      }
+      args  = [self.input.name.value]
     }
   }
 
   with "iam_roles" {
-    sql = <<-EOQ
-      select
-        i.role_id as role_id
-      from
-        gcp_iam_role i,
-        gcp_pubsub_topic t,
-        jsonb_array_elements(t.iam_policy->'bindings') as roles
-      where
-        roles ->> 'role' = i.name
-        and t.name = $1;
-    EOQ
-
-    args = [self.input.name.value]
+    query = query.pubsub_topic_iam_roles
+    args  = [self.input.name.value]
   }
 
   with "kms_keys" {
-    sql = <<-EOQ
-      select
-        split_part(p.kms_key_name, 'cryptoKeys/', 2) as key_name
-      from
-        gcp_pubsub_topic p
-      where
-        p.name = $1;
-    EOQ
-
-    args = [self.input.name.value]
+    query = query.pubsub_topic_kms_keys
+    args  = [self.input.name.value]
   }
 
   with "kubernetes_clusters" {
-    sql = <<-EOQ
-      select
-        c.name as cluster_name
-      from
-        gcp_kubernetes_cluster c,
-        gcp_pubsub_topic t
-      where
-        t.name = $1
-        and c.notification_config is not null
-        and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
-    EOQ
-
-    args = [self.input.name.value]
+    query = query.pubsub_topic_kubernetes_clusters
+    args  = [self.input.name.value]
   }
 
   with "pubsub_snapshots" {
-    sql = <<-EOQ
-      select
-        s.name as snapshot_name
-      from
-        gcp_pubsub_snapshot s
-      where
-        s.topic_name = $1;
-    EOQ
-
-    args = [self.input.name.value]
+    query = query.pubsub_topic_pubsub_snapshots
+    args  = [self.input.name.value]
   }
 
   with "pubsub_subscriptions" {
-    sql = <<-EOQ
-      select
-        s.name as subscription_name
-      from
-        gcp_pubsub_subscription s
-      where
-        s.topic_name = $1;
-    EOQ
-
-    args = [self.input.name.value]
+    query = query.pubsub_topic_pubsub_subscriptions
+    args  = [self.input.name.value]
   }
 
   container {
@@ -198,19 +148,14 @@ dashboard "pubsub_topic_detail" {
         type  = "line"
         width = 6
         query = query.pubsub_topic_overview
-        args = {
-          name = self.input.name.value
-        }
-
+        args  = [self.input.name.value]
       }
 
       table {
         title = "Tags"
         width = 6
         query = query.pubsub_topic_tags
-        args = {
-          name = self.input.name.value
-        }
+        args  = [self.input.name.value]
       }
 
     }
@@ -220,23 +165,21 @@ dashboard "pubsub_topic_detail" {
       table {
         title = "Subscription Details"
         query = query.pubsub_topic_subscription_details
-        args = {
-          name = self.input.name.value
-        }
+        args  = [self.input.name.value]
       }
 
       table {
         title = "Encryption Details"
         query = query.pubsub_topic_encryption_details
-        args = {
-          name = self.input.name.value
-        }
+        args  = [self.input.name.value]
       }
     }
 
   }
 
 }
+
+# Input queries
 
 query "pubsub_topic_input" {
   sql = <<-EOQ
@@ -253,6 +196,8 @@ query "pubsub_topic_input" {
   EOQ
 }
 
+# Card queries
+
 query "pubsub_topic_encryption" {
   sql = <<-EOQ
     select
@@ -264,9 +209,6 @@ query "pubsub_topic_encryption" {
     where
       name = $1;
   EOQ
-
-  param "name" {}
-
 }
 
 query "pubsub_topic_labeled" {
@@ -280,11 +222,72 @@ query "pubsub_topic_labeled" {
     where
       name = $1;
   EOQ
-
-  param "name" {}
-
 }
 
+# With queries
+
+query "pubsub_topic_iam_roles" {
+  sql = <<-EOQ
+    select
+      i.role_id as role_id
+    from
+      gcp_iam_role i,
+      gcp_pubsub_topic t,
+      jsonb_array_elements(t.iam_policy->'bindings') as roles
+    where
+      roles ->> 'role' = i.name
+      and t.name = $1;
+  EOQ
+}
+
+query "pubsub_topic_kms_keys" {
+  sql = <<-EOQ
+    select
+      split_part(p.kms_key_name, 'cryptoKeys/', 2) as key_name
+    from
+      gcp_pubsub_topic p
+    where
+      p.name = $1;
+  EOQ
+}
+
+query "pubsub_topic_kubernetes_clusters" {
+  sql = <<-EOQ
+    select
+      c.name as cluster_name
+    from
+      gcp_kubernetes_cluster c,
+      gcp_pubsub_topic t
+    where
+      t.name = $1
+      and c.notification_config is not null
+      and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
+  EOQ
+}
+
+query "pubsub_topic_pubsub_snapshots" {
+  sql = <<-EOQ
+    select
+      s.name as snapshot_name
+    from
+      gcp_pubsub_snapshot s
+    where
+      s.topic_name = $1;
+  EOQ
+}
+
+query "pubsub_topic_pubsub_subscriptions" {
+  sql = <<-EOQ
+    select
+      s.name as subscription_name
+    from
+      gcp_pubsub_subscription s
+    where
+      s.topic_name = $1;
+  EOQ
+}
+
+# Other queries
 query "pubsub_topic_overview" {
   sql = <<-EOQ
     select
@@ -296,8 +299,6 @@ query "pubsub_topic_overview" {
     where
       name = $1;
   EOQ
-
-  param "name" {}
 }
 
 query "pubsub_topic_tags" {
@@ -310,8 +311,6 @@ query "pubsub_topic_tags" {
     where
       name = $1;
   EOQ
-
-  param "name" {}
 }
 
 query "pubsub_topic_encryption_details" {
@@ -330,8 +329,6 @@ query "pubsub_topic_encryption_details" {
       split_part(p.kms_key_name, 'cryptoKeys/', 2) = k.name
       and p.name = $1;
   EOQ
-
-  param "name" {}
 }
 
 query "pubsub_topic_subscription_details" {
@@ -349,6 +346,4 @@ query "pubsub_topic_subscription_details" {
       p.name = k.topic_name
       and p.name = $1;
   EOQ
-
-  param "name" {}
 }

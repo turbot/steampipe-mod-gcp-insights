@@ -1,6 +1,6 @@
 dashboard "sql_database_instance_detail" {
 
-  title         = "GCP SQL Database Instance"
+  title         = "GCP SQL Database Instance Detail"
   documentation = file("./dashboards/sql/docs/gcp_sql_database_instance_detail.md")
 
   tags = merge(local.sql_common_tags, {
@@ -16,137 +16,69 @@ dashboard "sql_database_instance_detail" {
   container {
     card {
       width = 2
-
       query = query.sql_database_instance_database_version
-      args = {
-        name = self.input.database_instance_name.value
-      }
+      args  = [self.input.database_instance_name.value]
     }
 
     card {
       width = 2
-
       query = query.sql_database_instance_data_disk_size
-      args = {
-        name = self.input.database_instance_name.value
-      }
+      args  = [self.input.database_instance_name.value]
     }
 
     card {
       width = 2
       query = query.sql_database_instance_backup_enabled
-      args = {
-        name = self.input.database_instance_name.value
-      }
+      args  = [self.input.database_instance_name.value]
     }
 
     card {
       width = 2
-
       query = query.sql_database_instance_encryption
-      args = {
-        name = self.input.database_instance_name.value
-      }
+      args  = [self.input.database_instance_name.value]
     }
 
     card {
       width = 2
-
       query = query.sql_database_instance_is_public
-      args = {
-        name = self.input.database_instance_name.value
-      }
+      args  = [self.input.database_instance_name.value]
     }
 
     card {
       width = 2
-
       query = query.sql_database_instance_ssl_enabled
-      args = {
-        name = self.input.database_instance_name.value
-      }
+      args  = [self.input.database_instance_name.value]
     }
   }
 
   with "compute_networks" {
-    sql = <<-EOQ
-      select
-        n.name as network_name
-      from
-        gcp_sql_database_instance as i,
-        gcp_compute_network as n
-      where
-        SPLIT_PART(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
-        and i.name = $1;
-    EOQ
-
-    args = [self.input.database_instance_name.value]
+    query = query.sql_database_instance_compute_networks
+    args  = [self.input.database_instance_name.value]
   }
 
-  with "from_sql_database_instance" {
-    sql = <<-EOQ
-      select 
-        split_part(master_instance_name, ':', 2) as instance_name 
-      from  
-        gcp_sql_database_instance 
-      where 
-        name = $1;
-    EOQ
-
-    args = [self.input.database_instance_name.value]
+  with "from_sql_database_instances" {
+    query = query.sql_database_instance_from_sql_database_instances
+    args  = [self.input.database_instance_name.value]
   }
 
   with "kms_keys" {
-    sql = <<-EOQ
-      select
-        k.name as key_name
-      from
-        gcp_sql_database_instance as i,
-        gcp_kms_key as k
-      where
-        i.name = $1 and i.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2));
-    EOQ
-
-    args = [self.input.database_instance_name.value]
+    query = query.sql_database_instance_kms_keys
+    args  = [self.input.database_instance_name.value]
   }
 
   with "sql_backups" {
-    sql = <<-EOQ
-      select
-        id::text as backup_id
-      from
-        gcp_sql_backup
-      where
-        instance_name = $1;
-    EOQ
-
-    args = [self.input.database_instance_name.value]
+    query = query.sql_database_instance_sql_backups
+    args  = [self.input.database_instance_name.value]
   }
 
-  with "sql_database" {
-    sql = <<-EOQ
-      select
-        d.name as database_name
-      from
-        gcp_sql_database d
-      where
-        d.instance_name = $1;
-    EOQ
-
-    args = [self.input.database_instance_name.value]
+  with "sql_databases" {
+    query = query.sql_database_instance_sql_databases
+    args  = [self.input.database_instance_name.value]
   }
 
-  with "to_sql_database_instance" {
-    sql = <<-EOQ
-      select
-        name as instance_name
-      from
-        gcp_sql_database_instance
-      where
-        split_part(master_instance_name, ':', 2) = $1;
-    EOQ
-
-    args = [self.input.database_instance_name.value]
+  with "to_sql_database_instances" {
+    query = query.sql_database_instance_to_sql_database_instances
+    args  = [self.input.database_instance_name.value]
   }
 
   container {
@@ -179,7 +111,7 @@ dashboard "sql_database_instance_detail" {
       node {
         base = node.sql_database
         args = {
-          sql_database_names = with.sql_database.rows[*].database_name
+          sql_database_names = with.sql_databases.rows[*].database_name
         }
       }
 
@@ -193,14 +125,14 @@ dashboard "sql_database_instance_detail" {
       node {
         base = node.sql_database_instance
         args = {
-          sql_database_names = with.from_sql_database_instance.rows[*].instance_name
+          sql_database_names = with.from_sql_database_instances.rows[*].instance_name
         }
       }
 
       node {
         base = node.sql_database_instance
         args = {
-          sql_database_names = with.to_sql_database_instance.rows[*].instance_name
+          sql_database_names = with.to_sql_database_instances.rows[*].instance_name
         }
       }
 
@@ -242,7 +174,7 @@ dashboard "sql_database_instance_detail" {
       edge {
         base = edge.sql_database_instance_to_sql_database_instance
         args = {
-          sql_database_instance_names = with.from_sql_database_instance.rows[*].instance_name
+          sql_database_instance_names = with.from_sql_database_instances.rows[*].instance_name
         }
       }
     }
@@ -259,18 +191,14 @@ dashboard "sql_database_instance_detail" {
         type  = "line"
         width = 6
         query = query.sql_database_instance_overview
-        args = {
-          name = self.input.database_instance_name.value
-        }
+        args  = [self.input.database_instance_name.value]
       }
 
       table {
         title = "Tags"
         width = 6
         query = query.sql_database_instance_tags
-        args = {
-          name = self.input.database_instance_name.value
-        }
+        args  = [self.input.database_instance_name.value]
       }
     }
 
@@ -280,17 +208,13 @@ dashboard "sql_database_instance_detail" {
       table {
         title = "Replication Details"
         query = query.sql_database_instance_replication_status
-        args = {
-          name = self.input.database_instance_name.value
-        }
+        args  = [self.input.database_instance_name.value]
       }
 
       table {
         title = "Encryption Details"
         query = query.sql_database_instance_encryption_detail
-        args = {
-          name = self.input.database_instance_name.value
-        }
+        args  = [self.input.database_instance_name.value]
       }
     }
   }
@@ -304,9 +228,7 @@ dashboard "sql_database_instance_detail" {
       type  = "line"
       width = 6
       query = query.sql_database_instance_cpu_utilization
-      args = {
-        name = self.input.database_instance_name.value
-      }
+      args  = [self.input.database_instance_name.value]
     }
 
     chart {
@@ -314,13 +236,13 @@ dashboard "sql_database_instance_detail" {
       type  = "line"
       width = 6
       query = query.sql_database_instance_connection
-      args = {
-        name = self.input.database_instance_name.value
-      }
+      args  = [self.input.database_instance_name.value]
     }
 
   }
 }
+
+# Input queries
 
 query "sql_database_instance_input" {
   sql = <<-EOQ
@@ -338,6 +260,8 @@ query "sql_database_instance_input" {
   EOQ
 }
 
+# Card queries
+
 query "sql_database_instance_database_version" {
   sql = <<-EOQ
     select
@@ -348,8 +272,6 @@ query "sql_database_instance_database_version" {
     where
       name = $1;
   EOQ
-
-  param "name" {}
 }
 
 query "sql_database_instance_encryption" {
@@ -363,8 +285,6 @@ query "sql_database_instance_encryption" {
     where
       name = $1;
   EOQ
-
-  param "name" {}
 }
 
 query "sql_database_instance_data_disk_size" {
@@ -377,8 +297,6 @@ query "sql_database_instance_data_disk_size" {
     where
       name = $1;
   EOQ
-
-  param "name" {}
 }
 
 query "sql_database_instance_backup_enabled" {
@@ -398,8 +316,6 @@ query "sql_database_instance_backup_enabled" {
     where
       name = $1;
   EOQ
-
-  param "name" {}
 }
 
 query "sql_database_instance_is_public" {
@@ -413,8 +329,6 @@ query "sql_database_instance_is_public" {
     where
       name = $1;
   EOQ
-
-  param "name" {}
 }
 
 query "sql_database_instance_ssl_enabled" {
@@ -435,9 +349,80 @@ query "sql_database_instance_ssl_enabled" {
     where
       name = $1;
   EOQ
-
-  param "name" {}
 }
+
+# With queries
+
+query "sql_database_instance_compute_networks" {
+  sql = <<-EOQ
+    select
+      n.name as network_name
+    from
+      gcp_sql_database_instance as i,
+      gcp_compute_network as n
+    where
+      SPLIT_PART(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
+      and i.name = $1;
+  EOQ
+}
+
+query "sql_database_instance_from_sql_database_instances" {
+  sql = <<-EOQ
+    select
+      split_part(master_instance_name, ':', 2) as instance_name
+    from
+      gcp_sql_database_instance
+    where
+      name = $1;
+  EOQ
+}
+
+query "sql_database_instance_kms_keys" {
+  sql = <<-EOQ
+    select
+      k.name as key_name
+    from
+      gcp_sql_database_instance as i,
+      gcp_kms_key as k
+    where
+      i.name = $1 and i.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2));
+  EOQ
+}
+
+query "sql_database_instance_sql_backups" {
+  sql = <<-EOQ
+    select
+      id::text as backup_id
+    from
+      gcp_sql_backup
+    where
+      instance_name = $1;
+  EOQ
+}
+
+query "sql_database_instance_sql_databases" {
+  sql = <<-EOQ
+    select
+      d.name as database_name
+    from
+      gcp_sql_database d
+    where
+      d.instance_name = $1;
+  EOQ
+}
+
+query "sql_database_instance_to_sql_database_instances" {
+  sql = <<-EOQ
+    select
+      name as instance_name
+    from
+      gcp_sql_database_instance
+    where
+      split_part(master_instance_name, ':', 2) = $1;
+  EOQ
+}
+
+# Other queries
 
 query "sql_database_instance_overview" {
   sql = <<-EOQ
@@ -458,8 +443,6 @@ query "sql_database_instance_overview" {
     where
       name = $1;
   EOQ
-
-  param "name" {}
 }
 
 query "sql_database_instance_tags" {
@@ -481,8 +464,6 @@ query "sql_database_instance_tags" {
     order by
       key;
   EOQ
-
-  param "name" {}
 }
 
 query "sql_database_instance_replication_status" {
@@ -497,8 +478,6 @@ query "sql_database_instance_replication_status" {
     where
       name = $1;
   EOQ
-
-  param "name" {}
 }
 
 query "sql_database_instance_encryption_detail" {
@@ -515,8 +494,6 @@ query "sql_database_instance_encryption_detail" {
       d.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2))
       and d.name = $1;
   EOQ
-
-  param "name" {}
 }
 
 query "sql_database_instance_cpu_utilization" {
@@ -532,8 +509,6 @@ query "sql_database_instance_cpu_utilization" {
     order by
       timestamp;
   EOQ
-
-  param "name" {}
 }
 
 query "sql_database_instance_connection" {
@@ -549,6 +524,4 @@ query "sql_database_instance_connection" {
     order by
       timestamp;
   EOQ
-
-  param "name" {}
 }

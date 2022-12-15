@@ -411,7 +411,7 @@ node "compute_vpn_gateway" {
         'Location', g.location
       ) as properties
     from
-      gcp_compute_vpn_gateway g
+      gcp_compute_ha_vpn_gateway g
     where
       g.id = any($1);
   EOQ

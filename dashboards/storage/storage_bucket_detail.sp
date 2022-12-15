@@ -18,96 +18,54 @@ dashboard "storage_bucket_detail" {
     card {
       width = 2
       query = query.storage_bucket_class
-      args = {
-        id = self.input.bucket_id.value
-      }
+      args  = [self.input.bucket_id.value]
     }
 
     card {
       width = 2
       query = query.storage_bucket_public_access
-      args = {
-        id = self.input.bucket_id.value
-      }
+      args  = [self.input.bucket_id.value]
     }
 
     card {
       width = 2
       query = query.storage_bucket_versioning_disabled
-      args = {
-        id = self.input.bucket_id.value
-      }
+      args  = [self.input.bucket_id.value]
     }
 
     card {
       width = 2
       query = query.storage_bucket_retention_policy
-      args = {
-        id = self.input.bucket_id.value
-      }
+      args  = [self.input.bucket_id.value]
     }
 
     card {
       width = 2
       query = query.storage_bucket_logging
-      args = {
-        id = self.input.bucket_id.value
-      }
+      args  = [self.input.bucket_id.value]
     }
 
     card {
       width = 2
       query = query.storage_bucket_uniform_bucket_level_access
-      args = {
-        id = self.input.bucket_id.value
-      }
+      args  = [self.input.bucket_id.value]
     }
 
   }
 
   with "compute_backend_buckets" {
-    sql = <<-EOQ
-      select
-        c.id::text as bucket_id
-      from
-        gcp_storage_bucket b,
-        gcp_compute_backend_bucket c
-      where
-        b.id = $1
-        and b.name = c.bucket_name;
-    EOQ
-
-    args = [self.input.bucket_id.value]
+    query = query.storage_bucket_compute_backend_buckets
+    args  = [self.input.bucket_id.value]
   }
 
   with "kms_keys" {
-    sql = <<-EOQ
-      select
-        split_part(b.default_kms_key_name, 'cryptoKeys/', 2) as key_name
-      from
-        gcp_storage_bucket b
-      where
-        b.id = $1
-        and b.default_kms_key_name is not null;
-    EOQ
-
-    args = [self.input.bucket_id.value]
+    query = query.storage_bucket_kms_keys
+    args  = [self.input.bucket_id.value]
   }
 
   with "logging_buckets" {
-    sql = <<-EOQ
-      select
-        l.name as bucket_name
-      from
-        gcp_storage_bucket b,
-        gcp_logging_bucket l
-      where
-        b.id = $1
-        and b.log_bucket is not null
-        and b.log_bucket = l.name;
-    EOQ
-
-    args = [self.input.bucket_id.value]
+    query = query.storage_bucket_logging_buckets
+    args  = [self.input.bucket_id.value]
   }
 
   container {
@@ -177,19 +135,14 @@ dashboard "storage_bucket_detail" {
         type  = "line"
         width = 6
         query = query.storage_bucket_overview
-        args = {
-          id = self.input.bucket_id.value
-        }
-
+        args  = [self.input.bucket_id.value]
       }
 
       table {
         title = "Tags"
         width = 6
         query = query.storage_bucket_tags_detail
-        args = {
-          id = self.input.bucket_id.value
-        }
+        args  = [self.input.bucket_id.value]
       }
     }
 
@@ -199,31 +152,27 @@ dashboard "storage_bucket_detail" {
       table {
         title = "Logging Details"
         query = query.storage_bucket_logging_detail
-        args = {
-          id = self.input.bucket_id.value
-        }
+        args  = [self.input.bucket_id.value]
       }
 
       table {
         title = "Compute Backend Bucket"
         query = query.storage_bucket_compute_backend_bucket_detail
-        args = {
-          id = self.input.bucket_id.value
-        }
+        args  = [self.input.bucket_id.value]
       }
 
       table {
         title = "Encryption Details"
         query = query.storage_bucket_encryption_detail
-        args = {
-          id = self.input.bucket_id.value
-        }
+        args  = [self.input.bucket_id.value]
       }
     }
 
   }
 
 }
+
+# Input queries
 
 query "storage_bucket_input" {
   sql = <<-EOQ
@@ -252,9 +201,6 @@ query "storage_bucket_class" {
     where
       id = $1;
   EOQ
-
-  param "id" {}
-
 }
 
 query "storage_bucket_public_access" {
@@ -268,8 +214,6 @@ query "storage_bucket_public_access" {
     where
       id = $1;
   EOQ
-
-  param "id" {}
 }
 
 query "storage_bucket_versioning_disabled" {
@@ -283,8 +227,6 @@ query "storage_bucket_versioning_disabled" {
     where
       id = $1;
   EOQ
-
-  param "id" {}
 }
 
 query "storage_bucket_retention_policy" {
@@ -298,8 +240,6 @@ query "storage_bucket_retention_policy" {
     where
       id = $1;
   EOQ
-
-  param "id" {}
 }
 
 query "storage_bucket_logging" {
@@ -313,8 +253,6 @@ query "storage_bucket_logging" {
     where
       id = $1;
   EOQ
-
-  param "id" {}
 }
 
 query "storage_bucket_uniform_bucket_level_access" {
@@ -328,11 +266,50 @@ query "storage_bucket_uniform_bucket_level_access" {
     where
       id = $1;
   EOQ
-
-  param "id" {}
 }
 
-# Tables
+# With queries
+
+query "storage_bucket_compute_backend_buckets" {
+  sql = <<-EOQ
+    select
+      c.id::text as bucket_id
+    from
+      gcp_storage_bucket b,
+      gcp_compute_backend_bucket c
+    where
+      b.id = $1
+      and b.name = c.bucket_name;
+  EOQ
+}
+
+query "storage_bucket_kms_keys" {
+  sql = <<-EOQ
+    select
+      split_part(b.default_kms_key_name, 'cryptoKeys/', 2) as key_name
+    from
+      gcp_storage_bucket b
+    where
+      b.id = $1
+      and b.default_kms_key_name is not null;
+  EOQ
+}
+
+query "storage_bucket_logging_buckets" {
+  sql = <<-EOQ
+    select
+      l.name as bucket_name
+    from
+      gcp_storage_bucket b,
+      gcp_logging_bucket l
+    where
+      b.id = $1
+      and b.log_bucket is not null
+      and b.log_bucket = l.name;
+  EOQ
+}
+
+# Other queries
 
 query "storage_bucket_overview" {
   sql = <<-EOQ
@@ -349,8 +326,6 @@ query "storage_bucket_overview" {
     where
       id = $1;
   EOQ
-
-  param "id" {}
 }
 
 query "storage_bucket_tags_detail" {
@@ -372,8 +347,6 @@ query "storage_bucket_tags_detail" {
     order by
       key;
   EOQ
-
-  param "id" {}
 }
 
 query "storage_bucket_logging_detail" {
@@ -392,8 +365,6 @@ query "storage_bucket_logging_detail" {
       and b.log_bucket is not null
       and b.log_bucket = l.name;
   EOQ
-
-  param "id" {}
 }
 
 query "storage_bucket_compute_backend_bucket_detail" {
@@ -410,8 +381,6 @@ query "storage_bucket_compute_backend_bucket_detail" {
       b.id = $1
       and b.name = c.bucket_name;
   EOQ
-
-  param "id" {}
 }
 
 query "storage_bucket_encryption_detail" {
@@ -429,6 +398,4 @@ query "storage_bucket_encryption_detail" {
     where
       b.id = $1;
   EOQ
-
-  param "id" {}
 }

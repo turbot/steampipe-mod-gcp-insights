@@ -18,138 +18,62 @@ dashboard "compute_instance_detail" {
     card {
       width = 2
       query = query.compute_instance_status
-      args = {
-        id = self.input.instance_id.value
-      }
+      args  = [self.input.instance_id.value]
     }
 
     card {
       width = 2
       query = query.compute_instance_type
-      args = {
-        id = self.input.instance_id.value
-      }
+      args  = [self.input.instance_id.value]
     }
 
     card {
       width = 2
       query = query.compute_instance_deletion_protection
-      args = {
-        id = self.input.instance_id.value
-      }
+      args  = [self.input.instance_id.value]
     }
 
     card {
       width = 2
       query = query.compute_instance_public_access
-      args = {
-        id = self.input.instance_id.value
-      }
+      args  = [self.input.instance_id.value]
     }
 
     card {
       width = 2
       query = query.compute_instance_confidential_vm_service
-      args = {
-        id = self.input.instance_id.value
-      }
+      args  = [self.input.instance_id.value]
     }
   }
 
   with "compute_disks" {
-    sql = <<-EOQ
-      select
-        d.id::text as disk_id
-      from
-        gcp_compute_instance i,
-        gcp_compute_disk d,
-        jsonb_array_elements(disks) as disk
-      where
-        d.self_link = (disk ->> 'source')
-        and i.id = $1;
-    EOQ
-
-    args = [self.input.instance_id.value]
+    query = query.compute_instance_compute_disks
+    args  = [self.input.instance_id.value]
   }
 
   with "compute_firewalls" {
-    sql = <<-EOQ
-      select
-        f.id::text as firewall_id
-      from
-        gcp_compute_instance i,
-        gcp_compute_firewall f,
-        jsonb_array_elements(network_interfaces) as ni
-      where
-        ni ->> 'network' = f.network
-        and i.id = $1;
-    EOQ
-
-    args = [self.input.instance_id.value]
+    query = query.compute_instance_compute_firewalls
+    args  = [self.input.instance_id.value]
   }
 
   with "compute_instance_groups" {
-    sql = <<-EOQ
-      select
-        g.id::text as group_id
-      from
-        gcp_compute_instance as ins,
-        gcp_compute_instance_group as g,
-        jsonb_array_elements(instances) as i
-      where
-        (i ->> 'instance') = ins.self_link
-        and ins.id = $1;
-    EOQ
-
-    args = [self.input.instance_id.value]
+    query = query.compute_instance_compute_instance_groups
+    args  = [self.input.instance_id.value]
   }
 
   with "compute_networks" {
-    sql = <<-EOQ
-      select
-        n.name as network_name
-      from
-        gcp_compute_instance i,
-        gcp_compute_network n,
-        jsonb_array_elements(network_interfaces) as ni
-      where
-        ni ->> 'network' = n.self_link
-        and i.id = $1;
-    EOQ
-
-    args = [self.input.instance_id.value]
+    query = query.compute_instance_compute_networks
+    args  = [self.input.instance_id.value]
   }
 
   with "compute_subnets" {
-    sql = <<-EOQ
-      select
-        s.id::text as subnetwork_id
-      from
-        gcp_compute_instance i,
-        gcp_compute_subnetwork s,
-        jsonb_array_elements(network_interfaces) as ni
-      where
-        ni ->> 'subnetwork' = s.self_link
-        and i.id = $1;
-    EOQ
-
-    args = [self.input.instance_id.value]
+    query = query.compute_instance_compute_subnets
+    args  = [self.input.instance_id.value]
   }
 
   with "iam_service_accounts" {
-    sql = <<-EOQ
-      select
-        s.name as account_name
-      from
-        gcp_compute_instance i,
-        gcp_service_account s,
-        jsonb_array_elements(service_accounts) as sa
-      where
-        sa ->> 'email' = s.email
-        and i.id = $1;
-    EOQ
-
-    args = [self.input.instance_id.value]
+    query = query.compute_instance_iam_service_accounts
+    args  = [self.input.instance_id.value]
   }
 
   container {
@@ -261,9 +185,7 @@ dashboard "compute_instance_detail" {
         type  = "line"
         width = 6
         query = query.compute_instance_overview
-        args = {
-          id = self.input.instance_id.value
-        }
+        args  = [self.input.instance_id.value]
 
       }
 
@@ -271,9 +193,7 @@ dashboard "compute_instance_detail" {
         title = "Tags"
         width = 6
         query = query.compute_instance_tags
-        args = {
-          id = self.input.instance_id.value
-        }
+        args  = [self.input.instance_id.value]
       }
     }
     container {
@@ -282,9 +202,7 @@ dashboard "compute_instance_detail" {
       table {
         title = "Attached Disks"
         query = query.compute_instance_attached_disks
-        args = {
-          id = self.input.instance_id.value
-        }
+        args  = [self.input.instance_id.value]
       }
     }
 
@@ -296,9 +214,7 @@ dashboard "compute_instance_detail" {
     table {
       title = "Network Interfaces"
       query = query.compute_instance_network_interfaces
-      args = {
-        id = self.input.instance_id.value
-      }
+      args  = [self.input.instance_id.value]
     }
 
   }
@@ -309,14 +225,13 @@ dashboard "compute_instance_detail" {
     table {
       title = "Shielded VM Configuration"
       query = query.compute_instance_shielded_vm
-      args = {
-        id = self.input.instance_id.value
-      }
+      args  = [self.input.instance_id.value]
     }
 
   }
-
 }
+
+# Input queries
 
 query "compute_instance_input" {
   sql = <<-EOQ
@@ -335,6 +250,8 @@ query "compute_instance_input" {
   EOQ
 }
 
+# Card queries
+
 query "compute_instance_status" {
   sql = <<-EOQ
     select
@@ -345,9 +262,6 @@ query "compute_instance_status" {
     where
       id = $1;
   EOQ
-
-  param "id" {}
-
 }
 
 query "compute_instance_type" {
@@ -360,8 +274,6 @@ query "compute_instance_type" {
     where
       id = $1;
   EOQ
-
-  param "id" {}
 }
 
 query "compute_instance_deletion_protection" {
@@ -375,8 +287,6 @@ query "compute_instance_deletion_protection" {
     where
       id = $1;
   EOQ
-
-  param "id" {}
 }
 
 query "compute_instance_public_access" {
@@ -398,8 +308,6 @@ query "compute_instance_public_access" {
     where
       id = $1;
   EOQ
-
-  param "id" {}
 }
 
 query "compute_instance_confidential_vm_service" {
@@ -413,9 +321,95 @@ query "compute_instance_confidential_vm_service" {
     where
       id = $1;
   EOQ
-
-  param "id" {}
 }
+
+# With queries
+
+query "compute_instance_compute_disks" {
+  sql = <<-EOQ
+    select
+      d.id::text as disk_id
+    from
+      gcp_compute_instance i,
+      gcp_compute_disk d,
+      jsonb_array_elements(disks) as disk
+    where
+      d.self_link = (disk ->> 'source')
+      and i.id = $1;
+  EOQ
+}
+
+query "compute_instance_compute_firewalls" {
+  sql = <<-EOQ
+    select
+      f.id::text as firewall_id
+    from
+      gcp_compute_instance i,
+      gcp_compute_firewall f,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      ni ->> 'network' = f.network
+      and i.id = $1;
+  EOQ
+}
+
+query "compute_instance_compute_instance_groups" {
+  sql = <<-EOQ
+    select
+      g.id::text as group_id
+    from
+      gcp_compute_instance as ins,
+      gcp_compute_instance_group as g,
+      jsonb_array_elements(instances) as i
+    where
+      (i ->> 'instance') = ins.self_link
+      and ins.id = $1;
+  EOQ
+}
+
+query "compute_instance_compute_networks" {
+  sql = <<-EOQ
+    select
+      n.name as network_name
+    from
+      gcp_compute_instance i,
+      gcp_compute_network n,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      ni ->> 'network' = n.self_link
+      and i.id = $1;
+  EOQ
+}
+
+query "compute_instance_compute_subnets" {
+  sql = <<-EOQ
+    select
+      s.id::text as subnetwork_id
+    from
+      gcp_compute_instance i,
+      gcp_compute_subnetwork s,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      ni ->> 'subnetwork' = s.self_link
+      and i.id = $1;
+  EOQ
+}
+
+query "compute_instance_iam_service_accounts" {
+  sql = <<-EOQ
+    select
+      s.name as account_name
+    from
+      gcp_compute_instance i,
+      gcp_service_account s,
+      jsonb_array_elements(service_accounts) as sa
+    where
+      sa ->> 'email' = s.email
+      and i.id = $1;
+  EOQ
+}
+
+# Other queries
 
 query "compute_instance_overview" {
   sql = <<-EOQ
@@ -431,8 +425,6 @@ query "compute_instance_overview" {
     where
       id = $1
   EOQ
-
-  param "id" {}
 }
 
 query "compute_instance_tags" {
@@ -454,8 +446,6 @@ query "compute_instance_tags" {
     order by
       key;
     EOQ
-
-  param "id" {}
 }
 
 query "compute_instance_attached_disks" {
@@ -473,8 +463,6 @@ query "compute_instance_attached_disks" {
     where
       id = $1;
   EOQ
-
-  param "id" {}
 }
 
 query "compute_instance_shielded_vm" {
@@ -488,8 +476,6 @@ query "compute_instance_shielded_vm" {
     where
       id = $1;
   EOQ
-
-  param "id" {}
 }
 
 query "compute_instance_network_interfaces" {
@@ -508,6 +494,4 @@ query "compute_instance_network_interfaces" {
     where
       id = $1;
   EOQ
-
-  param "id" {}
 }

@@ -18,164 +18,62 @@ dashboard "compute_subnetwork_detail" {
     card {
       width = 2
       query = query.compute_subnetwork_cidr_range
-      args = {
-        id = self.input.subnetwork_id.value
-      }
+      args  = [self.input.subnetwork_id.value]
     }
 
     card {
       width = 2
       query = query.compute_subnetwork_purpose
-      args = {
-        id = self.input.subnetwork_id.value
-      }
+      args  = [self.input.subnetwork_id.value]
     }
 
     card {
       width = 2
       query = query.compute_subnetwork_is_default
-      args = {
-        id = self.input.subnetwork_id.value
-      }
+      args  = [self.input.subnetwork_id.value]
     }
 
     card {
       width = 2
       query = query.compute_subnetwork_flow_logs
-      args = {
-        id = self.input.subnetwork_id.value
-      }
+      args  = [self.input.subnetwork_id.value]
     }
 
   }
 
   with "compute_addresses" {
-    sql = <<-EOQ
-      select
-        a.id::text as address_id
-      from
-        gcp_compute_address a,
-        gcp_compute_subnetwork s
-      where
-        s.id = $1
-        and s.self_link = a.subnetwork
-
-      union
-
-      select
-        a.id::text as address_id
-      from
-        gcp_compute_global_address a,
-        gcp_compute_subnetwork s
-      where
-        s.id = $1
-        and s.self_link = a.subnetwork;
-    EOQ
-
-    args = [self.input.subnetwork_id.value]
+    query = query.compute_subnetwork_compute_addresses
+    args  = [self.input.subnetwork_id.value]
   }
 
   with "compute_forwarding_rules" {
-    sql = <<-EOQ
-      select
-        r.id::text as rule_id
-      from
-        gcp_compute_forwarding_rule r,
-        gcp_compute_subnetwork s
-      where
-        s.id = $1
-        and split_part(r.subnetwork, 'subnetworks/', 2) = s.name
-
-      union
-
-      select
-        r.id::text as rule_id
-      from
-        gcp_compute_global_forwarding_rule r,
-        gcp_compute_subnetwork s
-      where
-        s.id = $1
-        and split_part(r.subnetwork, 'subnetworks/', 2) = s.name;
-    EOQ
-
-    args = [self.input.subnetwork_id.value]
+    query = query.compute_subnetwork_compute_forwarding_rules
+    args  = [self.input.subnetwork_id.value]
   }
 
   with "compute_instance_groups" {
-    sql = <<-EOQ
-      select
-        g.id::text as group_id
-      from
-        gcp_compute_instance_group g,
-        gcp_compute_subnetwork s
-      where
-        g.subnetwork = s.self_link
-        and s.id = $1;
-    EOQ
-
-    args = [self.input.subnetwork_id.value]
+    query = query.compute_subnetwork_compute_instance_groups
+    args  = [self.input.subnetwork_id.value]
   }
 
   with "compute_instance_templates" {
-    sql = <<-EOQ
-      select
-        t.id::text as template_id
-      from
-        gcp_compute_instance_template t,
-        jsonb_array_elements(instance_network_interfaces) ni,
-        gcp_compute_subnetwork s
-      where
-        ni ->> 'subnetwork' = s.self_link
-        and s.id = $1;
-    EOQ
-
-    args = [self.input.subnetwork_id.value]
+    query = query.compute_subnetwork_compute_instance_templates
+    args  = [self.input.subnetwork_id.value]
   }
 
   with "compute_instances" {
-    sql = <<-EOQ
-      select
-        i.id::text as instance_id
-      from
-        gcp_compute_instance i,
-        gcp_compute_subnetwork s,
-        jsonb_array_elements(network_interfaces) as ni
-      where
-        ni ->> 'subnetwork' = s.self_link
-        and s.id = $1;
-    EOQ
-
-    args = [self.input.subnetwork_id.value]
+    query = query.compute_subnetwork_compute_instances
+    args  = [self.input.subnetwork_id.value]
   }
 
   with "compute_networks" {
-    sql = <<-EOQ
-      select
-        n.name as network_name
-      from
-        gcp_compute_subnetwork s,
-        gcp_compute_network n
-      where
-        s.network = n.self_link
-        and s.id = $1;
-    EOQ
-
-    args = [self.input.subnetwork_id.value]
+    query = query.compute_subnetwork_compute_networks
+    args  = [self.input.subnetwork_id.value]
   }
 
   with "kubernetes_clusters" {
-    sql = <<-EOQ
-      select
-        c.name as cluster_name
-      from
-        gcp_kubernetes_cluster c,
-        gcp_compute_subnetwork s
-      where
-        s.id = $1
-        and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
-    EOQ
-
-    args = [self.input.subnetwork_id.value]
+    query = query.compute_subnetwork_kubernetes_clusters
+    args  = [self.input.subnetwork_id.value]
   }
 
   container {
@@ -301,9 +199,7 @@ dashboard "compute_subnetwork_detail" {
         width = 4
         type  = "line"
         query = query.compute_subnetwork_overview
-        args = {
-          id = self.input.subnetwork_id.value
-        }
+        args  = [self.input.subnetwork_id.value]
       }
 
     }
@@ -313,9 +209,7 @@ dashboard "compute_subnetwork_detail" {
       table {
         title = "Network Details"
         query = query.compute_subnetwork_network
-        args = {
-          id = self.input.subnetwork_id.value
-        }
+        args  = [self.input.subnetwork_id.value]
       }
 
     }
@@ -323,6 +217,8 @@ dashboard "compute_subnetwork_detail" {
   }
 
 }
+
+# Input queries
 
 query "compute_subnetwork_input" {
   sql = <<-EOQ
@@ -340,6 +236,8 @@ query "compute_subnetwork_input" {
       title;
   EOQ
 }
+
+# Card queries
 
 query "compute_subnetwork_purpose" {
   sql = <<-EOQ
@@ -396,6 +294,125 @@ query "compute_subnetwork_flow_logs" {
 
   param "id" {}
 }
+
+# With queries
+
+query "compute_subnetwork_compute_addresses" {
+  sql = <<-EOQ
+    select
+      a.id::text as address_id
+    from
+      gcp_compute_address a,
+      gcp_compute_subnetwork s
+    where
+      s.id = $1
+      and s.self_link = a.subnetwork
+
+    union
+
+    select
+      a.id::text as address_id
+    from
+      gcp_compute_global_address a,
+      gcp_compute_subnetwork s
+    where
+      s.id = $1
+      and s.self_link = a.subnetwork;
+  EOQ
+}
+
+query "compute_subnetwork_compute_forwarding_rules" {
+  sql = <<-EOQ
+    select
+      r.id::text as rule_id
+    from
+      gcp_compute_forwarding_rule r,
+      gcp_compute_subnetwork s
+    where
+      s.id = $1
+      and split_part(r.subnetwork, 'subnetworks/', 2) = s.name
+
+    union
+
+    select
+      r.id::text as rule_id
+    from
+      gcp_compute_global_forwarding_rule r,
+      gcp_compute_subnetwork s
+    where
+      s.id = $1
+      and split_part(r.subnetwork, 'subnetworks/', 2) = s.name;
+  EOQ
+}
+
+query "compute_subnetwork_compute_instance_groups" {
+  sql = <<-EOQ
+    select
+      g.id::text as group_id
+    from
+      gcp_compute_instance_group g,
+      gcp_compute_subnetwork s
+    where
+      g.subnetwork = s.self_link
+      and s.id = $1;
+  EOQ
+}
+
+query "compute_subnetwork_compute_instance_templates" {
+  sql = <<-EOQ
+    select
+      t.id::text as template_id
+    from
+      gcp_compute_instance_template t,
+      jsonb_array_elements(instance_network_interfaces) ni,
+      gcp_compute_subnetwork s
+    where
+      ni ->> 'subnetwork' = s.self_link
+      and s.id = $1;
+  EOQ
+}
+
+query "compute_subnetwork_compute_instances" {
+  sql = <<-EOQ
+    select
+      i.id::text as instance_id
+    from
+      gcp_compute_instance i,
+      gcp_compute_subnetwork s,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      ni ->> 'subnetwork' = s.self_link
+      and s.id = $1;
+  EOQ
+}
+
+query "compute_subnetwork_compute_networks" {
+  sql = <<-EOQ
+    select
+      n.name as network_name
+    from
+      gcp_compute_subnetwork s,
+      gcp_compute_network n
+    where
+      s.network = n.self_link
+      and s.id = $1;
+  EOQ
+}
+
+query "compute_subnetwork_kubernetes_clusters" {
+  sql = <<-EOQ
+    select
+      c.name as cluster_name
+    from
+      gcp_kubernetes_cluster c,
+      gcp_compute_subnetwork s
+    where
+      s.id = $1
+      and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
+  EOQ
+}
+
+# Other queries
 
 query "compute_subnetwork_overview" {
   sql = <<-EOQ

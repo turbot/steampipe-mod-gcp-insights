@@ -18,198 +18,87 @@ dashboard "kms_key_detail" {
     card {
       width = 2
       query = query.kms_key_purpose
-      args = {
-        key_name = self.input.key_name.value
-      }
+      args  = [self.input.key_name.value]
     }
 
     card {
       width = 2
       query = query.kms_key_rotation_period
-      args = {
-        key_name = self.input.key_name.value
-      }
+      args  = [self.input.key_name.value]
     }
 
     card {
       width = 2
       query = query.kms_key_key_ring_name
-      args = {
-        key_name = self.input.key_name.value
-      }
+      args  = [self.input.key_name.value]
     }
 
     card {
       width = 2
       query = query.kms_key_protection_level
-      args = {
-        key_name = self.input.key_name.value
-      }
+      args  = [self.input.key_name.value]
     }
 
     card {
       width = 2
       query = query.kms_key_algorithm
-      args = {
-        key_name = self.input.key_name.value
-      }
+      args  = [self.input.key_name.value]
     }
   }
 
   with "bigquery_datasets" {
-    sql = <<-EOQ
-      select
-        d.id as dataset_id
-      from
-        gcp_bigquery_dataset d
-      where
-        split_part(d.kms_key_name, 'cryptoKeys/', 2) = $1;
-    EOQ
-
-    args = [self.input.key_name.value]
+    query = query.kms_key_bigquery_datasets
+    args  = [self.input.key_name.value]
   }
 
   with "bigquery_tables" {
-    sql = <<-EOQ
-      select
-        t.id as table_id
-      from
-        gcp_bigquery_table t
-      where
-        split_part(t.kms_key_name, 'cryptoKeys/', 2) = $1;
-    EOQ
-
-    args = [self.input.key_name.value]
+    query = query.kms_key_bigquery_tables
+    args  = [self.input.key_name.value]
   }
 
   with "compute_disks" {
-    sql = <<-EOQ
-      select
-        d.id::text as disk_id
-      from
-        gcp_compute_disk d,
-        gcp_kms_key_version k
-      where
-        d.disk_encryption_key is not null
-        and split_part(d.disk_encryption_key ->> 'kmsKeyName', 'cryptoKeyVersions/', 2) = k.crypto_key_version::text
-        and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.name
-        and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = $1;
-    EOQ
-
-    args = [self.input.key_name.value]
+    query = query.kms_key_compute_disks
+    args  = [self.input.key_name.value]
   }
 
   with "compute_images" {
-    sql = <<-EOQ
-      select
-        i.id::text as image_id
-      from
-        gcp_compute_image as i
-      where
-        i.image_encryption_key is not null
-        and split_part(i.image_encryption_key->>'kmsKeyName', '/', 8) = $1;
-    EOQ
-
-    args = [self.input.key_name.value]
+    query = query.kms_key_compute_images
+    args  = [self.input.key_name.value]
   }
 
   with "compute_snapshots" {
-    sql = <<-EOQ
-      select
-        s.name as snapshot_name
-      from
-        gcp_compute_snapshot s,
-        gcp_kms_key_version v
-      where
-        v.crypto_key_version::text = split_part(s.kms_key_name, 'cryptoKeyVersions/', 2)
-        and split_part(s.kms_key_name, '/', 8) = v.name
-        and v.name = $1;
-    EOQ
-
-    args = [self.input.key_name.value]
+    query = query.kms_key_compute_snapshots
+    args  = [self.input.key_name.value]
   }
 
   with "kms_key_rings" {
-    sql = <<-EOQ
-      select
-        p.name as ring_name
-      from
-        gcp_kms_key_ring p,
-        gcp_kms_key k
-      where
-        k.key_ring_name = p.name
-        and k.name = $1;
-    EOQ
-
-    args = [self.input.key_name.value]
+    query = query.kms_key_kms_key_rings
+    args  = [self.input.key_name.value]
   }
 
   with "kubernetes_clusters" {
-    sql = <<-EOQ
-      select
-        c.name as cluster_name
-      from
-        gcp_kubernetes_cluster c
-      where
-        c.database_encryption_key_name is not null
-        and split_part(c.database_encryption_key_name, 'cryptoKeys/', 2) = $1;
-    EOQ
-
-    args = [self.input.key_name.value]
+    query = query.kms_key_kubernetes_clusters
+    args  = [self.input.key_name.value]
   }
 
   with "pubsub_topics" {
-    sql = <<-EOQ
-      select
-        p.name as topic_name
-      from
-        gcp_pubsub_topic p,
-        gcp_kms_key k
-      where
-        split_part(p.kms_key_name, 'cryptoKeys/', 2) = $1;
-    EOQ
-
-    args = [self.input.key_name.value]
+    query = query.kms_key_pubsub_topics
+    args  = [self.input.key_name.value]
   }
 
   with "sql_backups" {
-    sql = <<-EOQ
-      select
-        b.id::text as backup_id
-      from
-        gcp_sql_backup b
-      where
-        split_part(b.disk_encryption_configuration ->> 'kmsKeyName','cryptoKeys/',2) = $1;
-    EOQ
-
-    args = [self.input.key_name.value]
+    query = query.kms_key_sql_backups
+    args  = [self.input.key_name.value]
   }
 
   with "sql_database_instances" {
-    sql = <<-EOQ
-      select
-        i.name as instance_name
-      from
-        gcp_sql_database_instance as i
-      where
-        split_part(i.kms_key_name, 'cryptoKeys/', 2) = $1;
-    EOQ
-
-    args = [self.input.key_name.value]
+    query = query.kms_key_sql_database_instances
+    args  = [self.input.key_name.value]
   }
 
   with "storage_buckets" {
-    sql = <<-EOQ
-      select
-        b.id as bucket_id
-      from
-        gcp_storage_bucket b
-      where
-        b.default_kms_key_name is not null
-        and split_part(b.default_kms_key_name, 'cryptoKeys/', 2) = $1;
-    EOQ
-
-    args = [self.input.key_name.value]
+    query = query.kms_key_storage_buckets
+    args  = [self.input.key_name.value]
   }
 
   container {
@@ -413,23 +302,21 @@ dashboard "kms_key_detail" {
         type  = "line"
         width = 6
         query = query.kms_key_name_overview
-        args = {
-          key_name = self.input.key_name.value
-        }
+        args  = [self.input.key_name.value]
       }
 
       table {
         title = "Tags"
         width = 6
         query = query.kms_key_name_tags
-        args = {
-          key_name = self.input.key_name.value
-        }
+        args  = [self.input.key_name.value]
       }
 
     }
   }
 }
+
+# Input queries
 
 query "kms_key_name_input" {
   sql = <<-EOQ
@@ -446,6 +333,8 @@ query "kms_key_name_input" {
   EOQ
 }
 
+# Card queries
+
 query "kms_key_purpose" {
   sql = <<-EOQ
     select
@@ -456,8 +345,6 @@ query "kms_key_purpose" {
       where
         name = $1;
   EOQ
-
-  param "key_name" {}
 }
 
 query "kms_key_rotation_period" {
@@ -470,8 +357,6 @@ query "kms_key_rotation_period" {
       where
         name = $1;
   EOQ
-
-  param "key_name" {}
 }
 
 query "kms_key_key_ring_name" {
@@ -484,8 +369,6 @@ query "kms_key_key_ring_name" {
     where
       name = $1;
   EOQ
-
-  param "key_name" {}
 }
 
 query "kms_key_protection_level" {
@@ -498,8 +381,6 @@ query "kms_key_protection_level" {
     where
       name = $1;
   EOQ
-
-  param "key_name" {}
 }
 
 query "kms_key_algorithm" {
@@ -512,9 +393,145 @@ query "kms_key_algorithm" {
     where
       name = $1;
   EOQ
-
-  param "key_name" {}
 }
+
+# With queries
+
+query "kms_key_bigquery_datasets" {
+  sql = <<-EOQ
+    select
+      d.id as dataset_id
+    from
+      gcp_bigquery_dataset d
+    where
+      split_part(d.kms_key_name, 'cryptoKeys/', 2) = $1;
+  EOQ
+}
+
+query "kms_key_bigquery_tables" {
+  sql = <<-EOQ
+    select
+      t.id as table_id
+    from
+      gcp_bigquery_table t
+    where
+      split_part(t.kms_key_name, 'cryptoKeys/', 2) = $1;
+  EOQ
+}
+
+query "kms_key_compute_disks" {
+  sql = <<-EOQ
+    select
+      d.id::text as disk_id
+    from
+      gcp_compute_disk d,
+      gcp_kms_key_version k
+    where
+      d.disk_encryption_key is not null
+      and split_part(d.disk_encryption_key ->> 'kmsKeyName', 'cryptoKeyVersions/', 2) = k.crypto_key_version::text
+      and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.name
+      and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = $1;
+  EOQ
+}
+
+query "kms_key_compute_images" {
+  sql = <<-EOQ
+    select
+      i.id::text as image_id
+    from
+      gcp_compute_image as i
+    where
+      i.image_encryption_key is not null
+      and split_part(i.image_encryption_key->>'kmsKeyName', '/', 8) = $1;
+  EOQ
+}
+
+query "kms_key_compute_snapshots" {
+  sql = <<-EOQ
+    select
+      s.name as snapshot_name
+    from
+      gcp_compute_snapshot s,
+      gcp_kms_key_version v
+    where
+      v.crypto_key_version::text = split_part(s.kms_key_name, 'cryptoKeyVersions/', 2)
+      and split_part(s.kms_key_name, '/', 8) = v.name
+      and v.name = $1;
+  EOQ
+}
+
+query "kms_key_kms_key_rings" {
+  sql = <<-EOQ
+    select
+      p.name as ring_name
+    from
+      gcp_kms_key_ring p,
+      gcp_kms_key k
+    where
+      k.key_ring_name = p.name
+      and k.name = $1;
+  EOQ
+}
+
+query "kms_key_kubernetes_clusters" {
+  sql = <<-EOQ
+    select
+      c.name as cluster_name
+    from
+      gcp_kubernetes_cluster c
+    where
+      c.database_encryption_key_name is not null
+      and split_part(c.database_encryption_key_name, 'cryptoKeys/', 2) = $1;
+  EOQ
+}
+
+query "kms_key_pubsub_topics" {
+  sql = <<-EOQ
+    select
+      p.name as topic_name
+    from
+      gcp_pubsub_topic p,
+      gcp_kms_key k
+    where
+      split_part(p.kms_key_name, 'cryptoKeys/', 2) = $1;
+  EOQ
+}
+
+query "kms_key_sql_backups" {
+  sql = <<-EOQ
+    select
+      b.id::text as backup_id
+    from
+      gcp_sql_backup b
+    where
+      split_part(b.disk_encryption_configuration ->> 'kmsKeyName','cryptoKeys/',2) = $1;
+  EOQ
+}
+
+query "kms_key_sql_database_instances" {
+  sql = <<-EOQ
+    select
+      i.name as instance_name
+    from
+      gcp_sql_database_instance as i
+    where
+      split_part(i.kms_key_name, 'cryptoKeys/', 2) = $1;
+  EOQ
+}
+
+query "kms_key_storage_buckets" {
+  sql = <<-EOQ
+    select
+      b.id as bucket_id
+    from
+      gcp_storage_bucket b
+    where
+      b.default_kms_key_name is not null
+      and split_part(b.default_kms_key_name, 'cryptoKeys/', 2) = $1;
+  EOQ
+}
+
+# Other queries
 
 query "kms_key_name_overview" {
   sql = <<-EOQ
@@ -530,7 +547,6 @@ query "kms_key_name_overview" {
       name = $1;
   EOQ
 
-  param "key_name" {}
 }
 
 query "kms_key_name_tags" {
@@ -544,5 +560,4 @@ query "kms_key_name_tags" {
     name = $1;
   EOQ
 
-  param "key_name" {}
 }
