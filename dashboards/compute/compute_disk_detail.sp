@@ -461,7 +461,8 @@ query "compute_disk_from_compute_disks" {
     from
       gcp_compute_disk d
     where
-      d.id = $1;
+      d.source_disk_id != ''
+      and d.id = $1;
   EOQ
 }
 
@@ -508,7 +509,7 @@ query "compute_disk_kms_keys" {
 query "compute_disk_to_compute_disks" {
   sql = <<-EOQ
     select
-      cd.id::text as disk_id
+      cd.id as disk_id
     from
       gcp_compute_disk d,
       gcp_compute_disk cd
