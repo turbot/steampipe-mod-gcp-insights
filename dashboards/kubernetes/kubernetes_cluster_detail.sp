@@ -135,7 +135,7 @@ dashboard "kubernetes_cluster_detail" {
       node {
         base = node.compute_network
         args = {
-          compute_network_names = with.compute_networks.rows[*].network_name
+          compute_network_ids = with.compute_networks.rows[*].network_id
         }
       }
 
@@ -477,7 +477,7 @@ query "kubernetes_cluster_compute_instances" {
 query "kubernetes_cluster_compute_networks" {
   sql = <<-EOQ
     select
-      n.name as network_name
+      n.id::text as network_id
     from
       gcp_kubernetes_cluster c,
       gcp_compute_network n

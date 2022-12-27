@@ -55,7 +55,8 @@ node "sql_database_instance" {
         'DatabaseVersion', database_version,
         'MachineType', machine_type,
         'DataDiskSizeGB', data_disk_size_gb,
-        'BackupEnabled', backup_enabled
+        'BackupEnabled', backup_enabled,
+        'Project', project
       ) as properties
     from
       gcp_sql_database_instance

@@ -52,7 +52,8 @@ node "pubsub_topic" {
       jsonb_build_object(
         'Name', name,
         'Location', location,
-        'KMS Key', kms_key_name
+        'KMS Key', kms_key_name,
+        'Project', project
       ) as properties
     from
       gcp_pubsub_topic

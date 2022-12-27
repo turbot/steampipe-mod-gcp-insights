@@ -28,7 +28,7 @@ edge "bigquery_table_to_kms_key" {
       gcp_bigquery_table t
     where
       k.name = split_part(t.kms_key_name, 'cryptoKeys/', 2)
-      and t.id = $1;
+      and t.id = any($1);
   EOQ
 
   param "bigquery_table_ids" {}

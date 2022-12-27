@@ -10,7 +10,8 @@ node "dns_policy" {
         'Name', p.name,
         'Enable Logging', p.enable_logging,
         'Enable Inbound Forwarding', p.enable_inbound_forwarding,
-        'Location', p.location
+        'Location', p.location,
+        'Project', project
       ) as properties
     from
       gcp_dns_policy p

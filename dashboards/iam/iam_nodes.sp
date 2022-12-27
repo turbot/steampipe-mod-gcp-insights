@@ -11,7 +11,8 @@ node "iam_role" {
         'Location', i.location,
         'Project', i.project,
         'Stage', i.stage,
-        'Description', i.description
+        'Description', i.description,
+        'Project', project
       ) as properties
     from
       gcp_iam_role as i
@@ -33,7 +34,8 @@ node "iam_service_account" {
         'ID', s.unique_id,
         'Enabled', not s.disabled,
         'Region', s.location,
-        'OAuth 2.0 client ID', s.oauth2_client_id
+        'OAuth 2.0 client ID', s.oauth2_client_id,
+        'Project', project
       ) as properties
     from
       gcp_service_account s

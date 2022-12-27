@@ -120,7 +120,7 @@ dashboard "compute_subnetwork_detail" {
       node {
         base = node.compute_network
         args = {
-          compute_network_names = with.compute_networks.rows[*].network_name
+          compute_network_ids = with.compute_networks.rows[*].network_id
         }
       }
 
@@ -141,7 +141,7 @@ dashboard "compute_subnetwork_detail" {
       edge {
         base = edge.compute_network_to_compute_subnetwork
         args = {
-          compute_network_names = with.compute_networks.rows[*].network_name
+          compute_network_ids = with.compute_networks.rows[*].network_id
         }
       }
 
@@ -389,7 +389,7 @@ query "compute_subnetwork_compute_instances" {
 query "compute_subnetwork_compute_networks" {
   sql = <<-EOQ
     select
-      n.name as network_name
+      n.id::text as network_id
     from
       gcp_compute_subnetwork s,
       gcp_compute_network n

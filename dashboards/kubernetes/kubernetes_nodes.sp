@@ -10,7 +10,9 @@ node "kubernetes_cluster" {
         'Created Time', create_time,
         'Endpoint', endpoint,
         'Services IPv4 CIDR', services_ipv4_cidr,
-        'Status', status
+        'Status', status,
+        'Location', location,
+        'Project', project
       ) as properties
     from
       gcp_kubernetes_cluster
@@ -32,7 +34,8 @@ node "kubernetes_node_pool" {
         'Name', p.name,
         'Initial Node Count', p.initial_node_count,
         'Status', p.status,
-        'Version', p.version
+        'Version', p.version,
+        'Project', project
       ) as properties
     from
       gcp_kubernetes_node_pool p

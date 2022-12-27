@@ -11,7 +11,8 @@ node "compute_address" {
         'Address', a.address,
         'Address Type', a.address_type,
         'Purpose', a.purpose,
-        'Status', a.status
+        'Status', a.status,
+        'Project', project
       ) as properties
     from
       gcp_compute_address a
@@ -29,7 +30,8 @@ node "compute_address" {
         'Address', a.address,
         'Address Type', a.address_type,
         'Purpose', a.purpose,
-        'Status', a.status
+        'Status', a.status,
+        'Project', project
       ) as properties
     from
       gcp_compute_global_address a
@@ -52,7 +54,8 @@ node "compute_autoscaler" {
         'Name', a.name,
         'Created Time', a.creation_timestamp,
         'Status', a.status,
-        'Location', a.location
+        'Location', a.location,
+        'Project', project
       ) as properties
     from
       gcp_compute_autoscaler a
@@ -74,7 +77,8 @@ node "compute_backend_bucket" {
         'Name', c.name,
         'Created Time', c.creation_timestamp,
         'Description', c.description,
-        'Location', c.location
+        'Location', c.location,
+        'Project', project
       ) as properties
     from
       gcp_compute_backend_bucket c
@@ -97,7 +101,8 @@ node "compute_backend_service" {
         'Name', bs.name,
         'Enable CDN', bs.enable_cdn,
         'Protocol', bs.protocol,
-        'Location', bs.location
+        'Location', bs.location,
+        'Project', project
       ) as properties
     from
       gcp_compute_backend_service bs
@@ -121,7 +126,8 @@ node "compute_disk" {
         'Created Time', creation_timestamp,
         'Size(GB)', size_gb,
         'Status', status,
-        'Encryption Key Type', disk_encryption_key_type
+        'Encryption Key Type', disk_encryption_key_type,
+        'Project', project
       ) as properties
     from
       gcp_compute_disk
@@ -144,7 +150,8 @@ node "compute_firewall" {
         'Direction', f.direction,
         'Enabled', not f.disabled,
         'Action', f.action,
-        'Priority', f.priority
+        'Priority', f.priority,
+        'Project', project
       ) as properties
     from
       gcp_compute_firewall f
@@ -168,7 +175,8 @@ node "compute_forwarding_rule" {
         'IP Address', r.ip_address,
         'Global Access', r.allow_global_access,
         'Load Balancing Scheme', r.load_balancing_scheme,
-        'Network Tier', r.network_tier
+        'Network Tier', r.network_tier,
+        'Project', project
       ) as properties
     from
       gcp_compute_forwarding_rule r
@@ -186,7 +194,8 @@ node "compute_forwarding_rule" {
         'IP Address', r.ip_address,
         'Global Access', r.allow_global_access,
         'Load Balancing Scheme', r.load_balancing_scheme,
-        'Network Tier', r.network_tier
+        'Network Tier', r.network_tier,
+        'Project', project
       ) as properties
     from
       gcp_compute_global_forwarding_rule r
@@ -209,7 +218,8 @@ node "compute_image" {
         'Name', i.name,
         'Created Time', i.creation_timestamp,
         'Size(GB)', i.disk_size_gb,
-        'Status', i.status
+        'Status', i.status,
+        'Project', project
       ) as properties
     from
       gcp_compute_image i
@@ -232,7 +242,9 @@ node "compute_instance" {
         'Name', name,
         'Created Time', creation_timestamp,
         'CPU Platform', cpu_platform,
-        'Status', status
+        'Status', status,
+        'Location', location,
+        'Project', project
       ) as properties
     from
       gcp_compute_instance
@@ -255,7 +267,8 @@ node "compute_instance_group" {
         'Name', g.name,
         'Created Time', g.creation_timestamp,
         'Instance Count', g.size,
-        'Named Ports', g.named_ports
+        'Named Ports', g.named_ports,
+        'Project', project
       ) as properties
     from
       gcp_compute_instance_group g
@@ -277,7 +290,8 @@ node "compute_instance_template" {
         'ID', t.id,
         'Name', t.name,
         'Created Time', t.creation_timestamp,
-        'Location', t.location
+        'Location', t.location,
+        'Project', project
       ) as properties
     from
       gcp_compute_instance_template t
@@ -293,20 +307,21 @@ node "compute_network" {
 
   sql = <<-EOQ
     select
-      n.name as id,
+      n.id::text as id,
       n.title,
       jsonb_build_object(
         'ID', n.id,
         'Name', n.name,
-        'Created Time', n.creation_timestamp
+        'Created Time', n.creation_timestamp,
+        'Project', project
       ) as properties
     from
       gcp_compute_network n
     where
-      n.name = any($1);
+      n.id = any($1);
   EOQ
 
-  param "compute_network_names" {}
+  param "compute_network_ids" {}
 }
 
 node "compute_resource_policy" {
@@ -319,7 +334,8 @@ node "compute_resource_policy" {
       jsonb_build_object(
         'Name', r.name,
         'Created Time', r.creation_timestamp,
-        'Status', r.status
+        'Status', r.status,
+        'Project', project
       ) as properties
     from
       gcp_compute_resource_policy r
@@ -341,7 +357,8 @@ node "compute_router" {
         'ID', r.id,
         'Name', r.name,
         'Created Time', r.creation_timestamp,
-        'Location', r.location
+        'Location', r.location,
+        'Project', project
       ) as properties
     from
       gcp_compute_router r
@@ -363,7 +380,8 @@ node "compute_snapshot" {
         'Name', s.name,
         'Created Time', s.creation_timestamp,
         'Size(GB)', s.disk_size_gb,
-        'Status', s.status
+        'Status', s.status,
+        'Project', project
       ) as properties
     from
       gcp_compute_snapshot s
@@ -386,7 +404,8 @@ node "compute_subnetwork" {
         'Name', s.name,
         'Created Time', s.creation_timestamp,
         'Location', s.location,
-        'IP Cidr Range', s.ip_cidr_range
+        'IP Cidr Range', s.ip_cidr_range,
+        'Project', project
       ) as properties
     from
       gcp_compute_subnetwork s
@@ -408,7 +427,8 @@ node "compute_vpn_gateway" {
         'ID', g.id,
         'Name', g.name,
         'Created Time', g.creation_timestamp,
-        'Location', g.location
+        'Location', g.location,
+        'Project', project
       ) as properties
     from
       gcp_compute_ha_vpn_gateway g

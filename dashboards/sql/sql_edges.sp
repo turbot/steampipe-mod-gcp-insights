@@ -21,7 +21,7 @@ edge "sql_database_instance_to_compute_network" {
 
   sql = <<-EOQ
     select
-      n.name as to_id,
+      n.id::text as to_id,
       i.name as from_id
     from
       gcp_sql_database_instance as i,

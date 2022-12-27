@@ -390,17 +390,17 @@ edge "compute_network_to_compute_backend_service" {
 
   sql = <<-EOQ
     select
-      n.name as from_id,
+      n.id::text as from_id,
       bs.id::text as to_id
     from
       gcp_compute_backend_service bs,
       gcp_compute_network n
     where
       bs.network = n.self_link
-      and n.name = any($1);
+      and n.id = any($1);
   EOQ
 
-  param "compute_network_names" {}
+  param "compute_network_ids" {}
 }
 
 edge "compute_network_to_compute_firewall" {
@@ -408,17 +408,17 @@ edge "compute_network_to_compute_firewall" {
 
   sql = <<-EOQ
     select
-      n.name as from_id,
+      n.id::text as from_id,
       f.id::text as to_id
     from
       gcp_compute_firewall f,
       gcp_compute_network n
     where
       f.network = n.self_link
-      and n.name = any($1);
+      and n.id = any($1);
   EOQ
 
-  param "compute_network_names" {}
+  param "compute_network_ids" {}
 }
 
 edge "compute_network_to_compute_forwarding_rule" {
@@ -426,27 +426,31 @@ edge "compute_network_to_compute_forwarding_rule" {
 
   sql = <<-EOQ
     select
-      n.name as from_id,
+      n.id::text as from_id,
       fr.id::text as to_id
     from
       gcp_compute_forwarding_rule fr,
       gcp_compute_network n
     where
-      split_part(fr.network, 'networks/', 2) = any($1)
+      split_part(fr.network, 'networks/', 2) = n.name
+      and fr.project = n.project
+      and n.id = any($1)
 
     union
 
     select
-      n.name as from_id,
+      n.id::text as from_id,
       fr.id::text as to_id
     from
       gcp_compute_global_forwarding_rule fr,
       gcp_compute_network n
     where
-      split_part(fr.network, 'networks/', 2) = any($1);
+      split_part(fr.network, 'networks/', 2) = n.name
+      and fr.project = n.project
+      and n.id = any($1);
   EOQ
 
-  param "compute_network_names" {}
+  param "compute_network_ids" {}
 }
 
 edge "compute_network_to_compute_instance" {
@@ -455,17 +459,17 @@ edge "compute_network_to_compute_instance" {
   sql = <<-EOQ
     select
       i.id::text as to_id,
-      n.name as from_id
+      n.id::text as from_id
     from
       gcp_compute_instance i,
       gcp_compute_network n,
       jsonb_array_elements(network_interfaces) as ni
     where
       n.self_link = ni ->> 'network'
-      and n.name = any($1);
+      and n.id = any($1);
   EOQ
 
-  param "compute_network_names" {}
+  param "compute_network_ids" {}
 }
 
 edge "compute_network_to_compute_router" {
@@ -473,17 +477,17 @@ edge "compute_network_to_compute_router" {
 
   sql = <<-EOQ
     select
-      n.name as from_id,
+      n.id::text as from_id,
       r.id::text as to_id
     from
       gcp_compute_router r,
       gcp_compute_network n
     where
       r.network = n.self_link
-      and n.name = any($1);
+      and n.id = any($1);
   EOQ
 
-  param "compute_network_names" {}
+  param "compute_network_ids" {}
 }
 
 edge "compute_network_to_compute_subnetwork" {
@@ -491,17 +495,17 @@ edge "compute_network_to_compute_subnetwork" {
 
   sql = <<-EOQ
     select
-      n.name as from_id,
+      n.id::text as from_id,
       s.id::text as to_id
     from
       gcp_compute_subnetwork s,
       gcp_compute_network n
     where
       s.network = n.self_link
-      and n.name = any($1);
+      and n.id = any($1);
   EOQ
 
-  param "compute_network_names" {}
+  param "compute_network_ids" {}
 }
 
 edge "compute_network_to_dns_policy" {
@@ -509,7 +513,7 @@ edge "compute_network_to_dns_policy" {
 
   sql = <<-EOQ
     select
-      n.name as from_id,
+      n.id::text as from_id,
       p.id::text as to_id
     from
       gcp_dns_policy p,
@@ -517,10 +521,10 @@ edge "compute_network_to_dns_policy" {
       gcp_compute_network n
     where
       pn ->> 'networkUrl' = n.self_link
-      and n.name = any($1);
+      and n.id = any($1);
   EOQ
 
-  param "compute_network_names" {}
+  param "compute_network_ids" {}
 }
 
 edge "compute_network_to_kubernetes_cluster" {
@@ -529,16 +533,16 @@ edge "compute_network_to_kubernetes_cluster" {
   sql = <<-EOQ
     select
       c.name as to_id,
-      n.name as from_id
+      n.id::text as from_id
     from
       gcp_kubernetes_cluster c,
       gcp_compute_network n
     where
-      n.name = any($1)
-      and n.name = c.network
+      n.id = any($1)
+      and n.id = c.network
   EOQ
 
-  param "compute_network_names" {}
+  param "compute_network_ids" {}
 }
 
 edge "compute_network_to_sql_database_instance" {
@@ -546,17 +550,17 @@ edge "compute_network_to_sql_database_instance" {
 
   sql = <<-EOQ
     select
-      n.name as from_id,
+      n.id::text as from_id,
       i.name as to_id
     from
       gcp_sql_database_instance i,
       gcp_compute_network n
     where
       n.self_link like '%' || (i.ip_configuration ->> 'privateNetwork') || '%'
-      and n.name = $1;
+      and n.id = any($1);
   EOQ
 
-  param "compute_network_names" {}
+  param "compute_network_ids" {}
 }
 
 ## Compute Snapshot
@@ -740,7 +744,7 @@ edge "compute_subnetwork_to_compute_network" {
   sql = <<-EOQ
     select
       s.id::text as from_id,
-      n.name as to_id
+      n.id::text as to_id
     from
       gcp_compute_subnetwork s,
       gcp_compute_network n
@@ -778,7 +782,7 @@ edge "compute_vpn_gateway_to_compute_network" {
   sql = <<-EOQ
     select
       g.id::text as from_id,
-      n.name as to_id
+      n.id::text as to_id
     from
       gcp_compute_ha_vpn_gateway g,
       gcp_compute_network n

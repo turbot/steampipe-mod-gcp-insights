@@ -8,7 +8,8 @@ node "kms_key" {
       jsonb_build_object(
         'Name', name,
         'Created Time', create_time,
-        'Location', location
+        'Location', location,
+        'Project', project
       ) as properties
     from
       gcp_kms_key
@@ -30,7 +31,8 @@ node "kms_key_ring" {
         'Name', p.name,
         'Location', p.location,
         'Project', p.project,
-        'Create Time', p.create_time
+        'Create Time', p.create_time,
+        'Project', project
       ) as properties
     from
       gcp_kms_key_ring p
@@ -55,7 +57,8 @@ node "kms_key_version" {
         'Crypto Key Version', v.crypto_key_version,
         'Protection Level', v.protection_level,
         'State', v.state,
-        'Location', v.location
+        'Location', v.location,
+        'Project', project
       ) as properties
     from
       gcp_kms_key_version v

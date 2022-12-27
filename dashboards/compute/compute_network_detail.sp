@@ -7,7 +7,7 @@ dashboard "compute_network_detail" {
     type = "Detail"
   })
 
-  input "network_name" {
+  input "network_id" {
     title = "Select a network:"
     query = query.compute_network_input
     width = 4
@@ -18,88 +18,88 @@ dashboard "compute_network_detail" {
     card {
       width = 2
       query = query.compute_network_mtu
-      args  = [self.input.network_name.value]
+      args  = [self.input.network_id.value]
     }
 
     card {
       width = 2
       query = query.compute_network_subnet_count
-      args  = [self.input.network_name.value]
+      args  = [self.input.network_id.value]
     }
 
     card {
       width = 2
       query = query.compute_network_is_default
-      args  = [self.input.network_name.value]
+      args  = [self.input.network_id.value]
     }
 
     card {
       width = 2
       query = query.compute_network_routing_mode
-      args  = [self.input.network_name.value]
+      args  = [self.input.network_id.value]
     }
 
     card {
       width = 2
       query = query.network_firewall_rules_count
-      args  = [self.input.network_name.value]
+      args  = [self.input.network_id.value]
     }
 
     card {
       width = 2
       query = query.auto_create_subnetwork
-      args  = [self.input.network_name.value]
+      args  = [self.input.network_id.value]
     }
   }
 
   with "compute_backend_services" {
     query = query.compute_network_compute_backend_services
-    args  = [self.input.network_name.value]
+    args  = [self.input.network_id.value]
   }
 
   with "compute_firewalls" {
     query = query.compute_network_compute_firewalls
-    args  = [self.input.network_name.value]
+    args  = [self.input.network_id.value]
   }
 
   with "compute_forwarding_rules" {
     query = query.compute_network_compute_forwarding_rules
-    args  = [self.input.network_name.value]
+    args  = [self.input.network_id.value]
   }
 
   with "compute_instances" {
     query = query.compute_network_compute_instances
-    args  = [self.input.network_name.value]
+    args  = [self.input.network_id.value]
   }
 
   with "compute_routers" {
     query = query.compute_network_compute_routers
-    args  = [self.input.network_name.value]
+    args  = [self.input.network_id.value]
   }
 
   with "compute_subnetworks" {
     query = query.compute_network_compute_subnetworks
-    args  = [self.input.network_name.value]
+    args  = [self.input.network_id.value]
   }
 
   with "compute_vpn_gateways" {
     query = query.compute_network_compute_vpn_gateways
-    args  = [self.input.network_name.value]
+    args  = [self.input.network_id.value]
   }
 
   with "dns_policies" {
     query = query.compute_network_dns_policies
-    args  = [self.input.network_name.value]
+    args  = [self.input.network_id.value]
   }
 
   with "kubernetes_clusters" {
     query = query.compute_network_kubernetes_clusters
-    args  = [self.input.network_name.value]
+    args  = [self.input.network_id.value]
   }
 
   with "sql_database_instances" {
     query = query.compute_network_sql_database_instances
-    args  = [self.input.network_name.value]
+    args  = [self.input.network_id.value]
   }
 
   container {
@@ -139,7 +139,7 @@ dashboard "compute_network_detail" {
       node {
         base = node.compute_network
         args = {
-          compute_network_names = [self.input.network_name.value]
+          compute_network_ids = [self.input.network_id.value]
         }
       }
 
@@ -188,63 +188,63 @@ dashboard "compute_network_detail" {
       edge {
         base = edge.compute_network_to_compute_backend_service
         args = {
-          compute_network_names = [self.input.network_name.value]
+          compute_network_ids = [self.input.network_id.value]
         }
       }
 
       edge {
         base = edge.compute_network_to_compute_firewall
         args = {
-          compute_network_names = [self.input.network_name.value]
+          compute_network_ids = [self.input.network_id.value]
         }
       }
 
       edge {
         base = edge.compute_network_to_compute_forwarding_rule
         args = {
-          compute_network_names = [self.input.network_name.value]
+          compute_network_ids = [self.input.network_id.value]
         }
       }
 
       edge {
-        base = edge.compute_network_to_compute_instance
+        base = edge.compute_subnetwork_to_compute_instance
         args = {
-          compute_network_names = [self.input.network_name.value]
+          compute_subnetwork_ids = with.compute_subnetworks.rows[*].subnetwork_id
         }
       }
 
       edge {
         base = edge.compute_network_to_compute_router
         args = {
-          compute_network_names = [self.input.network_name.value]
+          compute_network_ids = [self.input.network_id.value]
         }
       }
 
       edge {
         base = edge.compute_network_to_compute_subnetwork
         args = {
-          compute_network_names = [self.input.network_name.value]
+          compute_network_ids = [self.input.network_id.value]
         }
       }
 
       edge {
         base = edge.compute_network_to_dns_policy
         args = {
-          compute_network_names = [self.input.network_name.value]
+          compute_network_ids = [self.input.network_id.value]
         }
       }
 
       edge {
-        base = edge.compute_network_to_kubernetes_cluster
+        base = edge.compute_subnetwork_to_kubernetes_cluster
         args = {
-          compute_network_names = [self.input.network_name.value]
+          compute_subnetwork_ids = with.compute_subnetworks.rows[*].subnetwork_id
         }
       }
 
       edge {
         base = edge.compute_network_to_sql_database_instance
         args = {
-          compute_network_names = [self.input.network_name.value]
+          compute_network_ids = [self.input.network_id.value]
         }
       }
 
@@ -266,14 +266,14 @@ dashboard "compute_network_detail" {
         width = 4
         type  = "line"
         query = query.compute_network_overview
-        args  = [self.input.network_name.value]
+        args  = [self.input.network_id.value]
       }
 
       table {
         title = "Peering Details"
         width = 8
         query = query.compute_network_peering
-        args  = [self.input.network_name.value]
+        args  = [self.input.network_id.value]
       }
 
     }
@@ -283,7 +283,7 @@ dashboard "compute_network_detail" {
       table {
         title = "Subnet Details"
         query = query.compute_network_subnet
-        args  = [self.input.network_name.value]
+        args  = [self.input.network_id.value]
       }
 
     }
@@ -297,7 +297,7 @@ query "compute_network_input" {
   sql = <<-EOQ
     select
       name as label,
-      name as value,
+      id as value,
       json_build_object(
         'project', project,
         'id', id
@@ -319,7 +319,7 @@ query "compute_network_mtu" {
     from
       gcp_compute_network
     where
-      name = $1;
+      id = $1;
   EOQ
 }
 
@@ -330,9 +330,12 @@ query "compute_network_subnet_count" {
       count(*) as value,
       case when count(*) > 0 then 'ok' else 'alert' end as type
     from
-      gcp_compute_subnetwork
+      gcp_compute_subnetwork s,
+      gcp_compute_network n
     where
-      network_name = $1;
+      s.network_name = n.name
+      and s.project = n.project
+      and n.id = $1;
   EOQ
 }
 
@@ -345,7 +348,7 @@ query "compute_network_is_default" {
     from
       gcp_compute_network
     where
-      name = $1;
+      id = $1;
   EOQ
 }
 
@@ -357,7 +360,7 @@ query "compute_network_routing_mode" {
     from
       gcp_compute_network
     where
-      name = $1;
+      id = $1;
   EOQ
 }
 
@@ -365,12 +368,15 @@ query "network_firewall_rules_count" {
   sql = <<-EOQ
     select
       'Firewall Rules' as label,
-      count(*) as value,
-      case when count(*) > 0 then 'ok' else 'alert' end as type
+      count(f.*) as value,
+      case when count(f.*) > 0 then 'ok' else 'alert' end as type
     from
-      gcp_compute_firewall
+      gcp_compute_firewall f,
+      gcp_compute_network n
     where
-      split_part(network, 'networks/', 2) = $1;
+      split_part(f.network, 'networks/', 2) = n.name
+      and f.project = n.project
+      and n.id = $1;
   EOQ
 }
 
@@ -383,7 +389,7 @@ query "auto_create_subnetwork" {
     from
       gcp_compute_network
     where
-      name = $1;
+      id = $1;
   EOQ
 }
 # With queries
@@ -397,7 +403,7 @@ query "compute_network_compute_backend_services" {
       gcp_compute_network n
     where
       bs.network = n.self_link
-      and n.name = $1;
+      and n.id = $1;
   EOQ
 }
 
@@ -410,7 +416,7 @@ query "compute_network_compute_firewalls" {
       gcp_compute_network n
     where
       f.network = n.self_link
-      and n.name = $1;
+      and n.id = $1;
   EOQ
 }
 
@@ -422,8 +428,9 @@ query "compute_network_compute_forwarding_rules" {
       gcp_compute_forwarding_rule fr,
       gcp_compute_network n
     where
-      split_part(fr.network, 'networks/', 2) = $1
-
+      split_part(fr.network, 'networks/', 2) = n.name
+      and fr.project = n.project
+      and n.id = $1
     union
 
     select
@@ -432,7 +439,9 @@ query "compute_network_compute_forwarding_rules" {
       gcp_compute_global_forwarding_rule fr,
       gcp_compute_network n
     where
-      split_part(fr.network, 'networks/', 2) = $1;
+      split_part(fr.network, 'networks/', 2) = n.name
+      and fr.project = n.project
+      and n.id = $1
   EOQ
 }
 
@@ -446,7 +455,7 @@ query "compute_network_compute_instances" {
       jsonb_array_elements(network_interfaces) as ni
     where
       n.self_link = ni ->> 'network'
-      and n.name = $1;
+      and n.id = $1;
   EOQ
 }
 
@@ -459,7 +468,7 @@ query "compute_network_compute_routers" {
       gcp_compute_network n
     where
       r.network = n.self_link
-      and n.name = $1;
+      and n.id = $1;
   EOQ
 }
 
@@ -472,7 +481,7 @@ query "compute_network_compute_subnetworks" {
       gcp_compute_network n
     where
       s.network = n.self_link
-      and n.name = $1;
+      and n.id = $1;
   EOQ
 }
 
@@ -485,7 +494,7 @@ query "compute_network_compute_vpn_gateways" {
       gcp_compute_network n
     where
       g.network = n.self_link
-      and n.name = $1;
+      and n.id = $1;
   EOQ
 }
 
@@ -499,7 +508,7 @@ query "compute_network_dns_policies" {
       gcp_compute_network n
     where
       pn ->> 'networkUrl' = n.self_link
-      and n.name = $1;
+      and n.id = $1;
   EOQ
 }
 
@@ -508,9 +517,12 @@ query "compute_network_kubernetes_clusters" {
     select
       c.name as cluster_name
     from
-      gcp_kubernetes_cluster c
+      gcp_kubernetes_cluster c,
+      gcp_compute_network n
     where
-      c.network = $1;
+      c.network = n.name
+      and c.project = n.project
+      and n.id = $1;
   EOQ
 }
 
@@ -523,7 +535,7 @@ query "compute_network_sql_database_instances" {
       gcp_compute_network n
     where
       n.self_link like '%' || (i.ip_configuration ->> 'privateNetwork') || '%'
-      and n.name = $1;
+      and n.id = $1;
   EOQ
 }
 
@@ -541,7 +553,7 @@ query "compute_network_overview" {
     from
       gcp_compute_network
     where
-      name = $1;
+      id = $1;
   EOQ
 }
 
@@ -558,26 +570,29 @@ query "compute_network_peering" {
       gcp_compute_network,
       jsonb_array_elements(peerings) as p
     where
-      name = $1;
+      id = $1;
   EOQ
 }
 
 query "compute_network_subnet" {
   sql = <<-EOQ
     select
-      name as "Name",
-      id as "ID",
-      creation_timestamp as "Creation Time",
-      enable_flow_logs as "Enable Flow Logs",
-      log_config_enable as "Log Config Enabled",
-      gateway_address as "Gateway Address",
-      ip_cidr_range as "IPv4 CIDR Range",
-      ipv6_cidr_range as "IPv6 CIDR Range",
-      private_ip_google_access as "Private IPv4 Google Access",
-      private_ipv6_google_access as "Private IPv6 Google Access"
+      s.name as "Name",
+      s.id as "ID",
+      s.creation_timestamp as "Creation Time",
+      s.enable_flow_logs as "Enable Flow Logs",
+      s.log_config_enable as "Log Config Enabled",
+      s.gateway_address as "Gateway Address",
+      s.ip_cidr_range as "IPv4 CIDR Range",
+      s.ipv6_cidr_range as "IPv6 CIDR Range",
+      s.private_ip_google_access as "Private IPv4 Google Access",
+      s.private_ipv6_google_access as "Private IPv6 Google Access"
     from
-      gcp_compute_subnetwork
+      gcp_compute_subnetwork s,
+      gcp_compute_network n
     where
-      network_name = $1;
+      s.network_name = n.name
+      and s.project = n.project
+      and n.id = $1;
   EOQ
 }

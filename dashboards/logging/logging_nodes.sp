@@ -12,7 +12,8 @@ node "logging_bucket" {
         'Lifecycle State', l.lifecycle_state,
         'Location', l.location,
         'Locked', l.locked,
-        'Retention Days', l.retention_days
+        'Retention Days', l.retention_days,
+        'Project', project
       ) as properties
     from
       gcp_logging_bucket l

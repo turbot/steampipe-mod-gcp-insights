@@ -90,7 +90,7 @@ dashboard "sql_database_instance_detail" {
       node {
         base = node.compute_network
         args = {
-          compute_network_names = with.compute_networks.rows[*].network_name
+          compute_network_ids = with.compute_networks.rows[*].network_id
         }
       }
 
@@ -356,7 +356,7 @@ query "sql_database_instance_ssl_enabled" {
 query "sql_database_instance_compute_networks" {
   sql = <<-EOQ
     select
-      n.name as network_name
+      n.id::text as network_id
     from
       gcp_sql_database_instance as i,
       gcp_compute_network as n

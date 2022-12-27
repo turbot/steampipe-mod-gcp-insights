@@ -8,7 +8,8 @@ node "storage_bucket" {
       jsonb_build_object(
         'Name', name,
         'Created Time', time_created,
-        'Storage Class', storage_class
+        'Storage Class', storage_class,
+        'Project', project
       ) as properties
     from
       gcp_storage_bucket

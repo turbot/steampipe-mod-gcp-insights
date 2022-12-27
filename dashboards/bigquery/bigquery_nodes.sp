@@ -10,7 +10,8 @@ node "bigquery_dataset" {
         'Created Time', d.creation_time,
         'Table Expiration(ms)', d.default_table_expiration_ms,
         'KMS Key', d.kms_key_name,
-        'Location', d.location
+        'Location', d.location,
+        'Project', project
       ) as properties
     from
       gcp_bigquery_dataset d
@@ -34,7 +35,8 @@ node "bigquery_table" {
         'Dataset Id', t.dataset_id,
         'Expiration Time', t.expiration_time,
         'KMS Key', t.kms_key_name,
-        'Location', t.location
+        'Location', t.location,
+        'Project', project
       ) as properties
     from
       gcp_bigquery_table t

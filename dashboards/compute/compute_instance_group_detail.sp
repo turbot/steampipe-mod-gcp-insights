@@ -102,7 +102,7 @@ dashboard "compute_instance_group_detail" {
       node {
         base = node.compute_network
         args = {
-          compute_network_names = with.compute_networks.rows[*].network_name
+          compute_network_ids = with.compute_networks.rows[*].network_id
         }
       }
 
@@ -316,7 +316,7 @@ query "compute_instance_group_compute_instances" {
 query "compute_instance_group_compute_networks" {
   sql = <<-EOQ
     select
-      n.name as network_name
+      n.id::text as network_id
     from
       gcp_compute_instance_group g
         left join gcp_compute_subnetwork s
