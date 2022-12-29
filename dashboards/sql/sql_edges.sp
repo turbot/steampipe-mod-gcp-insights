@@ -72,10 +72,9 @@ edge "sql_database_instance_to_sql_database" {
 
   sql = <<-EOQ
     select
-      i.name as from_id,
+      d.instance_name as from_id,
       d.name as to_id
     from
-      gcp_sql_database_instance as i,
       gcp_sql_database d
     where
       d.instance_name = any($1);

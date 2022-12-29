@@ -116,7 +116,7 @@ dashboard "compute_instance_group_detail" {
       node {
         base = node.kubernetes_cluster
         args = {
-          kubernetes_cluster_names = with.kubernetes_clusters.rows[*].cluster_name
+          kubernetes_cluster_ids = with.kubernetes_clusters.rows[*].cluster_id
         }
       }
 
@@ -165,7 +165,7 @@ dashboard "compute_instance_group_detail" {
       edge {
         base = edge.kubernetes_cluster_to_compute_instance_group
         args = {
-          kubernetes_cluster_names = with.kubernetes_clusters.rows[*].cluster_name
+          kubernetes_cluster_ids = with.kubernetes_clusters.rows[*].cluster_id
         }
       }
     }
@@ -344,7 +344,7 @@ query "compute_instance_group_compute_subnets" {
 query "compute_instance_group_kubernetes_clusters" {
   sql = <<-EOQ
     select
-      c.name as cluster_name
+      c.id::text as cluster_id
     from
       gcp_kubernetes_cluster c,
       gcp_compute_instance_group g,

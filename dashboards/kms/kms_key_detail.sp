@@ -166,14 +166,14 @@ dashboard "kms_key_detail" {
       node {
         base = node.kubernetes_cluster
         args = {
-          kubernetes_cluster_names = with.kubernetes_clusters.rows[*].cluster_name
+          kubernetes_cluster_ids = with.kubernetes_clusters.rows[*].cluster_id
         }
       }
 
       node {
         base = node.kubernetes_cluster
         args = {
-          kubernetes_cluster_names = with.kubernetes_clusters.rows[*].cluster_name
+          kubernetes_cluster_ids = with.kubernetes_clusters.rows[*].cluster_id
         }
       }
 
@@ -257,7 +257,7 @@ dashboard "kms_key_detail" {
       edge {
         base = edge.kubernetes_cluster_to_kms_key
         args = {
-          kubernetes_cluster_names = with.kubernetes_clusters.rows[*].cluster_name
+          kubernetes_cluster_ids = with.kubernetes_clusters.rows[*].cluster_id
         }
       }
 
@@ -476,7 +476,7 @@ query "kms_key_kms_key_rings" {
 query "kms_key_kubernetes_clusters" {
   sql = <<-EOQ
     select
-      c.name as cluster_name
+      c.id::text as cluster_id
     from
       gcp_kubernetes_cluster c
     where

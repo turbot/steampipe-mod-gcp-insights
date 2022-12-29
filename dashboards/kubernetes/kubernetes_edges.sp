@@ -5,17 +5,17 @@ edge "kubernetes_cluster_to_bigquery_dataset" {
 
   sql = <<-EOQ
     select
-      c.name as from_id,
+      c.id::text as from_id,
       d.id as to_id
     from
       gcp_kubernetes_cluster c,
       gcp_bigquery_dataset d
     where
-      c.name = any($1)
+      c.id = any($1)
       and c.resource_usage_export_config -> 'bigqueryDestination' ->> 'datasetId' = d.dataset_id;
   EOQ
 
-  param "kubernetes_cluster_names" {}
+  param "kubernetes_cluster_ids" {}
 }
 
 edge "kubernetes_cluster_to_compute_firewall" {
@@ -23,7 +23,7 @@ edge "kubernetes_cluster_to_compute_firewall" {
 
   sql = <<-EOQ
     select
-      c.name as from_id,
+      c.id::text as from_id,
       f.id::text as to_id
     from
       gcp_kubernetes_cluster c,
@@ -32,10 +32,10 @@ edge "kubernetes_cluster_to_compute_firewall" {
     where
       c.network = n.name
       and n.self_link = f.network
-      and c.name = any($1);
+      and c.id = any($1);
   EOQ
 
-  param "kubernetes_cluster_names" {}
+  param "kubernetes_cluster_ids" {}
 }
 
 edge "kubernetes_cluster_to_compute_instance_group" {
@@ -43,7 +43,7 @@ edge "kubernetes_cluster_to_compute_instance_group" {
 
   sql = <<-EOQ
     select
-      c.name as from_id,
+      c.id::text as from_id,
       g.id::text as to_id
     from
       gcp_kubernetes_cluster c,
@@ -51,10 +51,10 @@ edge "kubernetes_cluster_to_compute_instance_group" {
       jsonb_array_elements_text(instance_group_urls) ig
     where
       split_part(ig, 'instanceGroupManagers/', 2) = g.name
-      and c.name = any($1);
+      and c.id = any($1);
   EOQ
 
-  param "kubernetes_cluster_names" {}
+  param "kubernetes_cluster_ids" {}
 }
 
 edge "kubernetes_cluster_to_compute_subnetwork" {
@@ -62,19 +62,22 @@ edge "kubernetes_cluster_to_compute_subnetwork" {
 
   sql = <<-EOQ
     select
-      c.name as from_id,
+      coalesce(f.id::text, c.id::text) as from_id,
       s.id::text as to_id
     from
       gcp_kubernetes_cluster c,
       gcp_compute_network n,
+      gcp_compute_firewall f,
       gcp_compute_subnetwork s
     where
-      c.name = any($1)
+      c.id = any($1)
       and c.network = n.name
+      and c.project = n.project
+      and n.self_link = f.network
       and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
   EOQ
 
-  param "kubernetes_cluster_names" {}
+  param "kubernetes_cluster_ids" {}
 }
 
 edge "kubernetes_cluster_to_kms_key" {
@@ -82,7 +85,7 @@ edge "kubernetes_cluster_to_kms_key" {
 
   sql = <<-EOQ
     select
-      c.name as from_id,
+      c.id::text as from_id,
       k.name as to_id,
       jsonb_build_object(
         'Database Encryption State', c.database_encryption_state
@@ -91,12 +94,12 @@ edge "kubernetes_cluster_to_kms_key" {
       gcp_kubernetes_cluster c,
       gcp_kms_key k
     where
-      c.name = any($1)
+      c.id = any($1)
       and c.database_encryption_key_name is not null
       and split_part(c.database_encryption_key_name, 'cryptoKeys/', 2) = k.name;
   EOQ
 
-  param "kubernetes_cluster_names" {}
+  param "kubernetes_cluster_ids" {}
 }
 
 edge "kubernetes_cluster_to_kubernetes_node_pool" {
@@ -104,15 +107,18 @@ edge "kubernetes_cluster_to_kubernetes_node_pool" {
 
   sql = <<-EOQ
     select
-      p.cluster_name as from_id,
+      c.id as from_id,
       p.name as to_id
     from
-      gcp_kubernetes_node_pool p
+      gcp_kubernetes_node_pool p,
+      gcp_kubernetes_cluster c
     where
-      p.cluster_name = any($1);
+      p.cluster_name = c.name
+      and p.project = c.project
+      and c.id = any($1);
   EOQ
 
-  param "kubernetes_cluster_names" {}
+  param "kubernetes_cluster_ids" {}
 }
 
 edge "kubernetes_cluster_to_pubsub_topic" {
@@ -120,7 +126,7 @@ edge "kubernetes_cluster_to_pubsub_topic" {
 
   sql = <<-EOQ
     select
-      c.name as from_id,
+      c.id::text as from_id,
       t.name as to_id,
       jsonb_build_object(
         'Notifications Enabled', (c.notification_config -> 'pubsub' ->> 'enabled')
@@ -129,12 +135,12 @@ edge "kubernetes_cluster_to_pubsub_topic" {
       gcp_kubernetes_cluster c,
       gcp_pubsub_topic t
     where
-      c.name = any($1)
-      and c.notification_config is not null
-      and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
+      c.notification_config is not null
+      and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%'
+      and c.id = any($1);
   EOQ
 
-  param "kubernetes_cluster_names" {}
+  param "kubernetes_cluster_ids" {}
 }
 
 ## Kubernetes Node Pool

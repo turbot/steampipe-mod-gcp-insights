@@ -134,7 +134,7 @@ dashboard "compute_subnetwork_detail" {
       node {
         base = node.kubernetes_cluster
         args = {
-          kubernetes_cluster_names = with.kubernetes_clusters.rows[*].cluster_name
+          kubernetes_cluster_ids = with.kubernetes_clusters.rows[*].cluster_id
         }
       }
 
@@ -402,7 +402,7 @@ query "compute_subnetwork_compute_networks" {
 query "compute_subnetwork_kubernetes_clusters" {
   sql = <<-EOQ
     select
-      c.name as cluster_name
+      c.id::text as cluster_id
     from
       gcp_kubernetes_cluster c,
       gcp_compute_subnetwork s

@@ -290,15 +290,18 @@ edge "compute_instance_group_to_compute_subnetwork" {
 
   sql = <<-EOQ
     select
-      g.id::text as from_id,
+      coalesce(f.id::text, g.id::text) as from_id,
       s.id::text as to_id
     from
       gcp_compute_instance_group g,
       gcp_compute_network n,
-      gcp_compute_subnetwork s
+      gcp_compute_subnetwork s,
+      gcp_compute_firewall f
     where
       g.network = n.self_link
       and g.subnetwork = s.self_link
+      and g.network = f.network
+      and g.project = f.project
       and g.id = any($1);
   EOQ
 
@@ -350,14 +353,18 @@ edge "compute_instance_to_compute_subnetwork" {
 
   sql = <<-EOQ
     select
-      i.id::text as from_id,
+      coalesce(f.id::text, i.id::text) as from_id,
       s.id::text as to_id
     from
       gcp_compute_instance i,
       gcp_compute_subnetwork s,
+      gcp_compute_firewall f,
       jsonb_array_elements(network_interfaces) as ni
     where
       ni ->> 'subnetwork' = s.self_link
+      and ni ->> 'network' = f.network
+      and i.project = s.project
+      and i.project = f.project
       and i.id = any($1);
   EOQ
 
@@ -532,7 +539,7 @@ edge "compute_network_to_kubernetes_cluster" {
 
   sql = <<-EOQ
     select
-      c.name as to_id,
+      c.id::text as to_id,
       n.id::text as from_id
     from
       gcp_kubernetes_cluster c,
@@ -762,7 +769,7 @@ edge "compute_subnetwork_to_kubernetes_cluster" {
   sql = <<-EOQ
     select
       s.id::text as from_id,
-      c.name as to_id
+      c.id::text as to_id
     from
       gcp_kubernetes_cluster c,
       gcp_compute_subnetwork s

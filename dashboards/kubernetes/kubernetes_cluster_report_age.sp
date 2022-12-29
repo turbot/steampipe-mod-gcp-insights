@@ -52,12 +52,16 @@ dashboard "kubernetes_cluster_age_report" {
       display = "none"
     }
 
+    column "ID" {
+      display = "none"
+    }
+
     column "Self-Link" {
       display = "none"
     }
 
     column "Name" {
-      href = "${dashboard.kubernetes_cluster_detail.url_path}?input.cluster_name={{.Name | @uri}}"
+      href = "${dashboard.kubernetes_cluster_detail.url_path}?input.cluster_id={{.ID | @uri}}"
     }
 
     query = query.kubernetes_cluster_age_table
@@ -128,6 +132,7 @@ query "kubernetes_cluster_1_year_count" {
 query "kubernetes_cluster_age_table" {
   sql = <<-EOQ
     select
+      c.id as "ID",
       c.name as "Name",
       now()::date - c.create_time::date as "Age in Days",
       c.create_time as "Create Time",

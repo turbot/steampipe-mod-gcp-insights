@@ -7,7 +7,7 @@ locals {
 category "kubernetes_cluster" {
   color = local.containers_color
   icon  = "hub"
-  href  = "/gcp_insights.dashboard.kubernetes_cluster_detail?input.cluster_name={{.properties.'Name' | @uri}}"
+  href  = "/gcp_insights.dashboard.kubernetes_cluster_detail?input.cluster_id={{.properties.'ID' | @uri}}"
   title = "Kubernetes Cluster"
 }
 

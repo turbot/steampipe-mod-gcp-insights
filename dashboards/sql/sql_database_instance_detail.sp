@@ -125,14 +125,14 @@ dashboard "sql_database_instance_detail" {
       node {
         base = node.sql_database_instance
         args = {
-          sql_database_names = with.from_sql_database_instances.rows[*].instance_name
+          sql_database_instance_names = with.from_sql_database_instances.rows[*].instance_name
         }
       }
 
       node {
         base = node.sql_database_instance
         args = {
-          sql_database_names = with.to_sql_database_instances.rows[*].instance_name
+          sql_database_instance_names = with.to_sql_database_instances.rows[*].instance_name
         }
       }
 
@@ -373,7 +373,8 @@ query "sql_database_instance_from_sql_database_instances" {
     from
       gcp_sql_database_instance
     where
-      name = $1;
+      master_instance_name is not null
+      and name = $1;
   EOQ
 }
 

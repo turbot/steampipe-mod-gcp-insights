@@ -36,7 +36,7 @@ node "sql_database" {
     from
       gcp_sql_database d
     where
-      d.instance_name = $1;
+      d.name = any($1);
   EOQ
 
   param "sql_database_names" {}

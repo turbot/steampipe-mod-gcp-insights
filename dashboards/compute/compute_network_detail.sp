@@ -23,6 +23,12 @@ dashboard "compute_network_detail" {
 
     card {
       width = 2
+      query = query.compute_network_routing_mode
+      args  = [self.input.network_id.value]
+    }
+
+    card {
+      width = 2
       query = query.compute_network_subnet_count
       args  = [self.input.network_id.value]
     }
@@ -30,12 +36,6 @@ dashboard "compute_network_detail" {
     card {
       width = 2
       query = query.compute_network_is_default
-      args  = [self.input.network_id.value]
-    }
-
-    card {
-      width = 2
-      query = query.compute_network_routing_mode
       args  = [self.input.network_id.value]
     }
 
@@ -174,7 +174,7 @@ dashboard "compute_network_detail" {
       node {
         base = node.kubernetes_cluster
         args = {
-          kubernetes_cluster_names = with.kubernetes_clusters.rows[*].cluster_name
+          kubernetes_cluster_ids = with.kubernetes_clusters.rows[*].cluster_id
         }
       }
 
@@ -384,8 +384,8 @@ query "auto_create_subnetwork" {
   sql = <<-EOQ
     select
       'Auto Create Subnetwork' as label,
-      case when auto_create_subnetworks then 'enabled' else 'disabled' end as value,
-      case when name <> 'default' then 'ok' else 'alert' end as type
+      case when auto_create_subnetworks then 'Enabled' else 'Disabled' end as value,
+      case when auto_create_subnetworks and name = 'default' then 'ok' else 'alert' end as type
     from
       gcp_compute_network
     where
@@ -515,7 +515,7 @@ query "compute_network_dns_policies" {
 query "compute_network_kubernetes_clusters" {
   sql = <<-EOQ
     select
-      c.name as cluster_name
+      c.id::text as cluster_id
     from
       gcp_kubernetes_cluster c,
       gcp_compute_network n

@@ -76,7 +76,7 @@ dashboard "pubsub_topic_detail" {
       node {
         base = node.kubernetes_cluster
         args = {
-          kubernetes_cluster_names = with.kubernetes_clusters.rows[*].cluster_name
+          kubernetes_cluster_ids = with.kubernetes_clusters.rows[*].cluster_id
         }
       }
 
@@ -104,7 +104,7 @@ dashboard "pubsub_topic_detail" {
       edge {
         base = edge.kubernetes_cluster_to_pubsub_topic
         args = {
-          kubernetes_cluster_names = with.kubernetes_clusters.rows[*].cluster_name
+          kubernetes_cluster_ids = with.kubernetes_clusters.rows[*].cluster_id
         }
       }
 
@@ -254,7 +254,7 @@ query "pubsub_topic_kms_keys" {
 query "pubsub_topic_kubernetes_clusters" {
   sql = <<-EOQ
     select
-      c.name as cluster_name
+      c.id::text as cluster_id
     from
       gcp_kubernetes_cluster c,
       gcp_pubsub_topic t

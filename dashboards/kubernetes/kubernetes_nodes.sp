@@ -3,7 +3,7 @@ node "kubernetes_cluster" {
 
   sql = <<-EOQ
     select
-      name as id,
+      id::text,
       title,
       jsonb_build_object(
         'Name', name,
@@ -17,10 +17,10 @@ node "kubernetes_cluster" {
     from
       gcp_kubernetes_cluster
     where
-      name = any($1);
+      id = any($1);
   EOQ
 
-  param "kubernetes_cluster_names" {}
+  param "kubernetes_cluster_ids" {}
 }
 
 node "kubernetes_node_pool" {

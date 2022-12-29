@@ -75,8 +75,8 @@ category "compute_instance" {
 
 category "compute_network" {
   color = local.networking_color
-  href  = "/gcp_insights.dashboard.compute_network_detail?input.network_id={{.properties.'Name' | @uri}}"
-  icon  = "heroicons-outline:cloud"
+  href  = "/gcp_insights.dashboard.compute_network_detail?input.network_id={{.properties.'ID' | @uri}}"
+  icon  = "cloud"
   title = "Compute Network"
 }
 
