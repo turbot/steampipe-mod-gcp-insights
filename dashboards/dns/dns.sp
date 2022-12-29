@@ -6,6 +6,6 @@ locals {
 
 category "dns_policy" {
   color = local.networking_color
-  icon  = "heroicons-outline:globe-alt"
+  icon  = "text:DP"
   title = "DNS Policy"
 }

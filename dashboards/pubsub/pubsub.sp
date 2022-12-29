@@ -6,13 +6,13 @@ locals {
 
 category "pubsub_snapshot" {
   color = local.application_integration_color
-  icon  = "heroicons-outline:rss"
+  icon  = "add_a_photo"
   title = "Pub/Sub Snapshot"
 }
 
 category "pubsub_subscription" {
   color = local.application_integration_color
-  icon  = "sensors"
+  icon  = "broadcast_on_personal"
   title = "Pub/Sub Subscription"
 }
 

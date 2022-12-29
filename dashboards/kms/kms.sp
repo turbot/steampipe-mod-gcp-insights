@@ -7,18 +7,18 @@ locals {
 category "kms_key" {
   color = local.security_color
   href  = "/gcp_insights.dashboard.kms_key_detail?input.key_name={{.properties.'Name' | @uri}}"
-  icon  = "heroicons-outline:key"
+  icon  = "key"
   title = "KMS Key"
 }
 
 category "kms_key_ring" {
   color = local.security_color
-  icon  = "heroicons-outline:key"
+  icon  = "alternate_email"
   title = "KMS Key Ring"
 }
 
 category "kms_key_version" {
   color = local.security_color
-  icon  = "heroicons-outline:key"
+  icon  = "key"
   title = "KMS Key Version"
 }

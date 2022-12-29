@@ -6,12 +6,12 @@ locals {
 
 category "bigquery_dataset" {
   color = local.database_color
-  icon  = "heroicons-outline:square-3-stack-3d"
+  icon  = "speed"
   title = "BigQuery Dataset"
 }
 
 category "bigquery_table" {
   color = local.database_color
-  icon  = "heroicons-outline:circle-stack"
+  icon  = "table"
   title = "BigQuery Table"
 }

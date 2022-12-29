@@ -6,12 +6,12 @@ locals {
 
 category "iam_role" {
   color = local.iam_color
-  icon  = "heroicons-outline:user-plus"
+  icon  = "engineering"
   title = "IAM Role"
 }
 
 category "iam_service_account" {
   color = local.iam_color
-  icon  = "settings-account-box"
+  icon  = "settings_account_box"
   title = "IAM Service Account"
 }
