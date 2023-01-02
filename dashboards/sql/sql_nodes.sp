@@ -59,9 +59,10 @@ node "sql_database_instance" {
         'Project', project
       ) as properties
     from
-      gcp_sql_database_instance
+      gcp_sql_database_instance,
+      jsonb_array_elements_text($1) as full_name
     where
-      name = any($1);
+      self_link like '%' || full_name;
   EOQ
 
   param "sql_database_instance_names" {}

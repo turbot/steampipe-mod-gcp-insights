@@ -511,7 +511,7 @@ query "kms_key_sql_backups" {
 query "kms_key_sql_database_instances" {
   sql = <<-EOQ
     select
-      i.name as instance_name
+      'projects/' || project || '/instances/' || i.name as instance_name
     from
       gcp_sql_database_instance as i
     where

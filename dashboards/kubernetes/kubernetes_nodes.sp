@@ -6,6 +6,7 @@ node "kubernetes_cluster" {
       id::text,
       title,
       jsonb_build_object(
+        'ID', id,
         'Name', name,
         'Created Time', create_time,
         'Endpoint', endpoint,

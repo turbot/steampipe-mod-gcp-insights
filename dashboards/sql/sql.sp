@@ -18,7 +18,7 @@ category "sql_database" {
 
 category "sql_database_instance" {
   color = local.database_color
-  href  = "/gcp_insights.dashboard.sql_database_instance_detail?input.database_instance_name={{.properties.'Name' | @uri}}"
+  href  = "/gcp_insights.dashboard.sql_database_instance_detail?input.database_instance_name=/projects/{{.properties.'Project' | @uri}}/instances{{.properties.'Name' | @uri}}"
   icon  = "database"
   title = "SQL Database Instance"
 }

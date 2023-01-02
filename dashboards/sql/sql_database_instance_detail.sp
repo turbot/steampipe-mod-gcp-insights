@@ -248,7 +248,7 @@ query "sql_database_instance_input" {
   sql = <<-EOQ
     select
       title as label,
-      name as value,
+      'projects/' || project || '/instances/' || name as value,
       json_build_object(
         'location', location,
         'project', project
@@ -270,7 +270,7 @@ query "sql_database_instance_database_version" {
     from
       gcp_sql_database_instance
     where
-      name = $1;
+      self_link like '%' || $1;
   EOQ
 }
 
@@ -283,7 +283,7 @@ query "sql_database_instance_encryption" {
     from
       gcp_sql_database_instance
     where
-      name = $1;
+      self_link like '%' || $1;
   EOQ
 }
 
@@ -295,7 +295,7 @@ query "sql_database_instance_data_disk_size" {
     from
       gcp_sql_database_instance
     where
-      name = $1;
+      self_link like '%' || $1;
   EOQ
 }
 
@@ -314,7 +314,7 @@ query "sql_database_instance_backup_enabled" {
     from
       gcp_sql_database_instance
     where
-      name = $1;
+      self_link like '%' || $1;
   EOQ
 }
 
@@ -327,7 +327,7 @@ query "sql_database_instance_is_public" {
     from
       gcp_sql_database_instance
     where
-      name = $1;
+      self_link like '%' || $1;
   EOQ
 }
 
@@ -347,7 +347,7 @@ query "sql_database_instance_ssl_enabled" {
     from
       gcp_sql_database_instance
     where
-      name = $1;
+      self_link like '%' || $1;
   EOQ
 }
 
@@ -362,7 +362,7 @@ query "sql_database_instance_compute_networks" {
       gcp_compute_network as n
     where
       SPLIT_PART(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
-      and i.name = $1;
+      and i.self_link like '%' || $1;
   EOQ
 }
 
@@ -374,7 +374,7 @@ query "sql_database_instance_from_sql_database_instances" {
       gcp_sql_database_instance
     where
       master_instance_name is not null
-      and name = $1;
+      and self_link like '%' || $1;
   EOQ
 }
 
@@ -386,7 +386,8 @@ query "sql_database_instance_kms_keys" {
       gcp_sql_database_instance as i,
       gcp_kms_key as k
     where
-      i.name = $1 and i.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2));
+      i.self_link like '%' || $1
+      and i.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2));
   EOQ
 }
 
@@ -397,7 +398,7 @@ query "sql_database_instance_sql_backups" {
     from
       gcp_sql_backup
     where
-      instance_name = $1;
+      self_link like '%' || $1 || '/%';
   EOQ
 }
 
@@ -408,7 +409,7 @@ query "sql_database_instance_sql_databases" {
     from
       gcp_sql_database d
     where
-      d.instance_name = $1;
+      self_link like '%' || $1 || '/%';
   EOQ
 }
 
@@ -419,7 +420,7 @@ query "sql_database_instance_to_sql_database_instances" {
     from
       gcp_sql_database_instance
     where
-      split_part(master_instance_name, ':', 2) = $1;
+      'projects/' || project || '/instances/' || split_part(master_instance_name, ':', 2) = $1;
   EOQ
 }
 
@@ -442,7 +443,7 @@ query "sql_database_instance_overview" {
     from
       gcp_sql_database_instance
     where
-      name = $1;
+      self_link like '%' || $1;
   EOQ
 }
 
@@ -454,7 +455,7 @@ query "sql_database_instance_tags" {
       from
         gcp_sql_database_instance
       where
-        name = $1
+        self_link like '%' || $1
     )
     select
       key as "Key",
@@ -477,7 +478,7 @@ query "sql_database_instance_replication_status" {
     from
       gcp_sql_database_instance
     where
-      name = $1;
+      self_link like '%' || $1;
   EOQ
 }
 
@@ -493,7 +494,7 @@ query "sql_database_instance_encryption_detail" {
       gcp_kms_key as k
     where
       d.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2))
-      and d.name = $1;
+      self_link like '%' || $1;
   EOQ
 }
 
@@ -506,7 +507,7 @@ query "sql_database_instance_cpu_utilization" {
       gcp_sql_database_instance_metric_cpu_utilization
     where
       timestamp >= current_date - interval '7 day'
-      and SPLIT_PART(instance_id, ':', 2) in (select name from gcp_sql_database_instance where name = $1)
+      and SPLIT_PART(instance_id, ':', 2) in (select name from gcp_sql_database_instance where self_link like '%' || $1)
     order by
       timestamp;
   EOQ
@@ -521,7 +522,7 @@ query "sql_database_instance_connection" {
       gcp_sql_database_instance_metric_connections
     where
       timestamp >= current_date - interval '7 day'
-      and SPLIT_PART(instance_id, ':', 2) in (select name from gcp_sql_database_instance where name = $1)
+      and SPLIT_PART(instance_id, ':', 2) in (select name from gcp_sql_database_instance where self_link like '%' || $1)
     order by
       timestamp;
   EOQ

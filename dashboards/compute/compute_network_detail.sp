@@ -181,7 +181,7 @@ dashboard "compute_network_detail" {
       node {
         base = node.sql_database_instance
         args = {
-          sql_database_instance_names = with.sql_database_instances.rows[*].instance_id
+          sql_database_instance_names = with.sql_database_instances.rows[*].instance_name
         }
       }
 
@@ -529,7 +529,7 @@ query "compute_network_kubernetes_clusters" {
 query "compute_network_sql_database_instances" {
   sql = <<-EOQ
     select
-      i.name as instance_id
+      'projects/' || project || '/instances/' || i.name as instance_name
     from
       gcp_sql_database_instance i,
       gcp_compute_network n
