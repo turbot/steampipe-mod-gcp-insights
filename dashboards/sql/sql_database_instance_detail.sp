@@ -369,7 +369,7 @@ query "sql_database_instance_compute_networks" {
 query "sql_database_instance_from_sql_database_instances" {
   sql = <<-EOQ
     select
-      split_part(master_instance_name, ':', 2) as instance_name
+      'projects/' || project || '/instances/' || split_part(master_instance_name, ':', 2) as instance_name
     from
       gcp_sql_database_instance
     where
@@ -416,7 +416,7 @@ query "sql_database_instance_sql_databases" {
 query "sql_database_instance_to_sql_database_instances" {
   sql = <<-EOQ
     select
-      name as instance_name
+      'projects/' || project || '/instances/' || name as instance_name
     from
       gcp_sql_database_instance
     where
@@ -494,7 +494,7 @@ query "sql_database_instance_encryption_detail" {
       gcp_kms_key as k
     where
       d.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2))
-      self_link like '%' || $1;
+      and d.self_link like '%' || $1;
   EOQ
 }
 
