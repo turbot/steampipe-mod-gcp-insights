@@ -488,7 +488,7 @@ query "kms_key_kubernetes_clusters" {
 query "kms_key_pubsub_topics" {
   sql = <<-EOQ
     select
-      p.name as topic_name
+      'projects/' || p.project || '/topics/' || p.name as topic_name
     from
       gcp_pubsub_topic p,
       gcp_kms_key k

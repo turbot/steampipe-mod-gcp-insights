@@ -185,7 +185,7 @@ query "pubsub_topic_input" {
   sql = <<-EOQ
     select
       title as label,
-      name as value,
+      'projects/' || project || '/topics/' || name as value,
       json_build_object(
         'project', project
       ) as tags
@@ -207,7 +207,7 @@ query "pubsub_topic_encryption" {
     from
       gcp_pubsub_topic
     where
-      name = $1;
+      self_link like '%' || $1;
   EOQ
 }
 
@@ -220,7 +220,7 @@ query "pubsub_topic_labeled" {
     from
       gcp_pubsub_topic
     where
-      name = $1;
+      self_link like '%' || $1;
   EOQ
 }
 
@@ -236,7 +236,7 @@ query "pubsub_topic_iam_roles" {
       jsonb_array_elements(t.iam_policy->'bindings') as roles
     where
       roles ->> 'role' = i.name
-      and t.name = $1;
+      and t.self_link like '%' || $1;
   EOQ
 }
 
@@ -247,7 +247,7 @@ query "pubsub_topic_kms_keys" {
     from
       gcp_pubsub_topic p
     where
-      p.name = $1;
+      p.self_link like '%' || $1;
   EOQ
 }
 
@@ -259,9 +259,8 @@ query "pubsub_topic_kubernetes_clusters" {
       gcp_kubernetes_cluster c,
       gcp_pubsub_topic t
     where
-      t.name = $1
-      and c.notification_config is not null
-      and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
+      c.notification_config is not null
+      and c.notification_config -> 'pubsub' ->> 'topic' = $1
   EOQ
 }
 
@@ -272,7 +271,7 @@ query "pubsub_topic_pubsub_snapshots" {
     from
       gcp_pubsub_snapshot s
     where
-      s.topic_name = $1;
+      s.topic = $1;
   EOQ
 }
 
@@ -283,7 +282,7 @@ query "pubsub_topic_pubsub_subscriptions" {
     from
       gcp_pubsub_subscription s
     where
-      s.topic_name = $1;
+      s.topic = $1;
   EOQ
 }
 
@@ -297,7 +296,7 @@ query "pubsub_topic_overview" {
     from
       gcp_pubsub_topic
     where
-      name = $1;
+      self_link like '%' || $1;
   EOQ
 }
 
@@ -309,7 +308,7 @@ query "pubsub_topic_tags" {
     from
       gcp_pubsub_topic
     where
-      name = $1;
+      self_link like '%' || $1;
   EOQ
 }
 
@@ -327,7 +326,7 @@ query "pubsub_topic_encryption_details" {
       gcp_kms_key k
     where
       split_part(p.kms_key_name, 'cryptoKeys/', 2) = k.name
-      and p.name = $1;
+      and p.self_link like '%' || $1;
   EOQ
 }
 
@@ -344,6 +343,6 @@ query "pubsub_topic_subscription_details" {
       gcp_pubsub_subscription k
     where
       p.name = k.topic_name
-      and p.name = $1;
+      and p.self_link like '%' || $1;
   EOQ
 }

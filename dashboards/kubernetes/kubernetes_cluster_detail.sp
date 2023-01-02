@@ -543,7 +543,7 @@ query "kubernetes_cluster_kubernetes_node_pools" {
 query "kubernetes_cluster_pubsub_topics" {
   sql = <<-EOQ
     select
-      t.name as topic_name
+      'projects/' || t.project || '/topics/' || t.name as topic_name
     from
       gcp_kubernetes_cluster c,
       gcp_pubsub_topic t

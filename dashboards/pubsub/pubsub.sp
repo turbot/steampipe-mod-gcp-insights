@@ -18,7 +18,7 @@ category "pubsub_subscription" {
 
 category "pubsub_topic" {
   color = local.application_integration_color
-  href  = "/gcp_insights.dashboard.pubsub_topic_detail?input.name={{.properties.'Name' | @uri}}"
+  href  = "/gcp_insights.dashboard.pubsub_topic_detail?input.name=projects/{{.properties.'Project' | @uri}}/topics/{{.properties.'Name' | @uri}}"
   icon  = "podcasts"
   title = "Pub/Sub Topic"
 }

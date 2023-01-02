@@ -56,9 +56,10 @@ node "pubsub_topic" {
         'Project', project
       ) as properties
     from
-      gcp_pubsub_topic
+      gcp_pubsub_topic,
+      jsonb_array_elements_text($1) as full_name
     where
-      name = any($1);
+      self_link like '%' || full_name;
   EOQ
 
   param "pubsub_topic_names" {}

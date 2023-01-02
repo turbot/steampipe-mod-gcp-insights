@@ -8,10 +8,11 @@ edge "pubsub_topic_to_iam_role" {
     from
       gcp_iam_role i,
       gcp_pubsub_topic t,
-      jsonb_array_elements(t.iam_policy->'bindings') as roles
+      jsonb_array_elements(t.iam_policy->'bindings') as roles,
+      jsonb_array_elements_text($1) as full_name
     where
       roles ->> 'role' = i.name
-      and t.name = any($1);
+      and self_link like '%' || full_name;
   EOQ
 
   param "pubsub_topic_names" {}
@@ -26,10 +27,11 @@ edge "pubsub_topic_to_kms_key" {
       concat(k.name, '_key') as to_id
     from
       gcp_pubsub_topic p,
-      gcp_kms_key k
+      gcp_kms_key k,
+      jsonb_array_elements_text($1) as full_name
     where
       k.name = split_part(p.kms_key_name, 'cryptoKeys/', 2)
-      and p.name = any($1);
+      and p.self_link like '%' || full_name;
   EOQ
 
   param "pubsub_topic_names" {}
@@ -45,7 +47,7 @@ edge "pubsub_topic_to_pubsub_snapshot" {
     from
       gcp_pubsub_snapshot s
     where
-      s.topic_name = any($1);
+      s.topic = any($1);
   EOQ
 
   param "pubsub_topic_names" {}
@@ -61,7 +63,7 @@ edge "pubsub_topic_to_pubsub_subscription" {
     from
       gcp_pubsub_subscription s
     where
-      s.topic_name = any($1);
+      s.topic = any($1);
   EOQ
 
   param "pubsub_topic_names" {}
