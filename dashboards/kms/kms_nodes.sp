@@ -48,9 +48,10 @@ node "kms_key_version" {
 
   sql = <<-EOQ
     select
-      v.name || '_' || v.crypto_key_version as id,
+      v.key_name || '_' || v.crypto_key_version as id,
       v.title,
       jsonb_build_object(
+        'Key Name', v.key_name,
         'Created Time', v.create_time,
         'Destroy Time', v.destroy_time,
         'Algorithm', v.algorithm,
@@ -63,7 +64,7 @@ node "kms_key_version" {
     from
       gcp_kms_key_version v
     where
-      v.name = any($1);
+      v.key_name = any($1);
   EOQ
 
   param "kms_key_names" {}

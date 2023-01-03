@@ -529,7 +529,7 @@ query "compute_network_kubernetes_clusters" {
 query "compute_network_sql_database_instances" {
   sql = <<-EOQ
     select
-      'projects/' || project || '/instances/' || i.name as instance_name
+      'projects/' || i.project || '/instances/' || i.name as instance_name
     from
       gcp_sql_database_instance i,
       gcp_compute_network n

@@ -137,14 +137,14 @@ edge "compute_disk_to_kms_key_version" {
   sql = <<-EOQ
     select
       d.id::text as from_id,
-      k.name || '_' || k.crypto_key_version as to_id
+      k.key_name || '_' || k.crypto_key_version as to_id
     from
       gcp_compute_disk d,
       gcp_kms_key_version k
     where
       d.disk_encryption_key is not null
       and split_part(d.disk_encryption_key ->> 'kmsKeyName', 'cryptoKeyVersions/', 2) = k.crypto_key_version::text
-      and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.name
+      and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.key_name
       and d.id = any($1);
   EOQ
 
@@ -195,12 +195,12 @@ edge "compute_image_to_kms_key_version" {
   sql = <<-EOQ
     select
       i.id::text as from_id,
-      k.name || '_' || k.crypto_key_version as to_id
+      k.key_name || '_' || k.crypto_key_version as to_id
     from
       gcp_compute_image as i,
       gcp_kms_key_version as k
     where
-      split_part(i.image_encryption_key->>'kmsKeyName', '/', 8) = k.name
+      split_part(i.image_encryption_key->>'kmsKeyName', '/', 8) = k.key_name
       and split_part(i.image_encryption_key ->> 'kmsKeyName', 'cryptoKeyVersions/', 2) = k.crypto_key_version::text
       and i.id = any($1);
   EOQ
@@ -614,13 +614,13 @@ edge "compute_snapshot_to_kms_key_version" {
   sql = <<-EOQ
     select
       s.name as from_id,
-      v.name || '_' || v.crypto_key_version as to_id
+      v.key_name || '_' || v.crypto_key_version as to_id
     from
       gcp_compute_snapshot s,
       gcp_kms_key_version v
     where
       v.crypto_key_version::text = split_part(s.kms_key_name, 'cryptoKeyVersions/', 2)
-      and split_part(s.kms_key_name, '/', 8) = v.name
+      and split_part(s.kms_key_name, '/', 8) = v.key_name
       and s.name = any($1);
   EOQ
 

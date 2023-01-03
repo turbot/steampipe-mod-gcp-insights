@@ -429,7 +429,7 @@ query "kms_key_compute_disks" {
     where
       d.disk_encryption_key is not null
       and split_part(d.disk_encryption_key ->> 'kmsKeyName', 'cryptoKeyVersions/', 2) = k.crypto_key_version::text
-      and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.name
+      and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.key_name
       and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = $1;
   EOQ
 }
@@ -455,8 +455,8 @@ query "kms_key_compute_snapshots" {
       gcp_kms_key_version v
     where
       v.crypto_key_version::text = split_part(s.kms_key_name, 'cryptoKeyVersions/', 2)
-      and split_part(s.kms_key_name, '/', 8) = v.name
-      and v.name = $1;
+      and split_part(s.kms_key_name, '/', 8) = v.key_name
+      and v.key_name = $1;
   EOQ
 }
 

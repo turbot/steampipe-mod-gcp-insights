@@ -121,7 +121,7 @@ node "compute_disk" {
       id::text,
       title,
       jsonb_build_object(
-        'ID', id,
+        'ID', id::text,
         'Name', name,
         'Created Time', creation_timestamp,
         'Size(GB)', size_gb,
@@ -238,7 +238,7 @@ node "compute_instance" {
       id::text,
       title,
       jsonb_build_object(
-        'ID', id,
+        'ID', id::text,
         'Name', name,
         'Created Time', creation_timestamp,
         'CPU Platform', cpu_platform,
@@ -263,7 +263,7 @@ node "compute_instance_group" {
       id::text,
       title,
       jsonb_build_object(
-        'ID', g.id,
+        'ID', g.id::text,
         'Name', g.name,
         'Created Time', g.creation_timestamp,
         'Instance Count', g.size,
@@ -310,7 +310,7 @@ node "compute_network" {
       n.id::text as id,
       n.title,
       jsonb_build_object(
-        'ID', n.id,
+        'ID', n.id::text,
         'Name', n.name,
         'Created Time', n.creation_timestamp,
         'Project', project
@@ -400,7 +400,7 @@ node "compute_subnetwork" {
       s.id::text as id,
       s.title,
       jsonb_build_object(
-        'ID', s.id,
+        'ID', s.id::text,
         'Name', s.name,
         'Created Time', s.creation_timestamp,
         'Location', s.location,
