@@ -34,6 +34,15 @@ dashboard "storage_bucket_encryption_report" {
     column "Self-Link" {
       display = "none"
     }
+
+    column "ID" {
+      display = "none"
+    }
+
+    column "Name" {
+      href = "${dashboard.storage_bucket_detail.url_path}?input.bucket_id={{.ID | @uri}}"
+    }
+
     query = query.storage_bucket_encryption_table
   }
 
@@ -67,6 +76,7 @@ query "storage_bucket_encryption_table" {
   sql = <<-EOQ
     select
       b.name as "Name",
+      b.id as "ID",
       case
         when default_kms_key_name is null then 'Google Managed'
         else 'Customer Managed'
