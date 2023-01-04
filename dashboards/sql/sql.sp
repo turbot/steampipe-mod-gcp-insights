@@ -12,13 +12,13 @@ category "sql_backup" {
 
 category "sql_database" {
   color = local.database_color
-  icon  = "tenancy"
+  icon  = "database"
   title = "GCP SQL Database"
 }
 
 category "sql_database_instance" {
   color = local.database_color
   href  = "/gcp_insights.dashboard.sql_database_instance_detail?input.database_instance_name=/projects/{{.properties.'Project' | @uri}}/instances{{.properties.'Name' | @uri}}"
-  icon  = "database"
+  icon  = "storage"
   title = "SQL Database Instance"
 }
