@@ -56,6 +56,10 @@ dashboard "kms_key_age_report" {
       display = "none"
     }
 
+    column "Name" {
+      href = "${dashboard.kms_key_detail.url_path}?input.key_name={{.Name | @uri}}"
+    }
+
     query = query.kms_key_age_table
   }
 
