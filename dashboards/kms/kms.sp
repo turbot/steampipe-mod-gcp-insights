@@ -13,12 +13,12 @@ category "kms_key" {
 
 category "kms_key_ring" {
   color = local.security_color
-  icon  = "alternate_email"
+  icon  = "vpn_key"
   title = "KMS Key Ring"
 }
 
 category "kms_key_version" {
   color = local.security_color
-  icon  = "key"
+  icon  = "difference"
   title = "KMS Key Version"
 }
