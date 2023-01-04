@@ -56,6 +56,14 @@ dashboard "storage_bucket_age_report" {
       display = "none"
     }
 
+    column "ID" {
+      display = "none"
+    }
+
+    column "Name" {
+      href = "${dashboard.storage_bucket_detail.url_path}?input.bucket_id={{.ID | @uri}}"
+    }
+
     query = query.storage_bucket_age_table
   }
 
@@ -125,6 +133,7 @@ query "storage_bucket_age_table" {
   sql = <<-EOQ
     select
       b.name as "Name",
+      b.id as "ID",
       now()::date - b.time_created::date as "Age in Days",
       b.time_created as "Create Time",
       p.name as "Project",
