@@ -3,7 +3,7 @@ node "pubsub_snapshot" {
 
   sql = <<-EOQ
   select
-      k.name || 'snapshot' as id,
+      self_link as id,
       k.title,
       jsonb_build_object(
         'Name', k.name,
@@ -14,10 +14,10 @@ node "pubsub_snapshot" {
     from
       gcp_pubsub_snapshot k
     where
-      k.name = any($1);
+      k.self_link = any($1);
   EOQ
 
-  param "pubsub_snapshot_names" {}
+  param "pubsub_snapshot_self_links" {}
 }
 
 node "pubsub_subscription" {
@@ -25,7 +25,7 @@ node "pubsub_subscription" {
 
   sql = <<-EOQ
     select
-      k.name || 'subscription' as id,
+      self_link as id,
       k.title,
       jsonb_build_object(
         'Name', k.name,
@@ -36,10 +36,10 @@ node "pubsub_subscription" {
     from
       gcp_pubsub_subscription k
     where
-      k.name = any($1);
+      k.self_link = any($1);
   EOQ
 
-  param "pubsub_subscription_names" {}
+  param "pubsub_subscription_self_links" {}
 }
 
 node "pubsub_topic" {
@@ -47,20 +47,20 @@ node "pubsub_topic" {
 
   sql = <<-EOQ
     select
-      name as id,
+      self_link as id,
       title,
       jsonb_build_object(
         'Name', name,
         'Location', location,
         'KMS Key', kms_key_name,
-        'Project', project
+        'Project', project,
+        'Self Link', self_link
       ) as properties
     from
-      gcp_pubsub_topic,
-      jsonb_array_elements_text($1) as full_name
+      gcp_pubsub_topic
     where
-      self_link like '%' || full_name;
+      self_link = any($1);
   EOQ
 
-  param "pubsub_topic_names" {}
+  param "pubsub_topic_self_links" {}
 }
