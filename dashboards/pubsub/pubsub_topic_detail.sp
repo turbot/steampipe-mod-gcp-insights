@@ -7,7 +7,7 @@ dashboard "pubsub_topic_detail" {
     type = "Detail"
   })
 
-  input "name" {
+  input "self_link" {
     title = "Select a topic:"
     query = query.pubsub_topic_input
     width = 4
@@ -18,39 +18,39 @@ dashboard "pubsub_topic_detail" {
     card {
       width = 2
       query = query.pubsub_topic_encryption
-      args  = [self.input.name.value]
+      args  = [self.input.self_link.value]
     }
 
     card {
       width = 2
       query = query.pubsub_topic_labeled
-      args  = [self.input.name.value]
+      args  = [self.input.self_link.value]
     }
   }
 
   with "iam_roles" {
     query = query.pubsub_topic_iam_roles
-    args  = [self.input.name.value]
+    args  = [self.input.self_link.value]
   }
 
   with "kms_keys" {
     query = query.pubsub_topic_kms_keys
-    args  = [self.input.name.value]
+    args  = [self.input.self_link.value]
   }
 
   with "kubernetes_clusters" {
     query = query.pubsub_topic_kubernetes_clusters
-    args  = [self.input.name.value]
+    args  = [self.input.self_link.value]
   }
 
   with "pubsub_snapshots" {
     query = query.pubsub_topic_pubsub_snapshots
-    args  = [self.input.name.value]
+    args  = [self.input.self_link.value]
   }
 
   with "pubsub_subscriptions" {
     query = query.pubsub_topic_pubsub_subscriptions
-    args  = [self.input.name.value]
+    args  = [self.input.self_link.value]
   }
 
   container {
@@ -83,21 +83,21 @@ dashboard "pubsub_topic_detail" {
       node {
         base = node.pubsub_snapshot
         args = {
-          pubsub_snapshot_names = with.pubsub_snapshots.rows[*].snapshot_name
+          pubsub_snapshot_self_links = with.pubsub_snapshots.rows[*].snapshot_self_link
         }
       }
 
       node {
         base = node.pubsub_subscription
         args = {
-          pubsub_subscription_names = with.pubsub_subscriptions.rows[*].subscription_name
+          pubsub_subscription_self_links = with.pubsub_subscriptions.rows[*].subscription_self_link
         }
       }
 
       node {
         base = node.pubsub_topic
         args = {
-          pubsub_topic_names = [self.input.name.value]
+          pubsub_topic_self_links = [self.input.self_link.value]
         }
       }
 
@@ -111,28 +111,28 @@ dashboard "pubsub_topic_detail" {
       edge {
         base = edge.pubsub_topic_to_iam_role
         args = {
-          pubsub_topic_names = [self.input.name.value]
+          pubsub_topic_self_links = [self.input.self_link.value]
         }
       }
 
       edge {
         base = edge.pubsub_topic_to_kms_key
         args = {
-          pubsub_topic_names = [self.input.name.value]
+          pubsub_topic_self_links = [self.input.self_link.value]
         }
       }
 
       edge {
         base = edge.pubsub_topic_to_pubsub_snapshot
         args = {
-          pubsub_topic_names = [self.input.name.value]
+          pubsub_topic_self_links = [self.input.self_link.value]
         }
       }
 
       edge {
         base = edge.pubsub_topic_to_pubsub_subscription
         args = {
-          pubsub_topic_names = [self.input.name.value]
+          pubsub_topic_self_links = [self.input.self_link.value]
         }
       }
     }
@@ -148,14 +148,14 @@ dashboard "pubsub_topic_detail" {
         type  = "line"
         width = 6
         query = query.pubsub_topic_overview
-        args  = [self.input.name.value]
+        args  = [self.input.self_link.value]
       }
 
       table {
         title = "Tags"
         width = 6
         query = query.pubsub_topic_tags
-        args  = [self.input.name.value]
+        args  = [self.input.self_link.value]
       }
 
     }
@@ -165,13 +165,13 @@ dashboard "pubsub_topic_detail" {
       table {
         title = "Subscription Details"
         query = query.pubsub_topic_subscription_details
-        args  = [self.input.name.value]
+        args  = [self.input.self_link.value]
       }
 
       table {
         title = "Encryption Details"
         query = query.pubsub_topic_encryption_details
-        args  = [self.input.name.value]
+        args  = [self.input.self_link.value]
       }
     }
 
@@ -185,7 +185,7 @@ query "pubsub_topic_input" {
   sql = <<-EOQ
     select
       title as label,
-      'projects/' || project || '/topics/' || name as value,
+      self_link as value,
       json_build_object(
         'project', project
       ) as tags
@@ -207,7 +207,7 @@ query "pubsub_topic_encryption" {
     from
       gcp_pubsub_topic
     where
-      self_link like '%' || $1;
+      self_link = $1;
   EOQ
 }
 
@@ -220,7 +220,7 @@ query "pubsub_topic_labeled" {
     from
       gcp_pubsub_topic
     where
-      self_link like '%' || $1;
+      self_link = $1;
   EOQ
 }
 
@@ -229,14 +229,15 @@ query "pubsub_topic_labeled" {
 query "pubsub_topic_iam_roles" {
   sql = <<-EOQ
     select
-      i.role_id as role_id
+      i.name as role_id
     from
       gcp_iam_role i,
       gcp_pubsub_topic t,
       jsonb_array_elements(t.iam_policy->'bindings') as roles
     where
       roles ->> 'role' = i.name
-      and t.self_link like '%' || $1;
+      and i.project = t.project
+      and t.self_link = $1;
   EOQ
 }
 
@@ -247,7 +248,7 @@ query "pubsub_topic_kms_keys" {
     from
       gcp_pubsub_topic p
     where
-      p.self_link like '%' || $1;
+      p.self_link = $1;
   EOQ
 }
 
@@ -259,30 +260,37 @@ query "pubsub_topic_kubernetes_clusters" {
       gcp_kubernetes_cluster c,
       gcp_pubsub_topic t
     where
-      c.notification_config is not null
-      and c.notification_config -> 'pubsub' ->> 'topic' = $1
+      t.self_link = $1
+      and c.notification_config is not null
+      and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
   EOQ
 }
 
 query "pubsub_topic_pubsub_snapshots" {
   sql = <<-EOQ
     select
-      s.name as snapshot_name
+      s.self_link as snapshot_self_link
     from
-      gcp_pubsub_snapshot s
+      gcp_pubsub_snapshot s,
+      gcp_pubsub_topic t
     where
-      s.topic = $1;
+      s.topic_name = t.name
+      and s.project = t.project
+      and t.self_link = $1;
   EOQ
 }
 
 query "pubsub_topic_pubsub_subscriptions" {
   sql = <<-EOQ
     select
-      s.name as subscription_name
+      s.self_link as subscription_self_link
     from
-      gcp_pubsub_subscription s
+      gcp_pubsub_subscription s,
+      gcp_pubsub_topic t
     where
-      s.topic = $1;
+      s.topic_name = t.name
+      and s.project = t.project
+      and t.self_link = $1;
   EOQ
 }
 
@@ -296,7 +304,7 @@ query "pubsub_topic_overview" {
     from
       gcp_pubsub_topic
     where
-      self_link like '%' || $1;
+      self_link = $1;
   EOQ
 }
 
@@ -308,7 +316,7 @@ query "pubsub_topic_tags" {
     from
       gcp_pubsub_topic
     where
-      self_link like '%' || $1;
+      self_link = $1;
   EOQ
 }
 
@@ -326,7 +334,7 @@ query "pubsub_topic_encryption_details" {
       gcp_kms_key k
     where
       split_part(p.kms_key_name, 'cryptoKeys/', 2) = k.name
-      and p.self_link like '%' || $1;
+      and p.self_link = $1;
   EOQ
 }
 
@@ -343,6 +351,7 @@ query "pubsub_topic_subscription_details" {
       gcp_pubsub_subscription k
     where
       p.name = k.topic_name
-      and p.self_link like '%' || $1;
+      and p.project = k.project
+      and p.self_link = $1;
   EOQ
 }

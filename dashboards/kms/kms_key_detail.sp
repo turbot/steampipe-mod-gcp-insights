@@ -180,7 +180,7 @@ dashboard "kms_key_detail" {
       node {
         base = node.pubsub_topic
         args = {
-          pubsub_topic_names = with.pubsub_topics.rows[*].topic_name
+          pubsub_topic_self_links = with.pubsub_topics.rows[*].self_link
         }
       }
 
@@ -264,7 +264,7 @@ dashboard "kms_key_detail" {
       edge {
         base = edge.pubsub_topic_to_kms_key
         args = {
-          pubsub_topic_names = with.pubsub_topics.rows[*].topic_name
+          pubsub_topic_self_links = with.pubsub_topics.rows[*].self_link
         }
       }
 
@@ -488,7 +488,7 @@ query "kms_key_kubernetes_clusters" {
 query "kms_key_pubsub_topics" {
   sql = <<-EOQ
     select
-      'projects/' || p.project || '/topics/' || p.name as topic_name
+      p.self_link as topic_name
     from
       gcp_pubsub_topic p,
       gcp_kms_key k
