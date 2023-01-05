@@ -7,9 +7,9 @@ dashboard "sql_database_instance_detail" {
     type = "Detail"
   })
 
-  input "database_instance_name" {
+  input "database_instance_self_link" {
     title = "Select a Database Instance Name:"
-    sql   = query.sql_database_instance_input.sql
+    query = query.sql_database_instance_input
     width = 4
   }
 
@@ -17,68 +17,68 @@ dashboard "sql_database_instance_detail" {
     card {
       width = 2
       query = query.sql_database_instance_database_version
-      args  = [self.input.database_instance_name.value]
+      args  = [self.input.database_instance_self_link.value]
     }
 
     card {
       width = 2
       query = query.sql_database_instance_data_disk_size
-      args  = [self.input.database_instance_name.value]
+      args  = [self.input.database_instance_self_link.value]
     }
 
     card {
       width = 2
       query = query.sql_database_instance_backup_enabled
-      args  = [self.input.database_instance_name.value]
+      args  = [self.input.database_instance_self_link.value]
     }
 
     card {
       width = 2
       query = query.sql_database_instance_encryption
-      args  = [self.input.database_instance_name.value]
+      args  = [self.input.database_instance_self_link.value]
     }
 
     card {
       width = 2
       query = query.sql_database_instance_is_public
-      args  = [self.input.database_instance_name.value]
+      args  = [self.input.database_instance_self_link.value]
     }
 
     card {
       width = 2
       query = query.sql_database_instance_ssl_enabled
-      args  = [self.input.database_instance_name.value]
+      args  = [self.input.database_instance_self_link.value]
     }
   }
 
   with "compute_networks" {
     query = query.sql_database_instance_compute_networks
-    args  = [self.input.database_instance_name.value]
+    args  = [self.input.database_instance_self_link.value]
   }
 
   with "from_sql_database_instances" {
     query = query.sql_database_instance_from_sql_database_instances
-    args  = [self.input.database_instance_name.value]
+    args  = [self.input.database_instance_self_link.value]
   }
 
   with "kms_keys" {
     query = query.sql_database_instance_kms_keys
-    args  = [self.input.database_instance_name.value]
+    args  = [self.input.database_instance_self_link.value]
   }
 
   with "sql_backups" {
     query = query.sql_database_instance_sql_backups
-    args  = [self.input.database_instance_name.value]
+    args  = [self.input.database_instance_self_link.value]
   }
 
   with "sql_databases" {
     query = query.sql_database_instance_sql_databases
-    args  = [self.input.database_instance_name.value]
+    args  = [self.input.database_instance_self_link.value]
   }
 
   with "to_sql_database_instances" {
     query = query.sql_database_instance_to_sql_database_instances
-    args  = [self.input.database_instance_name.value]
+    args  = [self.input.database_instance_self_link.value]
   }
 
   container {
@@ -111,70 +111,70 @@ dashboard "sql_database_instance_detail" {
       node {
         base = node.sql_database
         args = {
-          sql_database_names = with.sql_databases.rows[*].database_name
+          sql_database_self_links = with.sql_databases.rows[*].self_link
         }
       }
 
       node {
         base = node.sql_database_instance
         args = {
-          sql_database_instance_names = [self.input.database_instance_name.value]
+          database_instance_self_links = [self.input.database_instance_self_link.value]
         }
       }
 
       node {
         base = node.sql_database_instance
         args = {
-          sql_database_instance_names = with.from_sql_database_instances.rows[*].instance_name
+          database_instance_self_links = with.from_sql_database_instances.rows[*].self_link
         }
       }
 
       node {
         base = node.sql_database_instance
         args = {
-          sql_database_instance_names = with.to_sql_database_instances.rows[*].instance_name
+          database_instance_self_links = with.to_sql_database_instances.rows[*].self_link
         }
       }
 
       edge {
         base = edge.sql_database_instance_to_compute_network
         args = {
-          sql_database_instance_names = [self.input.database_instance_name.value]
+          database_instance_self_links = [self.input.database_instance_self_link.value]
         }
       }
 
       edge {
         base = edge.sql_database_instance_to_kms_key
         args = {
-          sql_database_instance_names = [self.input.database_instance_name.value]
+          database_instance_self_links = [self.input.database_instance_self_link.value]
         }
       }
 
       edge {
         base = edge.sql_database_instance_to_sql_backup
         args = {
-          sql_database_instance_names = [self.input.database_instance_name.value]
+          database_instance_self_links = [self.input.database_instance_self_link.value]
         }
       }
 
       edge {
         base = edge.sql_database_instance_to_sql_database
         args = {
-          sql_database_instance_names = [self.input.database_instance_name.value]
+          database_instance_self_links = [self.input.database_instance_self_link.value]
         }
       }
 
       edge {
         base = edge.sql_database_instance_to_sql_database_instance
         args = {
-          sql_database_instance_names = [self.input.database_instance_name.value]
+          database_instance_self_links = [self.input.database_instance_self_link.value]
         }
       }
 
       edge {
         base = edge.sql_database_instance_to_sql_database_instance
         args = {
-          sql_database_instance_names = with.from_sql_database_instances.rows[*].instance_name
+          database_instance_self_links = with.from_sql_database_instances.rows[*].self_link
         }
       }
     }
@@ -191,14 +191,14 @@ dashboard "sql_database_instance_detail" {
         type  = "line"
         width = 6
         query = query.sql_database_instance_overview
-        args  = [self.input.database_instance_name.value]
+        args  = [self.input.database_instance_self_link.value]
       }
 
       table {
         title = "Tags"
         width = 6
         query = query.sql_database_instance_tags
-        args  = [self.input.database_instance_name.value]
+        args  = [self.input.database_instance_self_link.value]
       }
     }
 
@@ -208,13 +208,13 @@ dashboard "sql_database_instance_detail" {
       table {
         title = "Replication Details"
         query = query.sql_database_instance_replication_status
-        args  = [self.input.database_instance_name.value]
+        args  = [self.input.database_instance_self_link.value]
       }
 
       table {
         title = "Encryption Details"
         query = query.sql_database_instance_encryption_detail
-        args  = [self.input.database_instance_name.value]
+        args  = [self.input.database_instance_self_link.value]
       }
     }
   }
@@ -228,7 +228,7 @@ dashboard "sql_database_instance_detail" {
       type  = "line"
       width = 6
       query = query.sql_database_instance_cpu_utilization
-      args  = [self.input.database_instance_name.value]
+      args  = [self.input.database_instance_self_link.value]
     }
 
     chart {
@@ -236,7 +236,7 @@ dashboard "sql_database_instance_detail" {
       type  = "line"
       width = 6
       query = query.sql_database_instance_connection
-      args  = [self.input.database_instance_name.value]
+      args  = [self.input.database_instance_self_link.value]
     }
 
   }
@@ -248,7 +248,7 @@ query "sql_database_instance_input" {
   sql = <<-EOQ
     select
       title as label,
-      'projects/' || project || '/instances/' || name as value,
+      self_link as value,
       json_build_object(
         'location', location,
         'project', project
@@ -270,7 +270,7 @@ query "sql_database_instance_database_version" {
     from
       gcp_sql_database_instance
     where
-      self_link like '%' || $1;
+      self_link = $1;
   EOQ
 }
 
@@ -283,7 +283,7 @@ query "sql_database_instance_encryption" {
     from
       gcp_sql_database_instance
     where
-      self_link like '%' || $1;
+      self_link = $1;
   EOQ
 }
 
@@ -295,7 +295,7 @@ query "sql_database_instance_data_disk_size" {
     from
       gcp_sql_database_instance
     where
-      self_link like '%' || $1;
+      self_link = $1;
   EOQ
 }
 
@@ -314,7 +314,7 @@ query "sql_database_instance_backup_enabled" {
     from
       gcp_sql_database_instance
     where
-      self_link like '%' || $1;
+      self_link = $1;
   EOQ
 }
 
@@ -327,7 +327,7 @@ query "sql_database_instance_is_public" {
     from
       gcp_sql_database_instance
     where
-      self_link like '%' || $1;
+      self_link = $1;
   EOQ
 }
 
@@ -347,7 +347,7 @@ query "sql_database_instance_ssl_enabled" {
     from
       gcp_sql_database_instance
     where
-      self_link like '%' || $1;
+      self_link = $1;
   EOQ
 }
 
@@ -362,19 +362,19 @@ query "sql_database_instance_compute_networks" {
       gcp_compute_network as n
     where
       SPLIT_PART(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
-      and i.self_link like '%' || $1;
+      and i.self_link = $1;
   EOQ
 }
 
 query "sql_database_instance_from_sql_database_instances" {
   sql = <<-EOQ
     select
-      'projects/' || project || '/instances/' || split_part(master_instance_name, ':', 2) as instance_name
+      replace(self_link, name, split_part(master_instance_name, ':', 2)) as self_link
     from
       gcp_sql_database_instance
     where
       master_instance_name is not null
-      and self_link like '%' || $1;
+      and self_link = $1;
   EOQ
 }
 
@@ -386,7 +386,7 @@ query "sql_database_instance_kms_keys" {
       gcp_sql_database_instance as i,
       gcp_kms_key as k
     where
-      i.self_link like '%' || $1
+      i.self_link = $1 
       and i.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2));
   EOQ
 }
@@ -398,29 +398,30 @@ query "sql_database_instance_sql_backups" {
     from
       gcp_sql_backup
     where
-      self_link like '%' || $1 || '/%';
+      self_link like $1 || '/%';
   EOQ
 }
 
 query "sql_database_instance_sql_databases" {
   sql = <<-EOQ
     select
-      d.name as database_name
+      d.self_link
     from
       gcp_sql_database d
     where
-      self_link like '%' || $1 || '/%';
+      d.self_link like $1 || '/%';
   EOQ
 }
 
 query "sql_database_instance_to_sql_database_instances" {
   sql = <<-EOQ
     select
-      'projects/' || project || '/instances/' || name as instance_name
+      self_link
     from
       gcp_sql_database_instance
     where
-      'projects/' || project || '/instances/' || split_part(master_instance_name, ':', 2) = $1;
+      master_instance_name is not null
+      and replace(self_link, name, split_part(master_instance_name, ':', 2)) = $1;
   EOQ
 }
 
@@ -443,7 +444,7 @@ query "sql_database_instance_overview" {
     from
       gcp_sql_database_instance
     where
-      self_link like '%' || $1;
+      self_link = $1;
   EOQ
 }
 
@@ -455,7 +456,7 @@ query "sql_database_instance_tags" {
       from
         gcp_sql_database_instance
       where
-        self_link like '%' || $1
+        self_link = $1
     )
     select
       key as "Key",
@@ -478,7 +479,7 @@ query "sql_database_instance_replication_status" {
     from
       gcp_sql_database_instance
     where
-      self_link like '%' || $1;
+      self_link = $1;
   EOQ
 }
 
@@ -494,7 +495,7 @@ query "sql_database_instance_encryption_detail" {
       gcp_kms_key as k
     where
       d.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2))
-      and d.self_link like '%' || $1;
+      and d.self_link = $1;
   EOQ
 }
 
@@ -507,7 +508,7 @@ query "sql_database_instance_cpu_utilization" {
       gcp_sql_database_instance_metric_cpu_utilization
     where
       timestamp >= current_date - interval '7 day'
-      and SPLIT_PART(instance_id, ':', 2) in (select name from gcp_sql_database_instance where self_link like '%' || $1)
+      and SPLIT_PART(instance_id, ':', 2) in (select name from gcp_sql_database_instance where self_link = $1)
     order by
       timestamp;
   EOQ
@@ -522,7 +523,7 @@ query "sql_database_instance_connection" {
       gcp_sql_database_instance_metric_connections
     where
       timestamp >= current_date - interval '7 day'
-      and SPLIT_PART(instance_id, ':', 2) in (select name from gcp_sql_database_instance where self_link like '%' || $1)
+      and SPLIT_PART(instance_id, ':', 2) in (select name from gcp_sql_database_instance where self_link = $1)
     order by
       timestamp;
   EOQ

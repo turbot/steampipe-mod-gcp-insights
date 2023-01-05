@@ -194,7 +194,7 @@ dashboard "kms_key_detail" {
       node {
         base = node.sql_database_instance
         args = {
-          sql_database_instance_names = with.sql_database_instances.rows[*].instance_name
+          database_instance_self_links = with.sql_database_instances.rows[*].self_link
         }
       }
 
@@ -278,7 +278,7 @@ dashboard "kms_key_detail" {
       edge {
         base = edge.sql_database_instance_to_kms_key
         args = {
-          sql_database_instance_names = with.sql_database_instances.rows[*].instance_name
+          database_instance_self_links = with.sql_database_instances.rows[*].self_link
         }
       }
 
@@ -511,7 +511,7 @@ query "kms_key_sql_backups" {
 query "kms_key_sql_database_instances" {
   sql = <<-EOQ
     select
-      'projects/' || project || '/instances/' || i.name as instance_name
+      i.self_link
     from
       gcp_sql_database_instance as i
     where

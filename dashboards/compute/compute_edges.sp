@@ -558,7 +558,7 @@ edge "compute_network_to_sql_database_instance" {
   sql = <<-EOQ
     select
       n.id::text as from_id,
-      i.name as to_id
+      i.self_link as to_id
     from
       gcp_sql_database_instance i,
       gcp_compute_network n

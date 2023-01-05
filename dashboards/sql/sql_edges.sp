@@ -21,18 +21,17 @@ edge "sql_database_instance_to_compute_network" {
 
   sql = <<-EOQ
     select
-      n.id::text as to_id,
-      i.name as from_id
+      i.self_link as from_id,
+      n.id::text as to_id
     from
       gcp_sql_database_instance as i,
-      gcp_compute_network as n,
-      jsonb_array_elements_text($1) as full_name
+      gcp_compute_network as n
     where
-      i.self_link like '%' || full_name
-      and SPLIT_PART(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
+      SPLIT_PART(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
+      and i.self_link = any($1);
   EOQ
 
-  param "sql_database_instance_names" {}
+  param "database_instance_self_links" {}
 }
 
 edge "sql_database_instance_to_kms_key" {
@@ -40,18 +39,17 @@ edge "sql_database_instance_to_kms_key" {
 
   sql = <<-EOQ
     select
-      i.name as from_id,
+      i.self_link as from_id,
       k.name as to_id
     from
       gcp_sql_database_instance as i,
-      gcp_kms_key as k,
-      jsonb_array_elements_text($1) as full_name
+      gcp_kms_key as k
     where
-      i.self_link like '%' || full_name
+      i.self_link = any($1) 
       and i.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2));
   EOQ
 
-  param "sql_database_instance_names" {}
+  param "database_instance_self_links" {}
 }
 
 edge "sql_database_instance_to_sql_backup" {
@@ -59,16 +57,16 @@ edge "sql_database_instance_to_sql_backup" {
 
   sql = <<-EOQ
     select
-      id::text as to_id,
-      instance_name as from_id
+      sl as from_id,
+      id::text as to_id
     from
       gcp_sql_backup,
-      jsonb_array_elements_text($1) as full_name
+      jsonb_array_elements_text($1) sl
     where
-      self_link like '%' || full_name || '/%';
+      self_link like sl || '/%';
   EOQ
 
-  param "sql_database_instance_names" {}
+  param "database_instance_self_links" {}
 }
 
 edge "sql_database_instance_to_sql_database" {
@@ -76,16 +74,16 @@ edge "sql_database_instance_to_sql_database" {
 
   sql = <<-EOQ
     select
-      d.instance_name as from_id,
-      d.name as to_id
+      sl as from_id,
+      d.self_link as to_id
     from
       gcp_sql_database d,
-      jsonb_array_elements_text($1) as full_name
+      jsonb_array_elements_text($1) sl
     where
-      self_link like '%' || full_name || '/%';
+      self_link like sl || '/%';
   EOQ
 
-  param "sql_database_instance_names" {}
+  param "database_instance_self_links" {}
 }
 
 edge "sql_database_instance_to_sql_database_instance" {
@@ -93,13 +91,13 @@ edge "sql_database_instance_to_sql_database_instance" {
 
   sql = <<-EOQ
     select
-      name as to_id,
-      SPLIT_PART(master_instance_name, ':', 2) as from_id
+      replace(self_link, name, split_part(master_instance_name, ':', 2)) as from_id,
+      self_link as to_id
     from
       gcp_sql_database_instance
     where
-      ('projects/' || project || '/instances/' || split_part(master_instance_name, ':', 2)) = any($1);
+      replace(self_link, name, split_part(master_instance_name, ':', 2)) = any($1);
   EOQ
 
-  param "sql_database_instance_names" {}
+  param "database_instance_self_links" {}
 }

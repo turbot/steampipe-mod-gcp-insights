@@ -27,7 +27,7 @@ node "sql_database" {
 
   sql = <<-EOQ
     select
-      d.name as id,
+      d.self_link as id,
       d.title,
       jsonb_build_object(
         'Project', d.project,
@@ -36,10 +36,10 @@ node "sql_database" {
     from
       gcp_sql_database d
     where
-      d.name = any($1);
+      d.self_link = any($1);
   EOQ
 
-  param "sql_database_names" {}
+  param "sql_database_self_links" {}
 }
 
 node "sql_database_instance" {
@@ -47,7 +47,7 @@ node "sql_database_instance" {
 
   sql = <<-EOQ
     select
-      name as id,
+      self_link as id,
       title,
       jsonb_build_object(
         'Name', name,
@@ -56,14 +56,14 @@ node "sql_database_instance" {
         'MachineType', machine_type,
         'DataDiskSizeGB', data_disk_size_gb,
         'BackupEnabled', backup_enabled,
-        'Project', project
+        'Project', project,
+        'Self Link', self_link
       ) as properties
     from
-      gcp_sql_database_instance,
-      jsonb_array_elements_text($1) as full_name
+      gcp_sql_database_instance
     where
-      self_link like '%' || full_name;
+      self_link = any($1);
   EOQ
 
-  param "sql_database_instance_names" {}
+  param "database_instance_self_links" {}
 }
