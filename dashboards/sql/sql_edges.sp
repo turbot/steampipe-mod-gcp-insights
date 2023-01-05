@@ -4,12 +4,12 @@ edge "sql_backup_to_kms_key" {
   sql = <<-EOQ
     select
       b.id::text as from_id,
-      k.name as to_id
+      k.self_link as to_id
     from
       gcp_kms_key k,
       gcp_sql_backup b
     where
-      split_part(b.disk_encryption_configuration ->> 'kmsKeyName','cryptoKeys/',2) = k.name
+      k.self_link like '%' || (b.disk_encryption_configuration ->> 'kmsKeyName')
       and b.id = any($1);
   EOQ
 
@@ -40,7 +40,7 @@ edge "sql_database_instance_to_kms_key" {
   sql = <<-EOQ
     select
       i.self_link as from_id,
-      k.name as to_id
+      k.self_link as to_id
     from
       gcp_sql_database_instance as i,
       gcp_kms_key as k

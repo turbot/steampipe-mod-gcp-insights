@@ -3,21 +3,22 @@ node "kms_key" {
 
   sql = <<-EOQ
     select
-      name as id,
+      self_link as id,
       title,
       jsonb_build_object(
         'Name', name,
         'Created Time', create_time,
         'Location', location,
-        'Project', project
+        'Project', project,
+        'Self Link', self_link
       ) as properties
     from
       gcp_kms_key
     where
-      name = any($1);
+      self_link = any($1);
   EOQ
 
-  param "kms_key_names" {}
+  param "kms_key_self_links" {}
 }
 
 node "kms_key_ring" {
@@ -25,7 +26,7 @@ node "kms_key_ring" {
 
   sql = <<-EOQ
     select
-      concat(p.name, '_key_ring') as id,
+      akas::text as id,
       p.title,
       jsonb_build_object(
         'Name', p.name,
@@ -37,7 +38,7 @@ node "kms_key_ring" {
     from
       gcp_kms_key_ring p
     where
-      p.name = any($1);
+      p.akas::text = any($1);
   EOQ
 
   param "kms_key_ring_names" {}
@@ -48,7 +49,7 @@ node "kms_key_version" {
 
   sql = <<-EOQ
     select
-      v.key_name || '_' || v.crypto_key_version as id,
+      v.self_link as id,
       v.title,
       jsonb_build_object(
         'Key Name', v.key_name,
@@ -62,10 +63,11 @@ node "kms_key_version" {
         'Project', project
       ) as properties
     from
-      gcp_kms_key_version v
+      gcp_kms_key_version v,
+      jsonb_array_elements_text($1) as key
     where
-      v.key_name = any($1);
+      v.self_link like key || '%';
   EOQ
 
-  param "kms_key_names" {}
+  param "kms_key_self_links" {}
 }

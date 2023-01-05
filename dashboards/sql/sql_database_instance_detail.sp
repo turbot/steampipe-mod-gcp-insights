@@ -97,7 +97,7 @@ dashboard "sql_database_instance_detail" {
       node {
         base = node.kms_key
         args = {
-          kms_key_names = with.kms_keys.rows[*].key_name
+          kms_key_self_links = with.kms_keys.rows[*].self_link
         }
       }
 
@@ -381,7 +381,7 @@ query "sql_database_instance_from_sql_database_instances" {
 query "sql_database_instance_kms_keys" {
   sql = <<-EOQ
     select
-      k.name as key_name
+      k.self_link
     from
       gcp_sql_database_instance as i,
       gcp_kms_key as k

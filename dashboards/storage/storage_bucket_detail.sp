@@ -84,7 +84,7 @@ dashboard "storage_bucket_detail" {
       node {
         base = node.kms_key
         args = {
-          kms_key_names = with.kms_keys.rows[*].key_name
+          kms_key_self_links = with.kms_keys.rows[*].self_link
         }
       }
 
@@ -286,12 +286,14 @@ query "storage_bucket_compute_backend_buckets" {
 query "storage_bucket_kms_keys" {
   sql = <<-EOQ
     select
-      split_part(b.default_kms_key_name, 'cryptoKeys/', 2) as key_name
+      k.self_link
     from
-      gcp_storage_bucket b
+      gcp_storage_bucket b,
+      gcp_kms_key k
     where
       b.id = $1
-      and b.default_kms_key_name is not null;
+      and b.default_kms_key_name is not null
+      and k.self_link like '%' || b.default_kms_key_name
   EOQ
 }
 

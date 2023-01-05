@@ -86,7 +86,7 @@ edge "kubernetes_cluster_to_kms_key" {
   sql = <<-EOQ
     select
       c.id::text as from_id,
-      k.name as to_id,
+      k.self_link as to_id,
       jsonb_build_object(
         'Database Encryption State', c.database_encryption_state
       ) as properties
@@ -96,7 +96,7 @@ edge "kubernetes_cluster_to_kms_key" {
     where
       c.id = any($1)
       and c.database_encryption_key_name is not null
-      and split_part(c.database_encryption_key_name, 'cryptoKeys/', 2) = k.name;
+      and k.self_link like '%' || c.database_encryption_key_name
   EOQ
 
   param "kubernetes_cluster_ids" {}

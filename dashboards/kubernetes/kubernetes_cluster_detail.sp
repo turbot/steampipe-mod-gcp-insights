@@ -149,7 +149,7 @@ dashboard "kubernetes_cluster_detail" {
       node {
         base = node.kms_key
         args = {
-          kms_key_names = with.kms_keys.rows[*].key_name
+          kms_key_self_links = with.kms_keys.rows[*].self_link
         }
       }
 
@@ -514,14 +514,14 @@ query "kubernetes_cluster_compute_subnets" {
 query "kubernetes_cluster_kms_keys" {
   sql = <<-EOQ
     select
-      k.name as key_name
+      k.self_link
     from
       gcp_kubernetes_cluster c,
       gcp_kms_key k
     where
       c.database_encryption_key_name is not null
       and k.project = c.project
-      and split_part(c.database_encryption_key_name, 'cryptoKeys/', 2) = k.name
+      and k.self_link like '%' || c.database_encryption_key_name
       and c.id = $1;
   EOQ
 }

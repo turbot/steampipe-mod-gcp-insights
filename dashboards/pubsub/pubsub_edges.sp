@@ -23,12 +23,12 @@ edge "pubsub_topic_to_kms_key" {
   sql = <<-EOQ
     select
       p.self_link as from_id,
-      concat(k.name, '_key') as to_id
+      k.self_link as to_id
     from
       gcp_pubsub_topic p,
       gcp_kms_key k
     where
-      k.name = split_part(p.kms_key_name, 'cryptoKeys/', 2)
+      k.self_link like '%' || kms_key_name
       and p.self_link = any($1);
   EOQ
 

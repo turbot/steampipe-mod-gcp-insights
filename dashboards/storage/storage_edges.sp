@@ -4,14 +4,14 @@ edge "storage_bucket_to_kms_key" {
   sql = <<-EOQ
     select
       b.id as from_id,
-      k.name as to_id
+      k.self_link as to_id
     from
       gcp_storage_bucket b,
       gcp_kms_key k
     where
       b.id = any($1)
       and b.default_kms_key_name is not null
-      and split_part(b.default_kms_key_name, 'cryptoKeys/', 2) = k.name;
+      and k.self_link like '%' || b.default_kms_key_name;
   EOQ
 
   param "storage_bucket_ids" {}

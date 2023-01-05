@@ -164,7 +164,7 @@ dashboard "compute_disk_detail" {
       node {
         base = node.kms_key
         args = {
-          kms_key_names = with.kms_keys.rows[*].key_name
+          kms_key_self_links = with.kms_keys.rows[*].self_link
         }
       }
 
@@ -495,13 +495,13 @@ query "compute_disk_from_compute_snapshots" {
 query "compute_disk_kms_keys" {
   sql = <<-EOQ
     select
-      k.name as key_name
+      k.self_link
     from
       gcp_compute_disk d,
       gcp_kms_key k
     where
       d.disk_encryption_key is not null
-      and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.name
+      and k.self_link like '%' || split_part(d.disk_encryption_key ->> 'kmsKeyName', '/cryptoKeyVersions/', 1);
       and d.id = $1;
   EOQ
 }

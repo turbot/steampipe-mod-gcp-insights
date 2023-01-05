@@ -7,7 +7,7 @@ dashboard "kms_key_detail" {
     type = "Detail"
   })
 
-  input "key_name" {
+  input "key_self_link" {
     title = "Select a key:"
     query = query.kms_key_name_input
     width = 4
@@ -18,87 +18,87 @@ dashboard "kms_key_detail" {
     card {
       width = 2
       query = query.kms_key_purpose
-      args  = [self.input.key_name.value]
+      args  = [self.input.key_self_link.value]
     }
 
     card {
       width = 2
       query = query.kms_key_rotation_period
-      args  = [self.input.key_name.value]
+      args  = [self.input.key_self_link.value]
     }
 
     card {
       width = 2
       query = query.kms_key_key_ring_name
-      args  = [self.input.key_name.value]
+      args  = [self.input.key_self_link.value]
     }
 
     card {
       width = 2
       query = query.kms_key_protection_level
-      args  = [self.input.key_name.value]
+      args  = [self.input.key_self_link.value]
     }
 
     card {
       width = 2
       query = query.kms_key_algorithm
-      args  = [self.input.key_name.value]
+      args  = [self.input.key_self_link.value]
     }
   }
 
   with "bigquery_datasets" {
     query = query.kms_key_bigquery_datasets
-    args  = [self.input.key_name.value]
+    args  = [self.input.key_self_link.value]
   }
 
   with "bigquery_tables" {
     query = query.kms_key_bigquery_tables
-    args  = [self.input.key_name.value]
+    args  = [self.input.key_self_link.value]
   }
 
   with "compute_disks" {
     query = query.kms_key_compute_disks
-    args  = [self.input.key_name.value]
+    args  = [self.input.key_self_link.value]
   }
 
   with "compute_images" {
     query = query.kms_key_compute_images
-    args  = [self.input.key_name.value]
+    args  = [self.input.key_self_link.value]
   }
 
   with "compute_snapshots" {
     query = query.kms_key_compute_snapshots
-    args  = [self.input.key_name.value]
+    args  = [self.input.key_self_link.value]
   }
 
   with "kms_key_rings" {
     query = query.kms_key_kms_key_rings
-    args  = [self.input.key_name.value]
+    args  = [self.input.key_self_link.value]
   }
 
   with "kubernetes_clusters" {
     query = query.kms_key_kubernetes_clusters
-    args  = [self.input.key_name.value]
+    args  = [self.input.key_self_link.value]
   }
 
   with "pubsub_topics" {
     query = query.kms_key_pubsub_topics
-    args  = [self.input.key_name.value]
+    args  = [self.input.key_self_link.value]
   }
 
   with "sql_backups" {
     query = query.kms_key_sql_backups
-    args  = [self.input.key_name.value]
+    args  = [self.input.key_self_link.value]
   }
 
   with "sql_database_instances" {
     query = query.kms_key_sql_database_instances
-    args  = [self.input.key_name.value]
+    args  = [self.input.key_self_link.value]
   }
 
   with "storage_buckets" {
     query = query.kms_key_storage_buckets
-    args  = [self.input.key_name.value]
+    args  = [self.input.key_self_link.value]
   }
 
   container {
@@ -145,28 +145,21 @@ dashboard "kms_key_detail" {
       node {
         base = node.kms_key
         args = {
-          kms_key_names = [self.input.key_name.value]
+          kms_key_self_links = [self.input.key_self_link.value]
         }
       }
 
       node {
         base = node.kms_key_ring
         args = {
-          kms_key_ring_names = with.kms_key_rings.rows[*].ring_name
+          kms_key_ring_names = with.kms_key_rings.rows[*].akas
         }
       }
 
       node {
         base = node.kms_key_version
         args = {
-          kms_key_names = [self.input.key_name.value]
-        }
-      }
-
-      node {
-        base = node.kubernetes_cluster
-        args = {
-          kubernetes_cluster_ids = with.kubernetes_clusters.rows[*].cluster_id
+          kms_key_self_links = [self.input.key_self_link.value]
         }
       }
 
@@ -243,14 +236,14 @@ dashboard "kms_key_detail" {
       edge {
         base = edge.kms_key_ring_to_kms_key
         args = {
-          kms_key_ring_names = with.kms_key_rings.rows[*].ring_name
+          kms_key_ring_names = with.kms_key_rings.rows[*].akas
         }
       }
 
       edge {
         base = edge.kms_key_to_kms_key_version
         args = {
-          kms_key_names = [self.input.key_name.value]
+          kms_key_self_links = [self.input.key_self_link.value]
         }
       }
 
@@ -302,14 +295,14 @@ dashboard "kms_key_detail" {
         type  = "line"
         width = 6
         query = query.kms_key_name_overview
-        args  = [self.input.key_name.value]
+        args  = [self.input.key_self_link.value]
       }
 
       table {
         title = "Tags"
         width = 6
         query = query.kms_key_name_tags
-        args  = [self.input.key_name.value]
+        args  = [self.input.key_self_link.value]
       }
 
     }
@@ -322,7 +315,7 @@ query "kms_key_name_input" {
   sql = <<-EOQ
     select
       title as label,
-      name as value,
+      self_link as value,
       json_build_object(
           'project', project
       ) as tags
@@ -343,7 +336,7 @@ query "kms_key_purpose" {
     from
       gcp_kms_key
       where
-        name = $1;
+        self_link = $1;
   EOQ
 }
 
@@ -355,7 +348,7 @@ query "kms_key_rotation_period" {
     from
       gcp_kms_key
       where
-        name = $1;
+        self_link = $1;
   EOQ
 }
 
@@ -367,7 +360,7 @@ query "kms_key_key_ring_name" {
     from
       gcp_kms_key
     where
-      name = $1;
+      self_link = $1;
   EOQ
 }
 
@@ -379,7 +372,7 @@ query "kms_key_protection_level" {
     from
       gcp_kms_key
     where
-      name = $1;
+      self_link = $1;
   EOQ
 }
 
@@ -391,7 +384,7 @@ query "kms_key_algorithm" {
     from
       gcp_kms_key
     where
-      name = $1;
+      self_link = $1;
   EOQ
 }
 
@@ -404,7 +397,7 @@ query "kms_key_bigquery_datasets" {
     from
       gcp_bigquery_dataset d
     where
-      split_part(d.kms_key_name, 'cryptoKeys/', 2) = $1;
+      $1 like '%' || d.kms_key_name || '%';
   EOQ
 }
 
@@ -415,7 +408,7 @@ query "kms_key_bigquery_tables" {
     from
       gcp_bigquery_table t
     where
-      split_part(t.kms_key_name, 'cryptoKeys/', 2) = $1;
+      $1 like '%' || t.kms_key_name || '%';
   EOQ
 }
 
@@ -428,9 +421,9 @@ query "kms_key_compute_disks" {
       gcp_kms_key_version k
     where
       d.disk_encryption_key is not null
-      and split_part(d.disk_encryption_key ->> 'kmsKeyName', 'cryptoKeyVersions/', 2) = k.crypto_key_version::text
+      and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/cryptoKeyVersions/', 2) = k.crypto_key_version::text
       and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = k.key_name
-      and split_part(d.disk_encryption_key ->> 'kmsKeyName', '/', 8) = $1;
+      and $1 like '%' || split_part(d.disk_encryption_key ->> 'kmsKeyName', '/cryptoKeyVersions/', 1);
   EOQ
 }
 
@@ -442,7 +435,7 @@ query "kms_key_compute_images" {
       gcp_compute_image as i
     where
       i.image_encryption_key is not null
-      and split_part(i.image_encryption_key->>'kmsKeyName', '/', 8) = $1;
+      and $1 like '%' || split_part(i.image_encryption_key->>'kmsKeyName', '/cryptoKeyVersions/', 1);
   EOQ
 }
 
@@ -456,20 +449,20 @@ query "kms_key_compute_snapshots" {
     where
       v.crypto_key_version::text = split_part(s.kms_key_name, 'cryptoKeyVersions/', 2)
       and split_part(s.kms_key_name, '/', 8) = v.key_name
-      and v.key_name = $1;
+      and v.self_link like $1 || '%';
   EOQ
 }
 
 query "kms_key_kms_key_rings" {
   sql = <<-EOQ
     select
-      p.name as ring_name
+      p.akas::text
     from
       gcp_kms_key_ring p,
       gcp_kms_key k
     where
       k.key_ring_name = p.name
-      and k.name = $1;
+      and k.self_link = $1;
   EOQ
 }
 
@@ -481,19 +474,21 @@ query "kms_key_kubernetes_clusters" {
       gcp_kubernetes_cluster c
     where
       c.database_encryption_key_name is not null
-      and split_part(c.database_encryption_key_name, 'cryptoKeys/', 2) = $1;
+      and database_encryption_key_name <> ''
+      and $1 like '%' || database_encryption_key_name;
   EOQ
 }
 
 query "kms_key_pubsub_topics" {
   sql = <<-EOQ
     select
-      p.self_link as topic_name
+      p.self_link
     from
-      gcp_pubsub_topic p,
-      gcp_kms_key k
+      gcp_pubsub_topic p
     where
-      split_part(p.kms_key_name, 'cryptoKeys/', 2) = $1;
+      kms_key_name is not null
+      and kms_key_name <> ''
+      and $1 like '%' || kms_key_name;
   EOQ
 }
 
@@ -504,7 +499,7 @@ query "kms_key_sql_backups" {
     from
       gcp_sql_backup b
     where
-      split_part(b.disk_encryption_configuration ->> 'kmsKeyName','cryptoKeys/',2) = $1;
+      $1 like '%' || (disk_encryption_configuration ->> 'kmsKeyName');
   EOQ
 }
 
@@ -515,7 +510,7 @@ query "kms_key_sql_database_instances" {
     from
       gcp_sql_database_instance as i
     where
-      split_part(i.kms_key_name, 'cryptoKeys/', 2) = $1;
+      $1 like '%' || kms_key_name;
   EOQ
 }
 
@@ -527,7 +522,7 @@ query "kms_key_storage_buckets" {
       gcp_storage_bucket b
     where
       b.default_kms_key_name is not null
-      and split_part(b.default_kms_key_name, 'cryptoKeys/', 2) = $1;
+      and $1 like '%' || default_kms_key_name;
   EOQ
 }
 
@@ -544,7 +539,7 @@ query "kms_key_name_overview" {
     from
       gcp_kms_key
     where
-      name = $1;
+      self_link = $1;
   EOQ
 
 }
@@ -557,7 +552,7 @@ query "kms_key_name_tags" {
   from
     gcp_kms_key
   where
-    name = $1;
+    self_link = $1;
   EOQ
 
 }

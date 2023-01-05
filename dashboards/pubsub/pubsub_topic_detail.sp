@@ -69,7 +69,7 @@ dashboard "pubsub_topic_detail" {
       node {
         base = node.kms_key
         args = {
-          kms_key_names = with.kms_keys.rows[*].key_name
+          kms_key_self_links = with.kms_keys.rows[*].self_link
         }
       }
 
@@ -244,11 +244,13 @@ query "pubsub_topic_iam_roles" {
 query "pubsub_topic_kms_keys" {
   sql = <<-EOQ
     select
-      split_part(p.kms_key_name, 'cryptoKeys/', 2) as key_name
+      k.self_link
     from
-      gcp_pubsub_topic p
+      gcp_pubsub_topic p,
+      gcp_kms_key k
     where
-      p.self_link = $1;
+      k.self_link like '%' || p.kms_key_name
+      and p.self_link = $1;
   EOQ
 }
 
