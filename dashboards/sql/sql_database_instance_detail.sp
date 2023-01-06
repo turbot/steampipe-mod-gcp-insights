@@ -51,32 +51,32 @@ dashboard "sql_database_instance_detail" {
     }
   }
 
-  with "compute_networks" {
-    query = query.sql_database_instance_compute_networks
-    args  = [self.input.database_instance_self_link.value]
-  }
-
-  with "from_sql_database_instances" {
+  with "sql_database_instance_from_sql_database_instances" {
     query = query.sql_database_instance_from_sql_database_instances
     args  = [self.input.database_instance_self_link.value]
   }
 
-  with "kms_keys" {
-    query = query.sql_database_instance_kms_keys
+  with "sql_database_instance_to_compute_networks" {
+    query = query.sql_database_instance_to_compute_networks
     args  = [self.input.database_instance_self_link.value]
   }
 
-  with "sql_backups" {
-    query = query.sql_database_instance_sql_backups
+  with "sql_database_instance_to_kms_keys" {
+    query = query.sql_database_instance_to_kms_keys
     args  = [self.input.database_instance_self_link.value]
   }
 
-  with "sql_databases" {
-    query = query.sql_database_instance_sql_databases
+  with "sql_database_instance_to_sql_backups" {
+    query = query.sql_database_instance_to_sql_backups
     args  = [self.input.database_instance_self_link.value]
   }
 
-  with "to_sql_database_instances" {
+  with "sql_database_instance_to_sql_databases" {
+    query = query.sql_database_instance_to_sql_databases
+    args  = [self.input.database_instance_self_link.value]
+  }
+
+  with "sql_database_instance_to_sql_database_instances" {
     query = query.sql_database_instance_to_sql_database_instances
     args  = [self.input.database_instance_self_link.value]
   }
@@ -90,28 +90,28 @@ dashboard "sql_database_instance_detail" {
       node {
         base = node.compute_network
         args = {
-          compute_network_ids = with.compute_networks.rows[*].network_id
+          compute_network_ids = with.sql_database_instance_to_compute_networks.rows[*].network_id
         }
       }
 
       node {
         base = node.kms_key
         args = {
-          kms_key_self_links = with.kms_keys.rows[*].self_link
+          kms_key_self_links = with.sql_database_instance_to_kms_keys.rows[*].self_link
         }
       }
 
       node {
         base = node.sql_backup
         args = {
-          sql_backup_ids = with.sql_backups.rows[*].backup_id
+          sql_backup_ids = with.sql_database_instance_to_sql_backups.rows[*].backup_id
         }
       }
 
       node {
         base = node.sql_database
         args = {
-          sql_database_self_links = with.sql_databases.rows[*].self_link
+          sql_database_self_links = with.sql_database_instance_to_sql_databases.rows[*].self_link
         }
       }
 
@@ -125,14 +125,14 @@ dashboard "sql_database_instance_detail" {
       node {
         base = node.sql_database_instance
         args = {
-          database_instance_self_links = with.from_sql_database_instances.rows[*].self_link
+          database_instance_self_links = with.sql_database_instance_from_sql_database_instances.rows[*].self_link
         }
       }
 
       node {
         base = node.sql_database_instance
         args = {
-          database_instance_self_links = with.to_sql_database_instances.rows[*].self_link
+          database_instance_self_links = with.sql_database_instance_to_sql_database_instances.rows[*].self_link
         }
       }
 
@@ -174,7 +174,7 @@ dashboard "sql_database_instance_detail" {
       edge {
         base = edge.sql_database_instance_to_sql_database_instance
         args = {
-          database_instance_self_links = with.from_sql_database_instances.rows[*].self_link
+          database_instance_self_links = with.sql_database_instance_from_sql_database_instances.rows[*].self_link
         }
       }
     }
@@ -353,19 +353,6 @@ query "sql_database_instance_ssl_enabled" {
 
 # With queries
 
-query "sql_database_instance_compute_networks" {
-  sql = <<-EOQ
-    select
-      n.id::text as network_id
-    from
-      gcp_sql_database_instance as i,
-      gcp_compute_network as n
-    where
-      SPLIT_PART(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
-      and i.self_link = $1;
-  EOQ
-}
-
 query "sql_database_instance_from_sql_database_instances" {
   sql = <<-EOQ
     select
@@ -378,7 +365,20 @@ query "sql_database_instance_from_sql_database_instances" {
   EOQ
 }
 
-query "sql_database_instance_kms_keys" {
+query "sql_database_instance_to_compute_networks" {
+  sql = <<-EOQ
+    select
+      n.id::text as network_id
+    from
+      gcp_sql_database_instance as i,
+      gcp_compute_network as n
+    where
+      SPLIT_PART(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
+      and i.self_link = $1;
+  EOQ
+}
+
+query "sql_database_instance_to_kms_keys" {
   sql = <<-EOQ
     select
       k.self_link
@@ -391,7 +391,7 @@ query "sql_database_instance_kms_keys" {
   EOQ
 }
 
-query "sql_database_instance_sql_backups" {
+query "sql_database_instance_to_sql_backups" {
   sql = <<-EOQ
     select
       id::text as backup_id
@@ -402,7 +402,7 @@ query "sql_database_instance_sql_backups" {
   EOQ
 }
 
-query "sql_database_instance_sql_databases" {
+query "sql_database_instance_to_sql_databases" {
   sql = <<-EOQ
     select
       d.self_link

@@ -46,58 +46,58 @@ dashboard "kms_key_detail" {
     }
   }
 
-  with "bigquery_datasets" {
-    query = query.kms_key_bigquery_datasets
+  with "kms_key_from_bigquery_datasets" {
+    query = query.kms_key_from_bigquery_datasets
     args  = [self.input.key_self_link.value]
   }
 
-  with "bigquery_tables" {
-    query = query.kms_key_bigquery_tables
+  with "kms_key_from_bigquery_tables" {
+    query = query.kms_key_from_bigquery_tables
     args  = [self.input.key_self_link.value]
   }
 
-  with "compute_disks" {
-    query = query.kms_key_compute_disks
+  with "kms_key_from_compute_disks" {
+    query = query.kms_key_from_compute_disks
     args  = [self.input.key_self_link.value]
   }
 
-  with "compute_images" {
-    query = query.kms_key_compute_images
+  with "kms_key_from_compute_images" {
+    query = query.kms_key_from_compute_images
     args  = [self.input.key_self_link.value]
   }
 
-  with "compute_snapshots" {
-    query = query.kms_key_compute_snapshots
+  with "kms_key_from_compute_snapshots" {
+    query = query.kms_key_from_compute_snapshots
     args  = [self.input.key_self_link.value]
   }
 
-  with "kms_key_rings" {
-    query = query.kms_key_kms_key_rings
+  with "kms_key_kms_from_key_rings" {
+    query = query.kms_key_kms_from_key_rings
     args  = [self.input.key_self_link.value]
   }
 
-  with "kubernetes_clusters" {
-    query = query.kms_key_kubernetes_clusters
+  with "kms_key_from_kubernetes_clusters" {
+    query = query.kms_key_from_kubernetes_clusters
     args  = [self.input.key_self_link.value]
   }
 
-  with "pubsub_topics" {
-    query = query.kms_key_pubsub_topics
+  with "kms_key_from_pubsub_topics" {
+    query = query.kms_key_from_pubsub_topics
     args  = [self.input.key_self_link.value]
   }
 
-  with "sql_backups" {
-    query = query.kms_key_sql_backups
+  with "kms_key_from_sql_backups" {
+    query = query.kms_key_from_sql_backups
     args  = [self.input.key_self_link.value]
   }
 
-  with "sql_database_instances" {
-    query = query.kms_key_sql_database_instances
+  with "kms_key_from_sql_database_instances" {
+    query = query.kms_key_from_sql_database_instances
     args  = [self.input.key_self_link.value]
   }
 
-  with "storage_buckets" {
-    query = query.kms_key_storage_buckets
+  with "kms_key_from_storage_buckets" {
+    query = query.kms_key_from_storage_buckets
     args  = [self.input.key_self_link.value]
   }
 
@@ -110,35 +110,35 @@ dashboard "kms_key_detail" {
       node {
         base = node.bigquery_dataset
         args = {
-          bigquery_dataset_ids = with.bigquery_datasets.rows[*].dataset_id
+          bigquery_dataset_ids = with.kms_key_from_bigquery_datasets.rows[*].dataset_id
         }
       }
 
       node {
         base = node.bigquery_table
         args = {
-          bigquery_table_ids = with.bigquery_tables.rows[*].table_id
+          bigquery_table_ids = with.kms_key_from_bigquery_tables.rows[*].table_id
         }
       }
 
       node {
         base = node.compute_disk
         args = {
-          compute_disk_ids = with.compute_disks.rows[*].disk_id
+          compute_disk_ids = with.kms_key_from_compute_disks.rows[*].disk_id
         }
       }
 
       node {
         base = node.compute_image
         args = {
-          compute_image_ids = with.compute_images.rows[*].image_id
+          compute_image_ids = with.kms_key_from_compute_images.rows[*].image_id
         }
       }
 
       node {
         base = node.compute_snapshot
         args = {
-          compute_snapshot_names = with.compute_snapshots.rows[*].snapshot_name
+          compute_snapshot_names = with.kms_key_from_compute_snapshots.rows[*].snapshot_name
         }
       }
 
@@ -152,7 +152,7 @@ dashboard "kms_key_detail" {
       node {
         base = node.kms_key_ring
         args = {
-          kms_key_ring_names = with.kms_key_rings.rows[*].akas
+          kms_key_ring_names = with.kms_key_kms_from_key_rings.rows[*].akas
         }
       }
 
@@ -166,77 +166,77 @@ dashboard "kms_key_detail" {
       node {
         base = node.kubernetes_cluster
         args = {
-          kubernetes_cluster_ids = with.kubernetes_clusters.rows[*].cluster_id
+          kubernetes_cluster_ids = with.kms_key_from_kubernetes_clusters.rows[*].cluster_id
         }
       }
 
       node {
         base = node.pubsub_topic
         args = {
-          pubsub_topic_self_links = with.pubsub_topics.rows[*].self_link
+          pubsub_topic_self_links = with.kms_key_from_pubsub_topics.rows[*].self_link
         }
       }
 
       node {
         base = node.sql_backup
         args = {
-          sql_backup_ids = with.sql_backups.rows[*].backup_id
+          sql_backup_ids = with.kms_key_from_sql_backups.rows[*].backup_id
         }
       }
 
       node {
         base = node.sql_database_instance
         args = {
-          database_instance_self_links = with.sql_database_instances.rows[*].self_link
+          database_instance_self_links = with.kms_key_from_sql_database_instances.rows[*].self_link
         }
       }
 
       node {
         base = node.storage_bucket
         args = {
-          storage_bucket_ids = with.storage_buckets.rows[*].bucket_id
+          storage_bucket_ids = with.kms_key_from_storage_buckets.rows[*].bucket_id
         }
       }
 
       edge {
         base = edge.bigquery_dataset_to_kms_key
         args = {
-          bigquery_dataset_ids = with.bigquery_datasets.rows[*].dataset_id
+          bigquery_dataset_ids = with.kms_key_from_bigquery_datasets.rows[*].dataset_id
         }
       }
 
       edge {
         base = edge.bigquery_table_to_kms_key
         args = {
-          bigquery_table_ids = with.bigquery_tables.rows[*].table_id
+          bigquery_table_ids = with.kms_key_from_bigquery_tables.rows[*].table_id
         }
       }
 
       edge {
         base = edge.compute_disk_to_kms_key_version
         args = {
-          compute_disk_ids = with.compute_disks.rows[*].disk_id
+          compute_disk_ids = with.kms_key_from_compute_disks.rows[*].disk_id
         }
       }
 
       edge {
         base = edge.compute_image_to_kms_key_version
         args = {
-          compute_image_ids = with.compute_images.rows[*].image_id
+          compute_image_ids = with.kms_key_from_compute_images.rows[*].image_id
         }
       }
 
       edge {
         base = edge.compute_snapshot_to_kms_key_version
         args = {
-          compute_snapshot_names = with.compute_snapshots.rows[*].snapshot_name
+          compute_snapshot_names = with.kms_key_from_compute_snapshots.rows[*].snapshot_name
         }
       }
 
       edge {
         base = edge.kms_key_ring_to_kms_key
         args = {
-          kms_key_ring_names = with.kms_key_rings.rows[*].akas
+          kms_key_ring_names = with.kms_key_kms_from_key_rings.rows[*].akas
         }
       }
 
@@ -250,35 +250,35 @@ dashboard "kms_key_detail" {
       edge {
         base = edge.kubernetes_cluster_to_kms_key
         args = {
-          kubernetes_cluster_ids = with.kubernetes_clusters.rows[*].cluster_id
+          kubernetes_cluster_ids = with.kms_key_from_kubernetes_clusters.rows[*].cluster_id
         }
       }
 
       edge {
         base = edge.pubsub_topic_to_kms_key
         args = {
-          pubsub_topic_self_links = with.pubsub_topics.rows[*].self_link
+          pubsub_topic_self_links = with.kms_key_from_pubsub_topics.rows[*].self_link
         }
       }
 
       edge {
         base = edge.sql_backup_to_kms_key
         args = {
-          sql_backup_ids = with.sql_backups.rows[*].backup_id
+          sql_backup_ids = with.kms_key_from_sql_backups.rows[*].backup_id
         }
       }
 
       edge {
         base = edge.sql_database_instance_to_kms_key
         args = {
-          database_instance_self_links = with.sql_database_instances.rows[*].self_link
+          database_instance_self_links = with.kms_key_from_sql_database_instances.rows[*].self_link
         }
       }
 
       edge {
         base = edge.storage_bucket_to_kms_key
         args = {
-          storage_bucket_ids = with.storage_buckets.rows[*].bucket_id
+          storage_bucket_ids = with.kms_key_from_storage_buckets.rows[*].bucket_id
         }
       }
     }
@@ -390,7 +390,7 @@ query "kms_key_algorithm" {
 
 # With queries
 
-query "kms_key_bigquery_datasets" {
+query "kms_key_from_bigquery_datasets" {
   sql = <<-EOQ
     select
       d.id as dataset_id
@@ -401,7 +401,7 @@ query "kms_key_bigquery_datasets" {
   EOQ
 }
 
-query "kms_key_bigquery_tables" {
+query "kms_key_from_bigquery_tables" {
   sql = <<-EOQ
     select
       t.id as table_id
@@ -412,7 +412,7 @@ query "kms_key_bigquery_tables" {
   EOQ
 }
 
-query "kms_key_compute_disks" {
+query "kms_key_from_compute_disks" {
   sql = <<-EOQ
     select
       d.id::text as disk_id
@@ -427,7 +427,7 @@ query "kms_key_compute_disks" {
   EOQ
 }
 
-query "kms_key_compute_images" {
+query "kms_key_from_compute_images" {
   sql = <<-EOQ
     select
       i.id::text as image_id
@@ -439,7 +439,7 @@ query "kms_key_compute_images" {
   EOQ
 }
 
-query "kms_key_compute_snapshots" {
+query "kms_key_from_compute_snapshots" {
   sql = <<-EOQ
     select
       s.name as snapshot_name
@@ -453,7 +453,7 @@ query "kms_key_compute_snapshots" {
   EOQ
 }
 
-query "kms_key_kms_key_rings" {
+query "kms_key_kms_from_key_rings" {
   sql = <<-EOQ
     select
       p.akas::text
@@ -466,7 +466,7 @@ query "kms_key_kms_key_rings" {
   EOQ
 }
 
-query "kms_key_kubernetes_clusters" {
+query "kms_key_from_kubernetes_clusters" {
   sql = <<-EOQ
     select
       c.id::text as cluster_id
@@ -479,7 +479,7 @@ query "kms_key_kubernetes_clusters" {
   EOQ
 }
 
-query "kms_key_pubsub_topics" {
+query "kms_key_from_pubsub_topics" {
   sql = <<-EOQ
     select
       p.self_link
@@ -492,7 +492,7 @@ query "kms_key_pubsub_topics" {
   EOQ
 }
 
-query "kms_key_sql_backups" {
+query "kms_key_from_sql_backups" {
   sql = <<-EOQ
     select
       b.id::text as backup_id
@@ -503,7 +503,7 @@ query "kms_key_sql_backups" {
   EOQ
 }
 
-query "kms_key_sql_database_instances" {
+query "kms_key_from_sql_database_instances" {
   sql = <<-EOQ
     select
       i.self_link
@@ -514,7 +514,7 @@ query "kms_key_sql_database_instances" {
   EOQ
 }
 
-query "kms_key_storage_buckets" {
+query "kms_key_from_storage_buckets" {
   sql = <<-EOQ
     select
       b.id as bucket_id

@@ -53,48 +53,48 @@ dashboard "kubernetes_cluster_detail" {
 
   }
 
-  with "bigquery_datasets" {
-    query = query.kubernetes_cluster_bigquery_datasets
+  with "kubernetes_cluster_to_bigquery_datasets" {
+    query = query.kubernetes_cluster_to_bigquery_datasets
     args  = [self.input.cluster_id.value]
   }
 
-  with "compute_firewalls" {
-    query = query.kubernetes_cluster_compute_firewalls
+  with "kubernetes_cluster_to_compute_firewalls" {
+    query = query.kubernetes_cluster_to_compute_firewalls
     args  = [self.input.cluster_id.value]
   }
 
-  with "compute_instance_groups" {
-    query = query.kubernetes_cluster_compute_instance_groups
+  with "kubernetes_cluster_to_compute_instance_groups" {
+    query = query.kubernetes_cluster_to_compute_instance_groups
     args  = [self.input.cluster_id.value]
   }
 
-  with "compute_instances" {
-    query = query.kubernetes_cluster_compute_instances
+  with "kubernetes_cluster_to_compute_instances" {
+    query = query.kubernetes_cluster_to_compute_instances
     args  = [self.input.cluster_id.value]
   }
 
-  with "compute_networks" {
-    query = query.kubernetes_cluster_compute_networks
+  with "kubernetes_cluster_to_compute_networks" {
+    query = query.kubernetes_cluster_to_compute_networks
     args  = [self.input.cluster_id.value]
   }
 
-  with "compute_subnets" {
-    query = query.kubernetes_cluster_compute_subnets
+  with "kubernetes_cluster_to_compute_subnets" {
+    query = query.kubernetes_cluster_to_compute_subnets
     args  = [self.input.cluster_id.value]
   }
 
-  with "kms_keys" {
-    query = query.kubernetes_cluster_kms_keys
+  with "kubernetes_cluster_to_kms_keys" {
+    query = query.kubernetes_cluster_to_kms_keys
     args  = [self.input.cluster_id.value]
   }
 
-  with "kubernetes_node_pools" {
-    query = query.kubernetes_cluster_kubernetes_node_pools
+  with "kubernetes_cluster_to_kubernetes_node_pools" {
+    query = query.kubernetes_cluster_to_kubernetes_node_pools
     args  = [self.input.cluster_id.value]
   }
 
-  with "pubsub_topics" {
-    query = query.kubernetes_cluster_pubsub_topics
+  with "kubernetes_cluster_to_pubsub_topics" {
+    query = query.kubernetes_cluster_to_pubsub_topics
     args  = [self.input.cluster_id.value]
   }
 
@@ -107,49 +107,49 @@ dashboard "kubernetes_cluster_detail" {
       node {
         base = node.bigquery_dataset
         args = {
-          bigquery_dataset_ids = with.bigquery_datasets.rows[*].dataset_id
+          bigquery_dataset_ids = with.kubernetes_cluster_to_bigquery_datasets.rows[*].dataset_id
         }
       }
 
       node {
         base = node.compute_firewall
         args = {
-          compute_firewall_ids = with.compute_firewalls.rows[*].firewall_id
+          compute_firewall_ids = with.kubernetes_cluster_to_compute_firewalls.rows[*].firewall_id
         }
       }
 
       node {
         base = node.compute_instance
         args = {
-          compute_instance_ids = with.compute_instances.rows[*].instance_id
+          compute_instance_ids = with.kubernetes_cluster_to_compute_instances.rows[*].instance_id
         }
       }
 
       node {
         base = node.compute_instance_group
         args = {
-          compute_instance_group_ids = with.compute_instance_groups.rows[*].group_id
+          compute_instance_group_ids = with.kubernetes_cluster_to_compute_instance_groups.rows[*].group_id
         }
       }
 
       node {
         base = node.compute_network
         args = {
-          compute_network_ids = with.compute_networks.rows[*].network_id
+          compute_network_ids = with.kubernetes_cluster_to_compute_networks.rows[*].network_id
         }
       }
 
       node {
         base = node.compute_subnetwork
         args = {
-          compute_subnetwork_ids = with.compute_subnets.rows[*].subnetwork_id
+          compute_subnetwork_ids = with.kubernetes_cluster_to_compute_subnets.rows[*].subnetwork_id
         }
       }
 
       node {
         base = node.kms_key
         args = {
-          kms_key_self_links = with.kms_keys.rows[*].self_link
+          kms_key_self_links = with.kubernetes_cluster_to_kms_keys.rows[*].self_link
         }
       }
 
@@ -163,28 +163,28 @@ dashboard "kubernetes_cluster_detail" {
       node {
         base = node.kubernetes_node_pool
         args = {
-          kubernetes_node_pool_names = with.kubernetes_node_pools.rows[*].pool_name
+          kubernetes_node_pool_names = with.kubernetes_cluster_to_kubernetes_node_pools.rows[*].pool_name
         }
       }
 
       node {
         base = node.pubsub_topic
         args = {
-          pubsub_topic_self_links = with.pubsub_topics.rows[*].self_link
+          pubsub_topic_self_links = with.kubernetes_cluster_to_pubsub_topics.rows[*].self_link
         }
       }
 
       edge {
         base = edge.compute_instance_group_to_compute_instance
         args = {
-          compute_instance_group_ids = with.compute_instance_groups.rows[*].group_id
+          compute_instance_group_ids = with.kubernetes_cluster_to_compute_instance_groups.rows[*].group_id
         }
       }
 
       edge {
         base = edge.compute_subnetwork_to_compute_network
         args = {
-          compute_subnetwork_ids = with.compute_subnets.rows[*].subnetwork_id
+          compute_subnetwork_ids = with.kubernetes_cluster_to_compute_subnets.rows[*].subnetwork_id
         }
       }
 
@@ -233,7 +233,7 @@ dashboard "kubernetes_cluster_detail" {
       edge {
         base = edge.kubernetes_node_pool_to_compute_instance_group
         args = {
-          kubernetes_node_pool_names = with.kubernetes_node_pools.rows[*].pool_name
+          kubernetes_node_pool_names = with.kubernetes_cluster_to_kubernetes_node_pools.rows[*].pool_name
         }
       }
     }
@@ -415,7 +415,7 @@ query "kubernetes_cluster_auto_repair_disabled" {
 
 # With queries
 
-query "kubernetes_cluster_bigquery_datasets" {
+query "kubernetes_cluster_to_bigquery_datasets" {
   sql = <<-EOQ
     select
       d.id as dataset_id
@@ -429,7 +429,7 @@ query "kubernetes_cluster_bigquery_datasets" {
   EOQ
 }
 
-query "kubernetes_cluster_compute_firewalls" {
+query "kubernetes_cluster_to_compute_firewalls" {
   sql = <<-EOQ
     select
       f.id::text as firewall_id
@@ -445,7 +445,7 @@ query "kubernetes_cluster_compute_firewalls" {
   EOQ
 }
 
-query "kubernetes_cluster_compute_instance_groups" {
+query "kubernetes_cluster_to_compute_instance_groups" {
   sql = <<-EOQ
     select
       g.id::text as group_id
@@ -463,7 +463,7 @@ query "kubernetes_cluster_compute_instance_groups" {
   EOQ
 }
 
-query "kubernetes_cluster_compute_instances" {
+query "kubernetes_cluster_to_compute_instances" {
   sql = <<-EOQ
     select
       i.id::text as instance_id
@@ -484,7 +484,7 @@ query "kubernetes_cluster_compute_instances" {
   EOQ
 }
 
-query "kubernetes_cluster_compute_networks" {
+query "kubernetes_cluster_to_compute_networks" {
   sql = <<-EOQ
     select
       n.id::text as network_id
@@ -498,7 +498,7 @@ query "kubernetes_cluster_compute_networks" {
   EOQ
 }
 
-query "kubernetes_cluster_compute_subnets" {
+query "kubernetes_cluster_to_compute_subnets" {
   sql = <<-EOQ
     select
       s.id::text as subnetwork_id
@@ -511,7 +511,7 @@ query "kubernetes_cluster_compute_subnets" {
   EOQ
 }
 
-query "kubernetes_cluster_kms_keys" {
+query "kubernetes_cluster_to_kms_keys" {
   sql = <<-EOQ
     select
       k.self_link
@@ -526,7 +526,7 @@ query "kubernetes_cluster_kms_keys" {
   EOQ
 }
 
-query "kubernetes_cluster_kubernetes_node_pools" {
+query "kubernetes_cluster_to_kubernetes_node_pools" {
   sql = <<-EOQ
     select
       p.name as pool_name
@@ -540,7 +540,7 @@ query "kubernetes_cluster_kubernetes_node_pools" {
   EOQ
 }
 
-query "kubernetes_cluster_pubsub_topics" {
+query "kubernetes_cluster_to_pubsub_topics" {
   sql = <<-EOQ
     select
       t.self_link as topic_name
