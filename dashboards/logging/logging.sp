@@ -5,7 +5,7 @@ locals {
 }
 
 category "logging_bucket" {
+  title = "Logging Bucket"
   color = local.storage_color
   icon  = "library_books"
-  title = "Logging Bucket"
 }
