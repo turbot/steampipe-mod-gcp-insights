@@ -5,7 +5,7 @@ locals {
 }
 
 category "dns_policy" {
-  color = local.networking_color
-  icon  = "text:DP"
   title = "DNS Policy"
+  color = local.networking_color
+  icon  = "policy"
 }

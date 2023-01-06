@@ -5,13 +5,13 @@ locals {
 }
 
 category "bigquery_dataset" {
+  title = "BigQuery Dataset"
   color = local.database_color
   icon  = "speed"
-  title = "BigQuery Dataset"
 }
 
 category "bigquery_table" {
+  title = "BigQuery Table"
   color = local.database_color
   icon  = "table"
-  title = "BigQuery Table"
 }

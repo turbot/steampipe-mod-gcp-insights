@@ -5,133 +5,134 @@ locals {
 }
 
 category "compute_address" {
+  title = "Compute Address"
   color = local.networking_color
   icon  = "swipe_right_alt"
-  title = "Compute Address"
 }
 
 category "compute_autoscaler" {
+  title = "Compute Autoscaler"
   color = local.compute_color
   icon  = "library_add"
-  title = "Compute Autoscaler"
 }
 
 category "compute_backend_bucket" {
+  title = "Compute Backend Bucket"
   color = local.storage_color
   icon  = "cleaning_bucket"
-  title = "Compute Backend Bucket"
 }
 
 category "compute_backend_service" {
-  color = local.networking_color
-  icon  = "text:BS"
   title = "Compute Backend Service"
+  color = local.networking_color
+  icon  = "grid_view"
 }
 
 category "compute_disk" {
-  color = local.storage_color
-  icon  = "hard_drive"
-  href  = "/gcp_insights.dashboard.compute_disk_detail?input.disk_id={{.properties.'ID' | @uri}}"
   title = "Compute Disk"
+  color = local.storage_color
+  href  = "/gcp_insights.dashboard.compute_disk_detail?input.disk_id={{.properties.'ID' | @uri}}"
+  icon  = "hard_drive"
 }
 
 category "compute_firewall" {
+  title = "Compute Firewall Rule"
   color = local.networking_color
   icon  = "enhanced_encryption"
-  title = "Compute Firewall Rule"
 }
 
 category "compute_forwarding_rule" {
-  color = local.networking_color
-  icon  = "text:FR"
   title = "Compute Forwarding Rule"
+  color = local.networking_color
+  icon  = "arrow_forward_ios"
+
 }
 
 category "compute_image" {
+  title = "Compute Image"
   color = local.compute_color
   icon  = "image"
-  title = "Compute Image"
 }
 
 category "compute_instance_group" {
-  color = local.compute_color
-  icon  = "hub"
-  href  = "/gcp_insights.dashboard.compute_instance_group_detail?input.group_id={{.properties.'ID' | @uri}}"
   title = "Compute Instance Group"
+  color = local.compute_color
+  href  = "/gcp_insights.dashboard.compute_instance_group_detail?input.group_id={{.properties.'ID' | @uri}}"
+  icon  = "hub"
 }
 
 category "compute_instance_template" {
+  title = "Compute Instance Template"
   color = local.compute_color
   icon  = "rocket_launch"
-  title = "Compute Instance Template"
 }
 
 category "compute_instance" {
-  color = local.compute_color
-  icon  = "memory"
-  href  = "/gcp_insights.dashboard.compute_instance_detail?input.instance_id={{.properties.'ID' | @uri}}"
   title = "Compute Instance"
+  color = local.compute_color
+  href  = "/gcp_insights.dashboard.compute_instance_detail?input.instance_id={{.properties.'ID' | @uri}}"
+  icon  = "memory"
 }
 
 category "compute_network" {
+  title = "Compute Network"
   color = local.networking_color
   href  = "/gcp_insights.dashboard.compute_network_detail?input.network_id={{.properties.'ID' | @uri}}"
   icon  = "cloud"
-  title = "Compute Network"
 }
 
 category "compute_network_interface" {
+  title = "Compute Network Interface"
   color = local.networking_color
   icon  = "settings_input_antenna"
-  title = "Compute Network Interface"
 }
 
 category "compute_resource_policy" {
-  color = local.compute_color
-  icon  = "text:RP"
   title = "Resource Policy"
+  color = local.compute_color
+  icon  = "rule_folder"
 }
 
 category "compute_router" {
+  title = "Compute Router"
   color = local.networking_color
   icon  = "table_rows"
-  title = "Compute Router"
 }
 
 category "compute_snapshot" {
+  title = "Compute Snapshot"
   color = local.storage_color
   icon  = "add_a_photo"
-  title = "Compute Snapshot"
 }
 
 category "compute_subnetwork" {
-  color = local.networking_color
-  icon  = "lan"
-  href  = "/gcp_insights.dashboard.compute_subnetwork_detail?input.subnetwork_id={{.properties.'ID' | @uri}}"
   title = "Compute Subnetwork"
+  color = local.networking_color
+  href  = "/gcp_insights.dashboard.compute_subnetwork_detail?input.subnetwork_id={{.properties.'ID' | @uri}}"
+  icon  = "lan"
 }
 
 category "compute_target_https_proxy" {
-  color = local.networking_color
-  icon  = "text:THP"
   title = "Compute Target HTTPS Proxy"
+  color = local.networking_color
+  icon  = "https"
 }
 
 category "compute_target_pool" {
+  title = "Compute Target Pool"
   color = local.networking_color
   icon  = "directions"
-  title = "Compute Target Pool"
 }
 
 category "compute_target_ssl_proxy" {
-  color = local.networking_color
-  icon  = "text:TSP"
   title = "Compute Target SSL Proxy"
+  color = local.networking_color
+  icon  = "private_connectivity"
 }
 
 category "compute_vpn_gateway" {
+  title = "Compute VPN Gateway"
   color = local.networking_color
   icon  = "vpn_lock"
-  title = "Compute VPN Gateway"
 }
 
