@@ -46,33 +46,33 @@ dashboard "compute_instance_detail" {
     }
   }
 
-  with "compute_disks" {
-    query = query.compute_instance_compute_disks
+  with "compute_instance_groups_from_compute_instance_id" {
+    query = query.compute_instance_groups_from_compute_instance_id
     args  = [self.input.instance_id.value]
   }
 
-  with "compute_firewalls" {
-    query = query.compute_instance_compute_firewalls
+  with "compute_disks_from_compute_instance_id" {
+    query = query.compute_disks_from_compute_instance_id
     args  = [self.input.instance_id.value]
   }
 
-  with "compute_instance_groups" {
-    query = query.compute_instance_compute_instance_groups
+  with "compute_firewalls_from_compute_instance_id" {
+    query = query.compute_firewalls_from_compute_instance_id
     args  = [self.input.instance_id.value]
   }
 
-  with "compute_networks" {
-    query = query.compute_instance_compute_networks
+  with "compute_networks_from_compute_instance_id" {
+    query = query.compute_networks_from_compute_instance_id
     args  = [self.input.instance_id.value]
   }
 
-  with "compute_subnets" {
-    query = query.compute_instance_compute_subnets
+  with "compute_subnets_from_compute_instance_id" {
+    query = query.compute_subnets_from_compute_instance_id
     args  = [self.input.instance_id.value]
   }
 
-  with "iam_service_accounts" {
-    query = query.compute_instance_iam_service_accounts
+  with "iam_service_accounts_from_compute_instance_id" {
+    query = query.iam_service_accounts_from_compute_instance_id
     args  = [self.input.instance_id.value]
   }
 
@@ -85,14 +85,14 @@ dashboard "compute_instance_detail" {
       node {
         base = node.compute_disk
         args = {
-          compute_disk_ids = with.compute_disks.rows[*].disk_id
+          compute_disk_ids = with.compute_disks_from_compute_instance_id.rows[*].disk_id
         }
       }
 
       node {
         base = node.compute_firewall
         args = {
-          compute_firewall_ids = with.compute_firewalls.rows[*].firewall_id
+          compute_firewall_ids = with.compute_firewalls_from_compute_instance_id.rows[*].firewall_id
         }
       }
 
@@ -106,35 +106,35 @@ dashboard "compute_instance_detail" {
       node {
         base = node.compute_instance_group
         args = {
-          compute_instance_group_ids = with.compute_instance_groups.rows[*].group_id
+          compute_instance_group_ids = with.compute_instance_groups_from_compute_instance_id.rows[*].group_id
         }
       }
 
       node {
         base = node.compute_network
         args = {
-          compute_network_ids = with.compute_networks.rows[*].network_id
+          compute_network_ids = with.compute_networks_from_compute_instance_id.rows[*].network_id
         }
       }
 
       node {
         base = node.compute_subnetwork
         args = {
-          compute_subnetwork_ids = with.compute_subnets.rows[*].subnetwork_id
+          compute_subnetwork_ids = with.compute_subnets_from_compute_instance_id.rows[*].subnetwork_id
         }
       }
 
       node {
         base = node.iam_service_account
         args = {
-          iam_service_account_names = with.iam_service_accounts.rows[*].account_name
+          iam_service_account_names = with.iam_service_accounts_from_compute_instance_id.rows[*].account_name
         }
       }
 
       edge {
         base = edge.compute_instance_group_to_compute_instance
         args = {
-          compute_instance_group_ids = with.compute_instance_groups.rows[*].group_id
+          compute_instance_group_ids = with.compute_instance_groups_from_compute_instance_id.rows[*].group_id
         }
       }
 
@@ -169,7 +169,7 @@ dashboard "compute_instance_detail" {
       edge {
         base = edge.compute_subnetwork_to_compute_network
         args = {
-          compute_subnetwork_ids = with.compute_subnets.rows[*].subnetwork_id
+          compute_subnetwork_ids = with.compute_subnets_from_compute_instance_id.rows[*].subnetwork_id
         }
       }
     }
@@ -325,35 +325,7 @@ query "compute_instance_confidential_vm_service" {
 
 # With queries
 
-query "compute_instance_compute_disks" {
-  sql = <<-EOQ
-    select
-      d.id::text as disk_id
-    from
-      gcp_compute_instance i,
-      gcp_compute_disk d,
-      jsonb_array_elements(disks) as disk
-    where
-      d.self_link = (disk ->> 'source')
-      and i.id = $1;
-  EOQ
-}
-
-query "compute_instance_compute_firewalls" {
-  sql = <<-EOQ
-    select
-      f.id::text as firewall_id
-    from
-      gcp_compute_instance i,
-      gcp_compute_firewall f,
-      jsonb_array_elements(network_interfaces) as ni
-    where
-      ni ->> 'network' = f.network
-      and i.id = $1;
-  EOQ
-}
-
-query "compute_instance_compute_instance_groups" {
+query "compute_instance_groups_from_compute_instance_id" {
   sql = <<-EOQ
     select
       g.id::text as group_id
@@ -367,7 +339,35 @@ query "compute_instance_compute_instance_groups" {
   EOQ
 }
 
-query "compute_instance_compute_networks" {
+query "compute_disks_from_compute_instance_id" {
+  sql = <<-EOQ
+    select
+      d.id::text as disk_id
+    from
+      gcp_compute_instance i,
+      gcp_compute_disk d,
+      jsonb_array_elements(disks) as disk
+    where
+      d.self_link = (disk ->> 'source')
+      and i.id = $1;
+  EOQ
+}
+
+query "compute_firewalls_from_compute_instance_id" {
+  sql = <<-EOQ
+    select
+      f.id::text as firewall_id
+    from
+      gcp_compute_instance i,
+      gcp_compute_firewall f,
+      jsonb_array_elements(network_interfaces) as ni
+    where
+      ni ->> 'network' = f.network
+      and i.id = $1;
+  EOQ
+}
+
+query "compute_networks_from_compute_instance_id" {
   sql = <<-EOQ
     select
       n.id::text as network_id
@@ -381,7 +381,7 @@ query "compute_instance_compute_networks" {
   EOQ
 }
 
-query "compute_instance_compute_subnets" {
+query "compute_subnets_from_compute_instance_id" {
   sql = <<-EOQ
     select
       s.id::text as subnetwork_id
@@ -395,7 +395,7 @@ query "compute_instance_compute_subnets" {
   EOQ
 }
 
-query "compute_instance_iam_service_accounts" {
+query "iam_service_accounts_from_compute_instance_id" {
   sql = <<-EOQ
     select
       s.name as account_name
