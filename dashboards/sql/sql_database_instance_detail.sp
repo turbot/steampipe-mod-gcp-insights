@@ -51,8 +51,8 @@ dashboard "sql_database_instance_detail" {
     }
   }
 
-  with "parent_sql_database_instances_from_sql_database_instance_self_link" {
-    query = query.parent_sql_database_instances_from_sql_database_instance_self_link
+  with "master_sql_database_instances_from_sql_database_instance_self_link" {
+    query = query.master_sql_database_instances_from_sql_database_instance_self_link
     args  = [self.input.database_instance_self_link.value]
   }
 
@@ -76,8 +76,8 @@ dashboard "sql_database_instance_detail" {
     args  = [self.input.database_instance_self_link.value]
   }
 
-  with "child_sql_database_instances_from_sql_database_instance_self_link" {
-    query = query.child_sql_database_instances_from_sql_database_instance_self_link
+  with "replica_sql_database_instances_from_sql_database_instance_self_link" {
+    query = query.replica_sql_database_instances_from_sql_database_instance_self_link
     args  = [self.input.database_instance_self_link.value]
   }
 
@@ -125,14 +125,14 @@ dashboard "sql_database_instance_detail" {
       node {
         base = node.sql_database_instance
         args = {
-          database_instance_self_links = with.parent_sql_database_instances_from_sql_database_instance_self_link.rows[*].self_link
+          database_instance_self_links = with.master_sql_database_instances_from_sql_database_instance_self_link.rows[*].self_link
         }
       }
 
       node {
         base = node.sql_database_instance
         args = {
-          database_instance_self_links = with.child_sql_database_instances_from_sql_database_instance_self_link.rows[*].self_link
+          database_instance_self_links = with.replica_sql_database_instances_from_sql_database_instance_self_link.rows[*].self_link
         }
       }
 
@@ -174,7 +174,7 @@ dashboard "sql_database_instance_detail" {
       edge {
         base = edge.sql_database_instance_to_sql_database_instance
         args = {
-          database_instance_self_links = with.parent_sql_database_instances_from_sql_database_instance_self_link.rows[*].self_link
+          database_instance_self_links = with.master_sql_database_instances_from_sql_database_instance_self_link.rows[*].self_link
         }
       }
     }
@@ -353,7 +353,7 @@ query "sql_database_instance_ssl_enabled" {
 
 # With queries
 
-query "parent_sql_database_instances_from_sql_database_instance_self_link" {
+query "master_sql_database_instances_from_sql_database_instance_self_link" {
   sql = <<-EOQ
     select
       replace(self_link, name, split_part(master_instance_name, ':', 2)) as self_link
@@ -413,7 +413,7 @@ query "sql_databases_from_sql_database_instance_self_link" {
   EOQ
 }
 
-query "child_sql_database_instances_from_sql_database_instance_self_link" {
+query "replica_sql_database_instances_from_sql_database_instance_self_link" {
   sql = <<-EOQ
     select
       self_link
