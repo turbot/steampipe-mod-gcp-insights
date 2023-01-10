@@ -52,53 +52,53 @@ dashboard "compute_network_detail" {
     }
   }
 
-  with "compute_network_from_compute_vpn_gateways" {
+  with "compute_vpn_gateways_from_compute_network_id" {
     query = query.compute_network_from_compute_vpn_gateways
     args  = [self.input.network_id.value]
   }
 
-  with "compute_network_to_compute_backend_services" {
-    query = query.compute_network_to_compute_backend_services
+  with "compute_backend_services_from_compute_network_id" {
+    query = query.compute_backend_services_from_compute_network_id
     args  = [self.input.network_id.value]
   }
 
-  with "compute_network_to_compute_firewalls" {
-    query = query.compute_network_to_compute_firewalls
+  with "compute_firewalls_from_compute_network_id" {
+    query = query.compute_firewalls_from_compute_network_id
     args  = [self.input.network_id.value]
   }
 
-  with "compute_network_to_compute_forwarding_rules" {
-    query = query.compute_network_to_compute_forwarding_rules
+  with "compute_forwarding_rules_from_compute_network_id" {
+    query = query.compute_forwarding_rules_from_compute_network_id
     args  = [self.input.network_id.value]
   }
 
-  with "compute_network_to_compute_instances" {
-    query = query.compute_network_to_compute_instances
+  with "compute_instances_from_compute_network_id" {
+    query = query.compute_instances_from_compute_network_id
     args  = [self.input.network_id.value]
   }
 
-  with "compute_network_to_compute_routers" {
-    query = query.compute_network_to_compute_routers
+  with "compute_routers_from_compute_network_id" {
+    query = query.compute_routers_from_compute_network_id
     args  = [self.input.network_id.value]
   }
 
-  with "compute_network_to_compute_subnetworks" {
-    query = query.compute_network_to_compute_subnetworks
+  with "compute_subnetworks_from_compute_network_id" {
+    query = query.compute_subnetworks_from_compute_network_id
     args  = [self.input.network_id.value]
   }
 
-  with "compute_network_to_dns_policies" {
-    query = query.compute_network_to_dns_policies
+  with "dns_policies_from_compute_network_id" {
+    query = query.dns_policies_from_compute_network_id
     args  = [self.input.network_id.value]
   }
 
-  with "compute_network_to_kubernetes_clusters" {
-    query = query.compute_network_to_kubernetes_clusters
+  with "kubernetes_clusters_from_compute_network_id" {
+    query = query.kubernetes_clusters_from_compute_network_id
     args  = [self.input.network_id.value]
   }
 
-  with "compute_network_to_sql_database_instances" {
-    query = query.compute_network_to_sql_database_instances
+  with "sql_database_instances_from_compute_network_id" {
+    query = query.sql_database_instances_from_compute_network_id
     args  = [self.input.network_id.value]
   }
 
@@ -111,28 +111,28 @@ dashboard "compute_network_detail" {
       node {
         base = node.compute_backend_service
         args = {
-          compute_backend_service_ids = with.compute_network_to_compute_backend_services.rows[*].service_id
+          compute_backend_service_ids = with.compute_backend_services_from_compute_network_id.rows[*].service_id
         }
       }
 
       node {
         base = node.compute_firewall
         args = {
-          compute_firewall_ids = with.compute_network_to_compute_firewalls.rows[*].firewall_id
+          compute_firewall_ids = with.compute_firewalls_from_compute_network_id.rows[*].firewall_id
         }
       }
 
       node {
         base = node.compute_forwarding_rule
         args = {
-          compute_forwarding_rule_ids = with.compute_network_to_compute_forwarding_rules.rows[*].rule_id
+          compute_forwarding_rule_ids = with.compute_forwarding_rules_from_compute_network_id.rows[*].rule_id
         }
       }
 
       node {
         base = node.compute_instance
         args = {
-          compute_instance_ids = with.compute_network_to_compute_instances.rows[*].instance_id
+          compute_instance_ids = with.compute_instances_from_compute_network_id.rows[*].instance_id
         }
       }
 
@@ -146,14 +146,14 @@ dashboard "compute_network_detail" {
       node {
         base = node.compute_router
         args = {
-          compute_router_ids = with.compute_network_to_compute_routers.rows[*].router_id
+          compute_router_ids = with.compute_routers_from_compute_network_id.rows[*].router_id
         }
       }
 
       node {
         base = node.compute_subnetwork
         args = {
-          compute_subnetwork_ids = with.compute_network_to_compute_subnetworks.rows[*].subnetwork_id
+          compute_subnetwork_ids = with.compute_subnetworks_from_compute_network_id.rows[*].subnetwork_id
         }
       }
 
@@ -167,21 +167,21 @@ dashboard "compute_network_detail" {
       node {
         base = node.dns_policy
         args = {
-          dns_policy_ids = with.compute_network_to_dns_policies.rows[*].policy_id
+          dns_policy_ids = with.dns_policies_from_compute_network_id.rows[*].policy_id
         }
       }
 
       node {
         base = node.kubernetes_cluster
         args = {
-          kubernetes_cluster_ids = with.compute_network_to_kubernetes_clusters.rows[*].cluster_id
+          kubernetes_cluster_ids = with.kubernetes_clusters_from_compute_network_id.rows[*].cluster_id
         }
       }
 
       node {
         base = node.sql_database_instance
         args = {
-          database_instance_self_links = with.compute_network_to_sql_database_instances.rows[*].self_link
+          database_instance_self_links = with.sql_database_instances_from_compute_network_id.rows[*].self_link
         }
       }
 
@@ -209,7 +209,7 @@ dashboard "compute_network_detail" {
       edge {
         base = edge.compute_subnetwork_to_compute_instance
         args = {
-          compute_subnetwork_ids = with.compute_network_to_compute_subnetworks.rows[*].subnetwork_id
+          compute_subnetwork_ids = with.compute_subnetworks_from_compute_network_id.rows[*].subnetwork_id
         }
       }
 
@@ -237,7 +237,7 @@ dashboard "compute_network_detail" {
       edge {
         base = edge.compute_subnetwork_to_kubernetes_cluster
         args = {
-          compute_subnetwork_ids = with.compute_network_to_compute_subnetworks.rows[*].subnetwork_id
+          compute_subnetwork_ids = with.compute_subnetworks_from_compute_network_id.rows[*].subnetwork_id
         }
       }
 
@@ -407,7 +407,7 @@ query "compute_network_from_compute_vpn_gateways" {
   EOQ
 }
 
-query "compute_network_to_compute_backend_services" {
+query "compute_backend_services_from_compute_network_id" {
   sql = <<-EOQ
     select
       bs.id::text as service_id
@@ -420,7 +420,7 @@ query "compute_network_to_compute_backend_services" {
   EOQ
 }
 
-query "compute_network_to_compute_firewalls" {
+query "compute_firewalls_from_compute_network_id" {
   sql = <<-EOQ
     select
       f.id::text as firewall_id
@@ -433,7 +433,7 @@ query "compute_network_to_compute_firewalls" {
   EOQ
 }
 
-query "compute_network_to_compute_forwarding_rules" {
+query "compute_forwarding_rules_from_compute_network_id" {
   sql = <<-EOQ
     select
       fr.id::text as rule_id
@@ -458,7 +458,7 @@ query "compute_network_to_compute_forwarding_rules" {
   EOQ
 }
 
-query "compute_network_to_compute_instances" {
+query "compute_instances_from_compute_network_id" {
   sql = <<-EOQ
     select
       i.id::text as instance_id
@@ -472,7 +472,7 @@ query "compute_network_to_compute_instances" {
   EOQ
 }
 
-query "compute_network_to_compute_routers" {
+query "compute_routers_from_compute_network_id" {
   sql = <<-EOQ
     select
       r.id::text as router_id
@@ -485,7 +485,7 @@ query "compute_network_to_compute_routers" {
   EOQ
 }
 
-query "compute_network_to_compute_subnetworks" {
+query "compute_subnetworks_from_compute_network_id" {
   sql = <<-EOQ
     select
       s.id::text as subnetwork_id
@@ -498,7 +498,7 @@ query "compute_network_to_compute_subnetworks" {
   EOQ
 }
 
-query "compute_network_to_dns_policies" {
+query "dns_policies_from_compute_network_id" {
   sql = <<-EOQ
     select
       p.id::text as policy_id
@@ -512,7 +512,7 @@ query "compute_network_to_dns_policies" {
   EOQ
 }
 
-query "compute_network_to_kubernetes_clusters" {
+query "kubernetes_clusters_from_compute_network_id" {
   sql = <<-EOQ
     select
       c.id::text as cluster_id
@@ -526,7 +526,7 @@ query "compute_network_to_kubernetes_clusters" {
   EOQ
 }
 
-query "compute_network_to_sql_database_instances" {
+query "sql_database_instances_from_compute_network_id" {
   sql = <<-EOQ
     select
       i.self_link as self_link
