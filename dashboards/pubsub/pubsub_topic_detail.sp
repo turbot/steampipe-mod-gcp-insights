@@ -28,28 +28,28 @@ dashboard "pubsub_topic_detail" {
     }
   }
 
-  with "kubernetes_clusters_from_pubsub_topic_self_link" {
-    query = query.kubernetes_clusters_from_pubsub_topic_self_link
+  with "kubernetes_clusters_for_pubsub_topic" {
+    query = query.kubernetes_clusters_for_pubsub_topic
     args  = [self.input.self_link.value]
   }
 
-  with "iam_roles_from_pubsub_topic_self_link" {
-    query = query.iam_roles_from_pubsub_topic_self_link
+  with "iam_roles_for_pubsub_topic" {
+    query = query.iam_roles_for_pubsub_topic
     args  = [self.input.self_link.value]
   }
 
-  with "kms_keys_from_pubsub_topic_self_link" {
-    query = query.kms_keys_from_pubsub_topic_self_link
+  with "kms_keys_for_pubsub_topic" {
+    query = query.kms_keys_for_pubsub_topic
     args  = [self.input.self_link.value]
   }
 
-  with "pubsub_snapshots_from_pubsub_topic_self_link" {
-    query = query.pubsub_snapshots_from_pubsub_topic_self_link
+  with "pubsub_snapshots_for_pubsub_topic" {
+    query = query.pubsub_snapshots_for_pubsub_topic
     args  = [self.input.self_link.value]
   }
 
-  with "pubsub_subscriptions_from_pubsub_topic_self_link" {
-    query = query.pubsub_subscriptions_from_pubsub_topic_self_link
+  with "pubsub_subscriptions_for_pubsub_topic" {
+    query = query.pubsub_subscriptions_for_pubsub_topic
     args  = [self.input.self_link.value]
   }
 
@@ -62,35 +62,35 @@ dashboard "pubsub_topic_detail" {
       node {
         base = node.iam_role
         args = {
-          iam_role_ids = with.iam_roles_from_pubsub_topic_self_link.rows[*].role_id
+          iam_role_ids = with.iam_roles_for_pubsub_topic.rows[*].role_id
         }
       }
 
       node {
         base = node.kms_key
         args = {
-          kms_key_self_links = with.kms_keys_from_pubsub_topic_self_link.rows[*].self_link
+          kms_key_self_links = with.kms_keys_for_pubsub_topic.rows[*].self_link
         }
       }
 
       node {
         base = node.kubernetes_cluster
         args = {
-          kubernetes_cluster_ids = with.kubernetes_clusters_from_pubsub_topic_self_link.rows[*].cluster_id
+          kubernetes_cluster_ids = with.kubernetes_clusters_for_pubsub_topic.rows[*].cluster_id
         }
       }
 
       node {
         base = node.pubsub_snapshot
         args = {
-          pubsub_snapshot_self_links = with.pubsub_snapshots_from_pubsub_topic_self_link.rows[*].snapshot_self_link
+          pubsub_snapshot_self_links = with.pubsub_snapshots_for_pubsub_topic.rows[*].snapshot_self_link
         }
       }
 
       node {
         base = node.pubsub_subscription
         args = {
-          pubsub_subscription_self_links = with.pubsub_subscriptions_from_pubsub_topic_self_link.rows[*].subscription_self_link
+          pubsub_subscription_self_links = with.pubsub_subscriptions_for_pubsub_topic.rows[*].subscription_self_link
         }
       }
 
@@ -104,7 +104,7 @@ dashboard "pubsub_topic_detail" {
       edge {
         base = edge.kubernetes_cluster_to_pubsub_topic
         args = {
-          kubernetes_cluster_ids = with.kubernetes_clusters_from_pubsub_topic_self_link.rows[*].cluster_id
+          kubernetes_cluster_ids = with.kubernetes_clusters_for_pubsub_topic.rows[*].cluster_id
         }
       }
 
@@ -226,7 +226,7 @@ query "pubsub_topic_labeled" {
 
 # With queries
 
-query "kubernetes_clusters_from_pubsub_topic_self_link" {
+query "kubernetes_clusters_for_pubsub_topic" {
   sql = <<-EOQ
     select
       c.id::text as cluster_id
@@ -240,7 +240,7 @@ query "kubernetes_clusters_from_pubsub_topic_self_link" {
   EOQ
 }
 
-query "iam_roles_from_pubsub_topic_self_link" {
+query "iam_roles_for_pubsub_topic" {
   sql = <<-EOQ
     select
       i.name as role_id
@@ -255,7 +255,7 @@ query "iam_roles_from_pubsub_topic_self_link" {
   EOQ
 }
 
-query "kms_keys_from_pubsub_topic_self_link" {
+query "kms_keys_for_pubsub_topic" {
   sql = <<-EOQ
     select
       k.self_link
@@ -268,7 +268,7 @@ query "kms_keys_from_pubsub_topic_self_link" {
   EOQ
 }
 
-query "pubsub_snapshots_from_pubsub_topic_self_link" {
+query "pubsub_snapshots_for_pubsub_topic" {
   sql = <<-EOQ
     select
       s.self_link as snapshot_self_link
@@ -282,7 +282,7 @@ query "pubsub_snapshots_from_pubsub_topic_self_link" {
   EOQ
 }
 
-query "pubsub_subscriptions_from_pubsub_topic_self_link" {
+query "pubsub_subscriptions_for_pubsub_topic" {
   sql = <<-EOQ
     select
       s.self_link as subscription_self_link

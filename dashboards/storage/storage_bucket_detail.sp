@@ -53,18 +53,18 @@ dashboard "storage_bucket_detail" {
 
   }
 
-  with "compute_backend_buckets_from_storage_bucket_id" {
-    query = query.compute_backend_buckets_from_storage_bucket_id
+  with "compute_backend_buckets_for_storage_bucket" {
+    query = query.compute_backend_buckets_for_storage_bucket
     args  = [self.input.bucket_id.value]
   }
 
-  with "kms_keys_from_storage_bucket_id" {
-    query = query.kms_keys_from_storage_bucket_id
+  with "kms_keys_for_storage_bucket" {
+    query = query.kms_keys_for_storage_bucket
     args  = [self.input.bucket_id.value]
   }
 
-  with "logging_buckets_from_storage_bucket_id" {
-    query = query.logging_buckets_from_storage_bucket_id
+  with "logging_buckets_for_storage_bucket" {
+    query = query.logging_buckets_for_storage_bucket
     args  = [self.input.bucket_id.value]
   }
 
@@ -77,21 +77,21 @@ dashboard "storage_bucket_detail" {
       node {
         base = node.compute_backend_bucket
         args = {
-          compute_backend_bucket_ids = with.compute_backend_buckets_from_storage_bucket_id.rows[*].bucket_id
+          compute_backend_bucket_ids = with.compute_backend_buckets_for_storage_bucket.rows[*].bucket_id
         }
       }
 
       node {
         base = node.kms_key
         args = {
-          kms_key_self_links = with.kms_keys_from_storage_bucket_id.rows[*].self_link
+          kms_key_self_links = with.kms_keys_for_storage_bucket.rows[*].self_link
         }
       }
 
       node {
         base = node.logging_bucket
         args = {
-          logging_bucket_names = with.logging_buckets_from_storage_bucket_id.rows[*].bucket_name
+          logging_bucket_names = with.logging_buckets_for_storage_bucket.rows[*].bucket_name
         }
       }
 
@@ -105,7 +105,7 @@ dashboard "storage_bucket_detail" {
       edge {
         base = edge.compute_backend_bucket_to_storage_bucket
         args = {
-          compute_backend_bucket_ids = with.compute_backend_buckets_from_storage_bucket_id.rows[*].bucket_id
+          compute_backend_bucket_ids = with.compute_backend_buckets_for_storage_bucket.rows[*].bucket_id
         }
       }
 
@@ -270,7 +270,7 @@ query "storage_bucket_uniform_bucket_level_access" {
 
 # With queries
 
-query "compute_backend_buckets_from_storage_bucket_id" {
+query "compute_backend_buckets_for_storage_bucket" {
   sql = <<-EOQ
     select
       c.id::text as bucket_id
@@ -283,7 +283,7 @@ query "compute_backend_buckets_from_storage_bucket_id" {
   EOQ
 }
 
-query "kms_keys_from_storage_bucket_id" {
+query "kms_keys_for_storage_bucket" {
   sql = <<-EOQ
     select
       k.self_link
@@ -297,7 +297,7 @@ query "kms_keys_from_storage_bucket_id" {
   EOQ
 }
 
-query "logging_buckets_from_storage_bucket_id" {
+query "logging_buckets_for_storage_bucket" {
   sql = <<-EOQ
     select
       l.name as bucket_name

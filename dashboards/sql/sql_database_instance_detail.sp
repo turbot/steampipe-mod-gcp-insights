@@ -51,33 +51,33 @@ dashboard "sql_database_instance_detail" {
     }
   }
 
-  with "master_sql_database_instances_from_sql_database_instance_self_link" {
-    query = query.master_sql_database_instances_from_sql_database_instance_self_link
+  with "primary_sql_database_instances_for_sql_database_instance" {
+    query = query.primary_sql_database_instances_for_sql_database_instance
     args  = [self.input.database_instance_self_link.value]
   }
 
-  with "compute_networks_from_sql_database_instance_self_link" {
-    query = query.compute_networks_from_sql_database_instance_self_link
+  with "compute_networks_for_sql_database_instance" {
+    query = query.compute_networks_for_sql_database_instance
     args  = [self.input.database_instance_self_link.value]
   }
 
-  with "kms_keys_from_sql_database_instance_self_link" {
-    query = query.kms_keys_from_sql_database_instance_self_link
+  with "kms_keys_for_sql_database_instance" {
+    query = query.kms_keys_for_sql_database_instance
     args  = [self.input.database_instance_self_link.value]
   }
 
-  with "sql_backups_from_sql_database_instance_self_link" {
-    query = query.sql_backups_from_sql_database_instance_self_link
+  with "sql_backups_for_sql_database_instance" {
+    query = query.sql_backups_for_sql_database_instance
     args  = [self.input.database_instance_self_link.value]
   }
 
-  with "sql_databases_from_sql_database_instance_self_link" {
-    query = query.sql_databases_from_sql_database_instance_self_link
+  with "sql_databases_for_sql_database_instance" {
+    query = query.sql_databases_for_sql_database_instance
     args  = [self.input.database_instance_self_link.value]
   }
 
-  with "replica_sql_database_instances_from_sql_database_instance_self_link" {
-    query = query.replica_sql_database_instances_from_sql_database_instance_self_link
+  with "replica_sql_database_instances_for_sql_database_instance" {
+    query = query.replica_sql_database_instances_for_sql_database_instance
     args  = [self.input.database_instance_self_link.value]
   }
 
@@ -90,28 +90,28 @@ dashboard "sql_database_instance_detail" {
       node {
         base = node.compute_network
         args = {
-          compute_network_ids = with.compute_networks_from_sql_database_instance_self_link.rows[*].network_id
+          compute_network_ids = with.compute_networks_for_sql_database_instance.rows[*].network_id
         }
       }
 
       node {
         base = node.kms_key
         args = {
-          kms_key_self_links = with.kms_keys_from_sql_database_instance_self_link.rows[*].self_link
+          kms_key_self_links = with.kms_keys_for_sql_database_instance.rows[*].self_link
         }
       }
 
       node {
         base = node.sql_backup
         args = {
-          sql_backup_ids = with.sql_backups_from_sql_database_instance_self_link.rows[*].backup_id
+          sql_backup_ids = with.sql_backups_for_sql_database_instance.rows[*].backup_id
         }
       }
 
       node {
         base = node.sql_database
         args = {
-          sql_database_self_links = with.sql_databases_from_sql_database_instance_self_link.rows[*].self_link
+          sql_database_self_links = with.sql_databases_for_sql_database_instance.rows[*].self_link
         }
       }
 
@@ -125,14 +125,14 @@ dashboard "sql_database_instance_detail" {
       node {
         base = node.sql_database_instance
         args = {
-          database_instance_self_links = with.master_sql_database_instances_from_sql_database_instance_self_link.rows[*].self_link
+          database_instance_self_links = with.primary_sql_database_instances_for_sql_database_instance.rows[*].self_link
         }
       }
 
       node {
         base = node.sql_database_instance
         args = {
-          database_instance_self_links = with.replica_sql_database_instances_from_sql_database_instance_self_link.rows[*].self_link
+          database_instance_self_links = with.replica_sql_database_instances_for_sql_database_instance.rows[*].self_link
         }
       }
 
@@ -174,7 +174,7 @@ dashboard "sql_database_instance_detail" {
       edge {
         base = edge.sql_database_instance_to_sql_database_instance
         args = {
-          database_instance_self_links = with.master_sql_database_instances_from_sql_database_instance_self_link.rows[*].self_link
+          database_instance_self_links = with.primary_sql_database_instances_for_sql_database_instance.rows[*].self_link
         }
       }
     }
@@ -353,7 +353,7 @@ query "sql_database_instance_ssl_enabled" {
 
 # With queries
 
-query "master_sql_database_instances_from_sql_database_instance_self_link" {
+query "primary_sql_database_instances_for_sql_database_instance" {
   sql = <<-EOQ
     select
       replace(self_link, name, split_part(master_instance_name, ':', 2)) as self_link
@@ -365,7 +365,7 @@ query "master_sql_database_instances_from_sql_database_instance_self_link" {
   EOQ
 }
 
-query "compute_networks_from_sql_database_instance_self_link" {
+query "compute_networks_for_sql_database_instance" {
   sql = <<-EOQ
     select
       n.id::text as network_id
@@ -378,7 +378,7 @@ query "compute_networks_from_sql_database_instance_self_link" {
   EOQ
 }
 
-query "kms_keys_from_sql_database_instance_self_link" {
+query "kms_keys_for_sql_database_instance" {
   sql = <<-EOQ
     select
       k.self_link
@@ -391,7 +391,7 @@ query "kms_keys_from_sql_database_instance_self_link" {
   EOQ
 }
 
-query "sql_backups_from_sql_database_instance_self_link" {
+query "sql_backups_for_sql_database_instance" {
   sql = <<-EOQ
     select
       id::text as backup_id
@@ -402,7 +402,7 @@ query "sql_backups_from_sql_database_instance_self_link" {
   EOQ
 }
 
-query "sql_databases_from_sql_database_instance_self_link" {
+query "sql_databases_for_sql_database_instance" {
   sql = <<-EOQ
     select
       d.self_link
@@ -413,7 +413,7 @@ query "sql_databases_from_sql_database_instance_self_link" {
   EOQ
 }
 
-query "replica_sql_database_instances_from_sql_database_instance_self_link" {
+query "replica_sql_database_instances_for_sql_database_instance" {
   sql = <<-EOQ
     select
       self_link
