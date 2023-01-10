@@ -501,7 +501,7 @@ query "kms_keys_from_compute_disk_id" {
       gcp_kms_key k
     where
       d.disk_encryption_key is not null
-      and k.self_link like '%' || split_part(d.disk_encryption_key ->> 'kmsKeyName', '/cryptoKeyVersions/', 1);
+      and k.self_link like '%' || split_part(d.disk_encryption_key ->> 'kmsKeyName', '/cryptoKeyVersions/', 1)
       and d.id = $1;
   EOQ
 }
