@@ -53,7 +53,7 @@ dashboard "compute_network_detail" {
   }
 
   with "compute_vpn_gateways_for_compute_network" {
-    query = query.compute_network_from_compute_vpn_gateways
+    query = query.compute_vpn_gateways_for_compute_network
     args  = [self.input.network_id.value]
   }
 
@@ -160,7 +160,7 @@ dashboard "compute_network_detail" {
       node {
         base = node.compute_vpn_gateway
         args = {
-          compute_vpn_gateway_ids = with.compute_network_from_compute_vpn_gateways.rows[*].gateway_id
+          compute_vpn_gateway_ids = with.compute_vpn_gateways_for_compute_network.rows[*].gateway_id
         }
       }
 
@@ -251,7 +251,7 @@ dashboard "compute_network_detail" {
       edge {
         base = edge.compute_vpn_gateway_to_compute_network
         args = {
-          compute_vpn_gateway_ids = with.compute_network_from_compute_vpn_gateways.rows[*].gateway_id
+          compute_vpn_gateway_ids = with.compute_vpn_gateways_for_compute_network.rows[*].gateway_id
         }
       }
     }
@@ -394,7 +394,7 @@ query "auto_create_subnetwork" {
 }
 # With queries
 
-query "compute_network_from_compute_vpn_gateways" {
+query "compute_vpn_gateways_for_compute_network" {
   sql = <<-EOQ
     select
       g.id::text as gateway_id
