@@ -108,7 +108,7 @@ dashboard "compute_disk_detail" {
       node {
         base = node.compute_disk
         args = {
-          compute_disk_ids = with.source_compute_disk_for_compute_disk.rows[*].disk_id
+          compute_disk_ids = with.source_compute_disks_for_compute_disk.rows[*].disk_id
         }
       }
 
@@ -171,7 +171,7 @@ dashboard "compute_disk_detail" {
       edge {
         base = edge.compute_disk_to_compute_disk
         args = {
-          compute_disk_ids = with.source_compute_disk_for_compute_disk.rows[*].disk_id
+          compute_disk_ids = with.source_compute_disks_for_compute_disk.rows[*].disk_id
         }
       }
 
