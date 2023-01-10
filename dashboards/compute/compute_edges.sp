@@ -284,7 +284,7 @@ edge "compute_instance_group_to_compute_network" {
 }
 
 edge "compute_instance_group_to_compute_subnetwork" {
-  title = "subnetwork"
+  title = "subnet"
 
   sql = <<-EOQ
     select
@@ -347,7 +347,7 @@ edge "compute_instance_to_compute_firewall" {
 }
 
 edge "compute_instance_to_compute_subnetwork" {
-  title = "subnetwork"
+  title = "subnet"
 
   sql = <<-EOQ
     select
@@ -496,7 +496,7 @@ edge "compute_network_to_compute_router" {
 }
 
 edge "compute_network_to_compute_subnetwork" {
-  title = "subnetwork"
+  title = "subnet"
 
   sql = <<-EOQ
     select

@@ -58,7 +58,7 @@ edge "kubernetes_cluster_to_compute_instance_group" {
 }
 
 edge "kubernetes_cluster_to_compute_subnetwork" {
-  title = "subnetwork"
+  title = "subnet"
 
   sql = <<-EOQ
     select
