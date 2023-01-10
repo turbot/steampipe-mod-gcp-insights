@@ -41,38 +41,38 @@ dashboard "compute_subnetwork_detail" {
 
   }
 
-  with "compute_networks_from_compute_subnetwork_id" {
-    query = query.compute_networks_from_compute_subnetwork_id
+  with "compute_networks_for_compute_subnetwork" {
+    query = query.compute_networks_for_compute_subnetwork
     args  = [self.input.subnetwork_id.value]
   }
 
-  with "compute_addresses_from_compute_subnetwork_id" {
-    query = query.compute_addresses_from_compute_subnetwork_id
+  with "compute_addresses_for_compute_subnetwork" {
+    query = query.compute_addresses_for_compute_subnetwork
     args  = [self.input.subnetwork_id.value]
   }
 
-  with "compute_forwarding_rules_from_compute_subnetwork_id" {
-    query = query.compute_forwarding_rules_from_compute_subnetwork_id
+  with "compute_forwarding_rules_for_compute_subnetwork" {
+    query = query.compute_forwarding_rules_for_compute_subnetwork
     args  = [self.input.subnetwork_id.value]
   }
 
-  with "compute_instance_groups_from_compute_subnetwork_id" {
-    query = query.compute_instance_groups_from_compute_subnetwork_id
+  with "compute_instance_groups_for_compute_subnetwork" {
+    query = query.compute_instance_groups_for_compute_subnetwork
     args  = [self.input.subnetwork_id.value]
   }
 
-  with "compute_instance_templates_from_compute_subnetwork_id" {
-    query = query.compute_instance_templates_from_compute_subnetwork_id
+  with "compute_instance_templates_for_compute_subnetwork" {
+    query = query.compute_instance_templates_for_compute_subnetwork
     args  = [self.input.subnetwork_id.value]
   }
 
-  with "compute_instances_from_compute_subnetwork_id" {
-    query = query.compute_instances_from_compute_subnetwork_id
+  with "compute_instances_for_compute_subnetwork" {
+    query = query.compute_instances_for_compute_subnetwork
     args  = [self.input.subnetwork_id.value]
   }
 
-  with "kubernetes_clusters_from_compute_subnetwork_id" {
-    query = query.kubernetes_clusters_from_compute_subnetwork_id
+  with "kubernetes_clusters_for_compute_subnetwork" {
+    query = query.kubernetes_clusters_for_compute_subnetwork
     args  = [self.input.subnetwork_id.value]
   }
 
@@ -85,42 +85,42 @@ dashboard "compute_subnetwork_detail" {
       node {
         base = node.compute_address
         args = {
-          compute_address_ids = with.compute_addresses_from_compute_subnetwork_id.rows[*].address_id
+          compute_address_ids = with.compute_addresses_for_compute_subnetwork.rows[*].address_id
         }
       }
 
       node {
         base = node.compute_forwarding_rule
         args = {
-          compute_forwarding_rule_ids = with.compute_forwarding_rules_from_compute_subnetwork_id.rows[*].rule_id
+          compute_forwarding_rule_ids = with.compute_forwarding_rules_for_compute_subnetwork.rows[*].rule_id
         }
       }
 
       node {
         base = node.compute_instance
         args = {
-          compute_instance_ids = with.compute_instances_from_compute_subnetwork_id.rows[*].instance_id
+          compute_instance_ids = with.compute_instances_for_compute_subnetwork.rows[*].instance_id
         }
       }
 
       node {
         base = node.compute_instance_group
         args = {
-          compute_instance_group_ids = with.compute_instance_groups_from_compute_subnetwork_id.rows[*].group_id
+          compute_instance_group_ids = with.compute_instance_groups_for_compute_subnetwork.rows[*].group_id
         }
       }
 
       node {
         base = node.compute_instance_template
         args = {
-          compute_instance_template_ids = with.compute_instance_templates_from_compute_subnetwork_id.rows[*].template_id
+          compute_instance_template_ids = with.compute_instance_templates_for_compute_subnetwork.rows[*].template_id
         }
       }
 
       node {
         base = node.compute_network
         args = {
-          compute_network_ids = with.compute_networks_from_compute_subnetwork_id.rows[*].network_id
+          compute_network_ids = with.compute_networks_for_compute_subnetwork.rows[*].network_id
         }
       }
 
@@ -134,14 +134,14 @@ dashboard "compute_subnetwork_detail" {
       node {
         base = node.kubernetes_cluster
         args = {
-          kubernetes_cluster_ids = with.kubernetes_clusters_from_compute_subnetwork_id.rows[*].cluster_id
+          kubernetes_cluster_ids = with.kubernetes_clusters_for_compute_subnetwork.rows[*].cluster_id
         }
       }
 
       edge {
         base = edge.compute_network_to_compute_subnetwork
         args = {
-          compute_network_ids = with.compute_networks_from_compute_subnetwork_id.rows[*].network_id
+          compute_network_ids = with.compute_networks_for_compute_subnetwork.rows[*].network_id
         }
       }
 
@@ -297,7 +297,7 @@ query "compute_subnetwork_flow_logs" {
 
 # With queries
 
-query "compute_networks_from_compute_subnetwork_id" {
+query "compute_networks_for_compute_subnetwork" {
   sql = <<-EOQ
     select
       n.id::text as network_id
@@ -310,7 +310,7 @@ query "compute_networks_from_compute_subnetwork_id" {
   EOQ
 }
 
-query "compute_addresses_from_compute_subnetwork_id" {
+query "compute_addresses_for_compute_subnetwork" {
   sql = <<-EOQ
     select
       a.id::text as address_id
@@ -334,7 +334,7 @@ query "compute_addresses_from_compute_subnetwork_id" {
   EOQ
 }
 
-query "compute_forwarding_rules_from_compute_subnetwork_id" {
+query "compute_forwarding_rules_for_compute_subnetwork" {
   sql = <<-EOQ
     select
       r.id::text as rule_id
@@ -358,7 +358,7 @@ query "compute_forwarding_rules_from_compute_subnetwork_id" {
   EOQ
 }
 
-query "compute_instance_groups_from_compute_subnetwork_id" {
+query "compute_instance_groups_for_compute_subnetwork" {
   sql = <<-EOQ
     select
       g.id::text as group_id
@@ -371,7 +371,7 @@ query "compute_instance_groups_from_compute_subnetwork_id" {
   EOQ
 }
 
-query "compute_instance_templates_from_compute_subnetwork_id" {
+query "compute_instance_templates_for_compute_subnetwork" {
   sql = <<-EOQ
     select
       t.id::text as template_id
@@ -385,7 +385,7 @@ query "compute_instance_templates_from_compute_subnetwork_id" {
   EOQ
 }
 
-query "compute_instances_from_compute_subnetwork_id" {
+query "compute_instances_for_compute_subnetwork" {
   sql = <<-EOQ
     select
       i.id::text as instance_id
@@ -399,7 +399,7 @@ query "compute_instances_from_compute_subnetwork_id" {
   EOQ
 }
 
-query "kubernetes_clusters_from_compute_subnetwork_id" {
+query "kubernetes_clusters_for_compute_subnetwork" {
   sql = <<-EOQ
     select
       c.id::text as cluster_id

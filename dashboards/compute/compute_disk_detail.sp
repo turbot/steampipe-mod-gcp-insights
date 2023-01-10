@@ -47,48 +47,48 @@ dashboard "compute_disk_detail" {
 
   }
 
-  with "parent_compute_disks_from_compute_disk_id" {
-    query = query.parent_compute_disks_from_compute_disk_id
+  with "source_compute_disks_for_compute_disk" {
+    query = query.source_compute_disks_for_compute_disk
     args  = [self.input.disk_id.value]
   }
 
-  with "child_compute_disks_from_compute_disk_id" {
-    query = query.child_compute_disks_from_compute_disk_id
+  with "target_compute_disks_for_compute_disk" {
+    query = query.target_compute_disks_for_compute_disk
     args  = [self.input.disk_id.value]
   }
 
-  with "parent_compute_images_from_compute_disk_id" {
-    query = query.parent_compute_images_from_compute_disk_id
+  with "source_compute_images_for_compute_disk" {
+    query = query.source_compute_images_for_compute_disk
     args  = [self.input.disk_id.value]
   }
 
-  with "child_compute_images_from_compute_disk_id" {
-    query = query.child_compute_images_from_compute_disk_id
+  with "target_compute_images_for_compute_disk" {
+    query = query.target_compute_images_for_compute_disk
     args  = [self.input.disk_id.value]
   }
 
-  with "compute_instances_from_compute_disk_id" {
-    query = query.compute_instances_from_compute_disk_id
+  with "compute_instances_for_compute_disk" {
+    query = query.compute_instances_for_compute_disk
     args  = [self.input.disk_id.value]
   }
 
-  with "compute_resource_policies_from_compute_disk_id" {
-    query = query.compute_resource_policies_from_compute_disk_id
+  with "compute_resource_policies_for_compute_disk" {
+    query = query.compute_resource_policies_for_compute_disk
     args  = [self.input.disk_id.value]
   }
 
-  with "parent_compute_snapshots_from_compute_disk_id" {
-    query = query.parent_compute_snapshots_from_compute_disk_id
+  with "source_compute_snapshots_for_compute_disk" {
+    query = query.source_compute_snapshots_for_compute_disk
     args  = [self.input.disk_id.value]
   }
 
-  with "child_compute_snapshots_from_compute_disk_id" {
-    query = query.child_compute_snapshots_from_compute_disk_id
+  with "target_compute_snapshots_for_compute_disk" {
+    query = query.target_compute_snapshots_for_compute_disk
     args  = [self.input.disk_id.value]
   }
 
-  with "kms_keys_from_compute_disk_id" {
-    query = query.kms_keys_from_compute_disk_id
+  with "kms_keys_for_compute_disk" {
+    query = query.kms_keys_for_compute_disk
     args  = [self.input.disk_id.value]
   }
 
@@ -108,70 +108,70 @@ dashboard "compute_disk_detail" {
       node {
         base = node.compute_disk
         args = {
-          compute_disk_ids = with.source_compute_disk_from_compute_disk_id.rows[*].disk_id
+          compute_disk_ids = with.source_compute_disk_for_compute_disk.rows[*].disk_id
         }
       }
 
       node {
         base = node.compute_disk
         args = {
-          compute_disk_ids = with.child_compute_disks_from_compute_disk_id.rows[*].disk_id
+          compute_disk_ids = with.target_compute_disks_for_compute_disk.rows[*].disk_id
         }
       }
 
       node {
         base = node.compute_image
         args = {
-          compute_image_ids = with.parent_compute_images_from_compute_disk_id.rows[*].image_id
+          compute_image_ids = with.source_compute_images_for_compute_disk.rows[*].image_id
         }
       }
 
       node {
         base = node.compute_image
         args = {
-          compute_image_ids = with.child_compute_images_from_compute_disk_id.rows[*].image_id
+          compute_image_ids = with.target_compute_images_for_compute_disk.rows[*].image_id
         }
       }
 
       node {
         base = node.compute_instance
         args = {
-          compute_instance_ids = with.compute_instances_from_compute_disk_id.rows[*].instance_id
+          compute_instance_ids = with.compute_instances_for_compute_disk.rows[*].instance_id
         }
       }
 
       node {
         base = node.compute_snapshot
         args = {
-          compute_snapshot_names = with.parent_compute_snapshots_from_compute_disk_id.rows[*].snapshot_name
+          compute_snapshot_names = with.source_compute_snapshots_for_compute_disk.rows[*].snapshot_name
         }
       }
 
       node {
         base = node.compute_snapshot
         args = {
-          compute_snapshot_names = with.child_compute_snapshots_from_compute_disk_id.rows[*].snapshot_name
+          compute_snapshot_names = with.target_compute_snapshots_for_compute_disk.rows[*].snapshot_name
         }
       }
 
       node {
         base = node.compute_resource_policy
         args = {
-          compute_resource_policy_ids = with.compute_resource_policies_from_compute_disk_id.rows[*].policy_id
+          compute_resource_policy_ids = with.compute_resource_policies_for_compute_disk.rows[*].policy_id
         }
       }
 
       node {
         base = node.kms_key
         args = {
-          kms_key_self_links = with.kms_keys_from_compute_disk_id.rows[*].self_link
+          kms_key_self_links = with.kms_keys_for_compute_disk.rows[*].self_link
         }
       }
 
       edge {
         base = edge.compute_disk_to_compute_disk
         args = {
-          compute_disk_ids = with.source_compute_disk_from_compute_disk_id.rows[*].disk_id
+          compute_disk_ids = with.source_compute_disk_for_compute_disk.rows[*].disk_id
         }
       }
 
@@ -213,21 +213,21 @@ dashboard "compute_disk_detail" {
       edge {
         base = edge.compute_image_to_compute_disk
         args = {
-          compute_image_ids = with.parent_compute_images_from_compute_disk_id.rows[*].image_id
+          compute_image_ids = with.source_compute_images_for_compute_disk.rows[*].image_id
         }
       }
 
       edge {
         base = edge.compute_instance_to_compute_disk
         args = {
-          compute_instance_ids = with.compute_instances_from_compute_disk_id.rows[*].instance_id
+          compute_instance_ids = with.compute_instances_for_compute_disk.rows[*].instance_id
         }
       }
 
       edge {
         base = edge.compute_snapshot_to_compute_disk
         args = {
-          compute_snapshot_names = with.parent_compute_snapshots_from_compute_disk_id.rows[*].snapshot_name
+          compute_snapshot_names = with.source_compute_snapshots_for_compute_disk.rows[*].snapshot_name
         }
       }
     }
@@ -426,7 +426,7 @@ query "compute_disk_encryption_status" {
 
 # With queries
 
-query "compute_instances_from_compute_disk_id" {
+query "compute_instances_for_compute_disk" {
   sql = <<-EOQ
     select
       i.id::text as instance_id
@@ -440,7 +440,7 @@ query "compute_instances_from_compute_disk_id" {
   EOQ
 }
 
-query "compute_resource_policies_from_compute_disk_id" {
+query "compute_resource_policies_for_compute_disk" {
   sql = <<-EOQ
     select
       r.id as policy_id
@@ -454,7 +454,7 @@ query "compute_resource_policies_from_compute_disk_id" {
   EOQ
 }
 
-query "parent_compute_disks_from_compute_disk_id" {
+query "source_compute_disks_for_compute_disk" {
   sql = <<-EOQ
     select
       d.source_disk_id as disk_id
@@ -466,7 +466,7 @@ query "parent_compute_disks_from_compute_disk_id" {
   EOQ
 }
 
-query "parent_compute_images_from_compute_disk_id" {
+query "source_compute_images_for_compute_disk" {
   sql = <<-EOQ
     select
       i.id as image_id
@@ -479,7 +479,7 @@ query "parent_compute_images_from_compute_disk_id" {
   EOQ
 }
 
-query "parent_compute_snapshots_from_compute_disk_id" {
+query "source_compute_snapshots_for_compute_disk" {
   sql = <<-EOQ
     select
       s.name as snapshot_name
@@ -492,7 +492,7 @@ query "parent_compute_snapshots_from_compute_disk_id" {
   EOQ
 }
 
-query "kms_keys_from_compute_disk_id" {
+query "kms_keys_for_compute_disk" {
   sql = <<-EOQ
     select
       k.self_link
@@ -506,7 +506,7 @@ query "kms_keys_from_compute_disk_id" {
   EOQ
 }
 
-query "child_compute_disks_from_compute_disk_id" {
+query "target_compute_disks_for_compute_disk" {
   sql = <<-EOQ
     select
       cd.id as disk_id
@@ -519,7 +519,7 @@ query "child_compute_disks_from_compute_disk_id" {
   EOQ
 }
 
-query "child_compute_images_from_compute_disk_id" {
+query "target_compute_images_for_compute_disk" {
   sql = <<-EOQ
     select
       i.id::text as image_id
@@ -532,7 +532,7 @@ query "child_compute_images_from_compute_disk_id" {
   EOQ
 }
 
-query "child_compute_snapshots_from_compute_disk_id" {
+query "target_compute_snapshots_for_compute_disk" {
   sql = <<-EOQ
     select
       s.name as snapshot_name
