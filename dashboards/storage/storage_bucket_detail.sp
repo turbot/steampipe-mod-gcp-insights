@@ -163,6 +163,15 @@ dashboard "storage_bucket_detail" {
 
       table {
         title = "Encryption Details"
+
+        column "Self Link" {
+          display = "none"
+        }
+
+        column "Key Name" {
+          href = "${dashboard.kms_key_detail.url_path}?input.key_self_link={{.'Self Link' | @uri}}"
+        }
+
         query = query.storage_bucket_encryption_detail
         args  = [self.input.bucket_id.value]
       }
@@ -392,7 +401,8 @@ query "storage_bucket_encryption_detail" {
       k.name as "Key Name",
       k.key_ring_name as "Key Ring Name",
       k.create_time as "Created Time",
-      k.location as "Location"
+      k.location as "Location",
+      k.self_link as "Self Link"
     from
       gcp_storage_bucket b
         left join gcp_kms_key k
