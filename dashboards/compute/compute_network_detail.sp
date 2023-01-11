@@ -558,7 +558,7 @@ query "compute_network_overview" {
   sql = <<-EOQ
     select
       name as "Name",
-      id as "ID",
+      id::text as "ID",
       creation_timestamp as "Creation Time",
       mtu as "MTU",
       routing_mode as "Routing Mode",
@@ -592,7 +592,7 @@ query "compute_network_subnet" {
   sql = <<-EOQ
     select
       s.name as "Name",
-      s.id as "ID",
+      s.id::text as "ID",
       s.creation_timestamp as "Creation Time",
       s.enable_flow_logs as "Enable Flow Logs",
       s.log_config_enable as "Log Config Enabled",

@@ -218,8 +218,7 @@ node "compute_image" {
         'Name', i.name,
         'Created Time', i.creation_timestamp,
         'Size(GB)', i.disk_size_gb,
-        'Status', i.status,
-        'Project', project
+        'Status', i.status
       ) as properties
     from
       gcp_compute_image i

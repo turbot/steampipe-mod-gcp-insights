@@ -157,13 +157,14 @@ edge "compute_image_to_compute_disk" {
 
   sql = <<-EOQ
     select
-      i.name as from_id,
+      i.id::text as from_id,
       d.id::text as to_id
     from
       gcp_compute_disk d,
       gcp_compute_image i
     where
-      d.id = any($1)
+      i.id = any($1)
+      and d.source_image <> ''
       and d.source_image = i.self_link;
   EOQ
 

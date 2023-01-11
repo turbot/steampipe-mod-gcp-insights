@@ -469,12 +469,13 @@ query "source_compute_disks_for_compute_disk" {
 query "source_compute_images_for_compute_disk" {
   sql = <<-EOQ
     select
-      i.id as image_id
+      i.id::text as image_id
     from
       gcp_compute_disk d,
       gcp_compute_image i
     where
       d.id = $1
+      and d.source_image <> ''
       and d.source_image = i.self_link;
   EOQ
 }
@@ -509,7 +510,7 @@ query "kms_keys_for_compute_disk" {
 query "target_compute_disks_for_compute_disk" {
   sql = <<-EOQ
     select
-      cd.id as disk_id
+      cd.id::text as disk_id
     from
       gcp_compute_disk d,
       gcp_compute_disk cd
@@ -551,7 +552,7 @@ query "compute_disk_overview" {
   sql = <<-EOQ
     select
       name as "Name",
-      id as "ID",
+      id::text as "ID",
       creation_timestamp as "Create Time",
       title as "Title",
       location as "Location",
