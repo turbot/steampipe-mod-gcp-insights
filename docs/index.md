@@ -22,6 +22,7 @@ Dashboards can help answer questions like:
 - Are there any publicly accessible resources?
 - Is encryption enabled and what keys are used for encryption?
 - Is versioning enabled?
+- What are the relationships between closely connected resources like network subnets, routers, associated DNS policies, and instances?
 
 Dashboards are available for Compute, IAM, KMS, Kubernetes and Storage services.
 
