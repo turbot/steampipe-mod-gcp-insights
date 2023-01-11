@@ -324,6 +324,42 @@ node "compute_network" {
   param "compute_network_ids" {}
 }
 
+node "compute_network_peers" {
+  category = category.compute_network_peers
+
+  sql = <<-EOQ
+    with peer_network as (
+      select
+        p ->> 'name' as name,
+        p ->> 'state' as state,
+        'projects' || split_part(p ->> 'network', 'projects', 2) as network,
+        p ->> 'autoCreateRoutes' as auto_create_routes,
+        p ->> 'exchangeSubnetRoutes' as exchange_subnet_routes,
+        p ->> 'exportSubnetRoutesWithPublicIp' as export_subnet_routes_with_public_ip
+      from
+        gcp_compute_network,
+        jsonb_array_elements(peerings) as p
+      where
+        id = any($1)
+    )
+    select
+      network as id,
+      name as title,
+      jsonb_build_object(
+        'State', state,
+        'Project', split_part(network, '/', 2),
+        'Network', network,
+        'Auto Create Routes', auto_create_routes,
+        'Exchange Subnet Routes', exchange_subnet_routes,
+        'Export Subnet Routes With Public IP', export_subnet_routes_with_public_ip
+      ) as properties
+    from
+      peer_network;
+  EOQ
+
+  param "compute_network_ids" {}
+}
+
 node "compute_resource_policy" {
   category = category.compute_resource_policy
 

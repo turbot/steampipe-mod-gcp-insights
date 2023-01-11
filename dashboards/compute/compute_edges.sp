@@ -477,6 +477,31 @@ edge "compute_network_to_compute_instance" {
   param "compute_network_ids" {}
 }
 
+edge "compute_network_to_compute_network_peers" {
+  title = "peer"
+
+  sql = <<-EOQ
+    with peer_network as (
+      select
+        id,
+        p ->> 'name' as name,
+        'projects' || split_part(p ->> 'network', 'projects', 2) as network
+      from
+        gcp_compute_network,
+        jsonb_array_elements(peerings) as p
+      where
+        id = any($1)
+    )
+    select
+      id::text as from_id,
+      network as to_id
+    from
+      peer_network;
+  EOQ
+
+  param "compute_network_ids" {}
+}
+
 edge "compute_network_to_compute_router" {
   title = "router"
 

@@ -144,6 +144,13 @@ dashboard "compute_network_detail" {
       }
 
       node {
+        base = node.compute_network_peers
+        args = {
+          compute_network_ids = [self.input.network_id.value]
+        }
+      }
+
+      node {
         base = node.compute_router
         args = {
           compute_router_ids = with.compute_routers_for_compute_network.rows[*].router_id
@@ -210,6 +217,13 @@ dashboard "compute_network_detail" {
         base = edge.compute_subnetwork_to_compute_instance
         args = {
           compute_subnetwork_ids = with.compute_subnetworks_for_compute_network.rows[*].subnetwork_id
+        }
+      }
+
+      edge {
+        base = edge.compute_network_to_compute_network_peers
+        args = {
+          compute_network_ids = [self.input.network_id.value]
         }
       }
 
