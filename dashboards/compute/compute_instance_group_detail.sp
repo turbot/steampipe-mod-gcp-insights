@@ -234,7 +234,7 @@ query "compute_instance_group_input" {
       json_build_object(
         'location', location,
         'project', project,
-        'id', id
+        'id', id::text
       ) as tags
     from
       gcp_compute_instance_group
@@ -360,7 +360,7 @@ query "compute_instance_group_overview" {
   sql = <<-EOQ
     select
       name as "Name",
-      id as "ID",
+      id::text as "ID",
       creation_timestamp as "Create Time",
       description as "Description",
       title as "Title",
@@ -376,7 +376,7 @@ query "compute_instance_group_overview" {
 query "compute_instance_group_attached_instances" {
   sql = <<-EOQ
     select
-      i.id as "ID",
+      i.id::text as "ID",
       i.name as "Name",
       i.creation_timestamp as "Create Time",
       i.cpu_platform as "CPU Platform",
@@ -412,7 +412,7 @@ query "compute_instance_group_network_detail" {
 query "compute_instance_firewall_detail" {
   sql = <<-EOQ
     select
-      f.id as "ID",
+      f.id::text as "ID",
       f.name as "Name",
       f.direction as "Direction",
       not f.disabled as "Enabled",

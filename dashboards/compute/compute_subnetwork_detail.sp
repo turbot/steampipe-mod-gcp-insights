@@ -228,7 +228,7 @@ query "compute_subnetwork_input" {
       json_build_object(
         'location', location,
         'project', project,
-        'id', id
+        'id', id::text
       ) as tags
     from
       gcp_compute_subnetwork
@@ -418,7 +418,7 @@ query "compute_subnetwork_overview" {
   sql = <<-EOQ
     select
       name as "Name",
-      id as "ID",
+      id::text as "ID",
       creation_timestamp as "Creation Time",
       network_name as "Network",
       location as "Location",
@@ -436,7 +436,7 @@ query "compute_subnetwork_network" {
   sql = <<-EOQ
     select
       n.name as "Name",
-      n.id as "ID",
+      n.id::text as "ID",
       n.creation_timestamp as "Creation Time",
       n.description as "Description",
       n.auto_create_subnetworks as "Auto Create Subnetworks",

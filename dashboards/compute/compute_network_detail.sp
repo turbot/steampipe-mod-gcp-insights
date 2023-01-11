@@ -144,6 +144,13 @@ dashboard "compute_network_detail" {
       }
 
       node {
+        base = node.compute_network_peers
+        args = {
+          compute_network_ids = [self.input.network_id.value]
+        }
+      }
+
+      node {
         base = node.compute_router
         args = {
           compute_router_ids = with.compute_routers_for_compute_network.rows[*].router_id
@@ -210,6 +217,13 @@ dashboard "compute_network_detail" {
         base = edge.compute_subnetwork_to_compute_instance
         args = {
           compute_subnetwork_ids = with.compute_subnetworks_for_compute_network.rows[*].subnetwork_id
+        }
+      }
+
+      edge {
+        base = edge.compute_network_to_compute_network_peers
+        args = {
+          compute_network_ids = [self.input.network_id.value]
         }
       }
 
@@ -300,7 +314,7 @@ query "compute_network_input" {
       id::text as value,
       json_build_object(
         'project', project,
-        'id', id
+        'id', id::text
       ) as tags
     from
       gcp_compute_network
@@ -544,7 +558,7 @@ query "compute_network_overview" {
   sql = <<-EOQ
     select
       name as "Name",
-      id as "ID",
+      id::text as "ID",
       creation_timestamp as "Creation Time",
       mtu as "MTU",
       routing_mode as "Routing Mode",
@@ -578,7 +592,7 @@ query "compute_network_subnet" {
   sql = <<-EOQ
     select
       s.name as "Name",
-      s.id as "ID",
+      s.id::text as "ID",
       s.creation_timestamp as "Creation Time",
       s.enable_flow_logs as "Enable Flow Logs",
       s.log_config_enable as "Log Config Enabled",

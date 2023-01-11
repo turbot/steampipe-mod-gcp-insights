@@ -3,7 +3,7 @@ node "kubernetes_cluster" {
 
   sql = <<-EOQ
     select
-      id::text,
+      id,
       title,
       jsonb_build_object(
         'ID', id,

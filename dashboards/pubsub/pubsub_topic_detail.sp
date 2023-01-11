@@ -264,6 +264,8 @@ query "kms_keys_for_pubsub_topic" {
       gcp_kms_key k
     where
       k.self_link like '%' || p.kms_key_name
+      and kms_key_name <> ''
+      and kms_key_name is not null
       and p.self_link = $1;
   EOQ
 }

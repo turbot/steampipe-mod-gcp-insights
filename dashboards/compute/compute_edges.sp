@@ -157,13 +157,14 @@ edge "compute_image_to_compute_disk" {
 
   sql = <<-EOQ
     select
-      i.name as from_id,
+      i.id::text as from_id,
       d.id::text as to_id
     from
       gcp_compute_disk d,
       gcp_compute_image i
     where
-      d.id = any($1)
+      i.id = any($1)
+      and d.source_image <> ''
       and d.source_image = i.self_link;
   EOQ
 
@@ -472,6 +473,31 @@ edge "compute_network_to_compute_instance" {
     where
       n.self_link = ni ->> 'network'
       and n.id = any($1);
+  EOQ
+
+  param "compute_network_ids" {}
+}
+
+edge "compute_network_to_compute_network_peers" {
+  title = "peer"
+
+  sql = <<-EOQ
+    with peer_network as (
+      select
+        id,
+        p ->> 'name' as name,
+        'projects' || split_part(p ->> 'network', 'projects', 2) as network
+      from
+        gcp_compute_network,
+        jsonb_array_elements(peerings) as p
+      where
+        id = any($1)
+    )
+    select
+      id::text as from_id,
+      network as to_id
+    from
+      peer_network;
   EOQ
 
   param "compute_network_ids" {}

@@ -81,6 +81,12 @@ category "compute_network" {
   icon  = "cloud"
 }
 
+category "compute_network_peers" {
+  title = "Compute Network Peers"
+  color = local.networking_color
+  icon  = "cloud"
+}
+
 category "compute_network_interface" {
   title = "Compute Network Interface"
   color = local.networking_color

@@ -6,7 +6,7 @@ node "dns_policy" {
       p.id::text,
       p.title,
       jsonb_build_object(
-        'ID', p.id,
+        'ID', p.id::text,
         'Name', p.name,
         'Enable Logging', p.enable_logging,
         'Enable Inbound Forwarding', p.enable_inbound_forwarding,

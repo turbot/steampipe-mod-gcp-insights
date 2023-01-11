@@ -241,7 +241,7 @@ query "compute_instance_input" {
       json_build_object(
         'location', location,
         'project', project,
-        'id', id
+        'id', id::text
       ) as tags
     from
       gcp_compute_instance
@@ -415,7 +415,7 @@ query "compute_instance_overview" {
   sql = <<-EOQ
     select
       name as "Name",
-      id as "ID",
+      id::text as "ID",
       creation_timestamp as "Create Time",
       title as "Title",
       location as "Location",
