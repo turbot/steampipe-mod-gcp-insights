@@ -6,7 +6,7 @@ node "compute_address" {
       a.id::text,
       a.title,
       jsonb_build_object(
-        'ID', a.id,
+        'ID', a.id::text,
         'Created Time', a.creation_timestamp,
         'Address', a.address,
         'Address Type', a.address_type,
@@ -25,7 +25,7 @@ node "compute_address" {
       a.id::text,
       a.title,
       jsonb_build_object(
-        'ID', a.id,
+        'ID', a.id::text,
         'Created Time', a.creation_timestamp,
         'Address', a.address,
         'Address Type', a.address_type,
@@ -50,7 +50,7 @@ node "compute_autoscaler" {
       a.id::text,
       a.title,
       jsonb_build_object(
-        'ID', a.id,
+        'ID', a.id::text,
         'Name', a.name,
         'Created Time', a.creation_timestamp,
         'Status', a.status,
@@ -71,7 +71,7 @@ node "compute_backend_bucket" {
 
   sql = <<-EOQ
     select
-      c.id::text as id,
+      c.id::text,
       c.title,
       jsonb_build_object(
         'Name', c.name,
@@ -97,7 +97,7 @@ node "compute_backend_service" {
       bs.id::text,
       bs.title,
       jsonb_build_object(
-        'ID', bs.id,
+        'ID', bs.id::text,
         'Name', bs.name,
         'Enable CDN', bs.enable_cdn,
         'Protocol', bs.protocol,
@@ -146,7 +146,7 @@ node "compute_firewall" {
       f.id::text,
       f.title,
       jsonb_build_object(
-        'ID', f.id,
+        'ID', f.id::text,
         'Direction', f.direction,
         'Enabled', not f.disabled,
         'Action', f.action,
@@ -287,7 +287,7 @@ node "compute_instance_template" {
       t.id::text,
       t.title,
       jsonb_build_object(
-        'ID', t.id,
+        'ID', t.id::text,
         'Name', t.name,
         'Created Time', t.creation_timestamp,
         'Location', t.location,
@@ -329,7 +329,7 @@ node "compute_resource_policy" {
 
   sql = <<-EOQ
    select
-      r.id as id,
+      r.id::text,
       r.title,
       jsonb_build_object(
         'Name', r.name,
@@ -354,7 +354,7 @@ node "compute_router" {
       r.id::text,
       r.title,
       jsonb_build_object(
-        'ID', r.id,
+        'ID', r.id::text,
         'Name', r.name,
         'Created Time', r.creation_timestamp,
         'Location', r.location,
@@ -397,7 +397,7 @@ node "compute_subnetwork" {
 
   sql = <<-EOQ
     select
-      s.id::text as id,
+      s.id::text,
       s.title,
       jsonb_build_object(
         'ID', s.id::text,
@@ -424,7 +424,7 @@ node "compute_vpn_gateway" {
       g.id::text,
       g.title,
       jsonb_build_object(
-        'ID', g.id,
+        'ID', g.id::text,
         'Name', g.name,
         'Created Time', g.creation_timestamp,
         'Location', g.location,

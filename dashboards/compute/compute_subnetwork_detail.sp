@@ -228,7 +228,7 @@ query "compute_subnetwork_input" {
       json_build_object(
         'location', location,
         'project', project,
-        'id', id
+        'id', id::text
       ) as tags
     from
       gcp_compute_subnetwork

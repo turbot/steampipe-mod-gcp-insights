@@ -3,7 +3,7 @@ node "sql_backup" {
 
   sql = <<-EOQ
     select
-      id as id,
+      id,
       title,
       jsonb_build_object(
         'Backup Instance Name', instance_name,

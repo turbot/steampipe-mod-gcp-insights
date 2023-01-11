@@ -300,7 +300,7 @@ query "compute_network_input" {
       id::text as value,
       json_build_object(
         'project', project,
-        'id', id
+        'id', id::text
       ) as tags
     from
       gcp_compute_network
