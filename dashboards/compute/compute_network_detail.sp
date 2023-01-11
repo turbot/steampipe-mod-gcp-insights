@@ -297,7 +297,7 @@ query "compute_network_input" {
   sql = <<-EOQ
     select
       name as label,
-      id as value,
+      id::text as value,
       json_build_object(
         'project', project,
         'id', id
