@@ -211,7 +211,7 @@ query "sql_database_instance_point_in_time_recovery_enable_count" {
     from
       gcp_sql_database_instance
     where
-      enable_point_in_time_recovery;
+      not enable_point_in_time_recovery;
   EOQ
 }
 
@@ -293,9 +293,9 @@ query "sql_database_instance_point_in_time_recovery_status" {
     from (
       select name,
         case when enable_point_in_time_recovery then
-          'disabled'
-        else
           'enabled'
+        else
+          'disabled'
         end point_in_time_recovery_status
       from
         gcp_sql_database_instance) as c
@@ -353,7 +353,7 @@ query "sql_database_ssl_status" {
 query "sql_database_instance_by_project" {
   sql = <<-EOQ
     select
-      p.title as "project",
+      p.title as "Project",
       count(i.*) as "total"
     from
       gcp_sql_database_instance as i,

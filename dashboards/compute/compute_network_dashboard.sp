@@ -174,7 +174,7 @@ query "compute_network_subnet_status" {
 query "compute_network_by_project" {
   sql = <<-EOQ
     select
-      p.title as "project",
+      p.title as "Project",
       count(n.*) as "total"
     from
       gcp_compute_network as n,

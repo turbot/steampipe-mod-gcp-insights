@@ -338,7 +338,7 @@ query "compute_instance_shielded_vm_status" {
 query "compute_instance_by_project" {
   sql = <<-EOQ
     select
-      p.title as "project",
+      p.title as "Project",
       count(i.*) as "total"
     from
       gcp_compute_instance as i,

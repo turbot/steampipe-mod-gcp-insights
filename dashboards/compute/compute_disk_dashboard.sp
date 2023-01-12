@@ -248,7 +248,7 @@ query "compute_disk_unattached" {
 query "compute_disk_by_project" {
   sql = <<-EOQ
     select
-      p.title as "project",
+      p.title as "Project",
       count(d.*) as "total"
     from
       gcp_compute_disk as d,
@@ -363,7 +363,7 @@ query "compute_disk_by_type" {
 query "compute_disk_storage_by_project" {
   sql = <<-EOQ
     select
-      p.title as "project",
+      p.title as "Project",
       sum(d.size_gb) as "GB"
     from
       gcp_compute_disk as d,

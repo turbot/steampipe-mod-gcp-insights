@@ -344,7 +344,7 @@ query "kms_key_rotation_period" {
   sql = <<-EOQ
   select
       'Rotation Period in days' as label,
-      NULLIF(SPLIT_PART(rotation_period, 's', 1), '')::int / ( 60 * 60 * 24) as value
+      nullif(split_part(rotation_period, 's', 1), '')::int / ( 60 * 60 * 24) as value
     from
       gcp_kms_key
       where

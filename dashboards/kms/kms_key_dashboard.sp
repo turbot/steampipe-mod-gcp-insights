@@ -124,7 +124,7 @@ query "kms_key_rotation_status" {
 query "kms_key_by_project" {
   sql = <<-EOQ
     select
-      p.title as "project",
+      p.title as "Project",
       count(k.*) as "total"
     from
       gcp_kms_key as k,

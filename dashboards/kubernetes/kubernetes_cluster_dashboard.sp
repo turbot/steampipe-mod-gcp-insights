@@ -309,7 +309,7 @@ query "kubernetes_cluster_auto_repair_status" {
 query "kubernetes_cluster_by_project" {
   sql = <<-EOQ
     select
-      p.title as "project",
+      p.title as "Project",
       count(i.*) as "total"
     from
       gcp_kubernetes_cluster as i,

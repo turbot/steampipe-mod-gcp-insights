@@ -269,7 +269,7 @@ query "compute_subnetwork_is_default" {
   sql = <<-EOQ
     select
       'Default Subnetwork' as label,
-      case when name <> 'default' then 'Disabled' else 'Enabled' end as value,
+      case when name <> 'default' then 'Ok' else 'Default Subnetwork' end as value,
       case when name <> 'default' then 'ok' else 'alert' end as type
     from
       gcp_compute_subnetwork

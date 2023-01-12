@@ -356,7 +356,7 @@ query "storage_bucket_uniform_bucket_level_access_status" {
 query "storage_bucket_by_project" {
   sql = <<-EOQ
     select
-      p.title as "project",
+      p.title as "Project",
       count(b.*) as "total"
     from
       gcp_storage_bucket as b,

@@ -373,7 +373,7 @@ query "compute_networks_for_sql_database_instance" {
       gcp_sql_database_instance as i,
       gcp_compute_network as n
     where
-      SPLIT_PART(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
+      split_part(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
       and i.self_link = $1;
   EOQ
 }
@@ -387,7 +387,7 @@ query "kms_keys_for_sql_database_instance" {
       gcp_kms_key as k
     where
       i.self_link = $1 
-      and i.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2));
+      and i.kms_key_name = concat('projects', split_part(k.self_link,'projects',2));
   EOQ
 }
 
@@ -440,7 +440,7 @@ query "sql_database_instance_overview" {
       machine_type as "Machine Type",
       title as "Title",
       location as "Location",
-      project as "Project ID"
+      project as "Project"
     from
       gcp_sql_database_instance
     where
@@ -494,7 +494,7 @@ query "sql_database_instance_encryption_detail" {
       gcp_sql_database_instance as d,
       gcp_kms_key as k
     where
-      d.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2))
+      d.kms_key_name = concat('projects', split_part(k.self_link,'projects',2))
       and d.self_link = $1;
   EOQ
 }
@@ -508,7 +508,7 @@ query "sql_database_instance_cpu_utilization" {
       gcp_sql_database_instance_metric_cpu_utilization
     where
       timestamp >= current_date - interval '7 day'
-      and SPLIT_PART(instance_id, ':', 2) in (select name from gcp_sql_database_instance where self_link = $1)
+      and split_part(instance_id, ':', 2) in (select name from gcp_sql_database_instance where self_link = $1)
     order by
       timestamp;
   EOQ
@@ -523,7 +523,7 @@ query "sql_database_instance_connection" {
       gcp_sql_database_instance_metric_connections
     where
       timestamp >= current_date - interval '7 day'
-      and SPLIT_PART(instance_id, ':', 2) in (select name from gcp_sql_database_instance where self_link = $1)
+      and split_part(instance_id, ':', 2) in (select name from gcp_sql_database_instance where self_link = $1)
     order by
       timestamp;
   EOQ

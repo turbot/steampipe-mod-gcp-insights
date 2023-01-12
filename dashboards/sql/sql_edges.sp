@@ -27,7 +27,7 @@ edge "sql_database_instance_to_compute_network" {
       gcp_sql_database_instance as i,
       gcp_compute_network as n
     where
-      SPLIT_PART(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
+      split_part(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
       and i.self_link = any($1);
   EOQ
 
@@ -46,7 +46,7 @@ edge "sql_database_instance_to_kms_key" {
       gcp_kms_key as k
     where
       i.self_link = any($1) 
-      and i.kms_key_name = CONCAT('projects', SPLIT_PART(k.self_link,'projects',2));
+      and i.kms_key_name = concat('projects', split_part(k.self_link,'projects',2));
   EOQ
 
   param "database_instance_self_links" {}

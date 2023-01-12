@@ -331,7 +331,7 @@ query "pubsub_topic_encryption_details" {
       k.key_ring_name as "Key Ring Name",
       k.create_time as "Create Time",
       k.title as "Title",
-      NULLIF(SPLIT_PART(k.rotation_period, 's', 1), '')::int / ( 60 * 60 * 24) as "Rotation Period",
+      nullif(split_part(k.rotation_period, 's', 1), '')::int / ( 60 * 60 * 24) as "Rotation Period",
       k.location as "Location"
     from
       gcp_pubsub_topic p,
