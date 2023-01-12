@@ -65,16 +65,15 @@ edge "kubernetes_cluster_to_compute_subnetwork" {
       coalesce(f.id::text, c.id::text) as from_id,
       s.id::text as to_id
     from
-      gcp_kubernetes_cluster c,
-      gcp_compute_network n,
-      gcp_compute_firewall f,
-      gcp_compute_subnetwork s
+      gcp_kubernetes_cluster c
+      join gcp_compute_network n 
+        on c.network = n.name
+      left join gcp_compute_firewall f 
+        on n.self_link = f.network
+      left join gcp_compute_subnetwork s 
+        on s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%'
     where
-      c.id = any($1)
-      and c.network = n.name
-      and c.project = n.project
-      and n.self_link = f.network
-      and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
+      c.id = any($1);
   EOQ
 
   param "kubernetes_cluster_ids" {}

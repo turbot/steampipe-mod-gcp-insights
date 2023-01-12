@@ -292,16 +292,15 @@ edge "compute_instance_group_to_compute_subnetwork" {
       coalesce(f.id::text, g.id::text) as from_id,
       s.id::text as to_id
     from
-      gcp_compute_instance_group g,
-      gcp_compute_network n,
-      gcp_compute_subnetwork s,
-      gcp_compute_firewall f
+      gcp_compute_instance_group g
+      join gcp_compute_network n 
+        on g.network = n.self_link
+      left join gcp_compute_subnetwork s 
+        on g.subnetwork = s.self_link
+      left join gcp_compute_firewall f 
+        on g.network = f.network
     where
-      g.network = n.self_link
-      and g.subnetwork = s.self_link
-      and g.network = f.network
-      and g.project = f.project
-      and g.id = any($1);
+      g.id = any($1);
   EOQ
 
   param "compute_instance_group_ids" {}
@@ -356,15 +355,13 @@ edge "compute_instance_to_compute_subnetwork" {
       s.id::text as to_id
     from
       gcp_compute_instance i,
-      gcp_compute_subnetwork s,
-      gcp_compute_firewall f,
       jsonb_array_elements(network_interfaces) as ni
+      left join gcp_compute_subnetwork s
+        on ni ->> 'subnetwork' = s.self_link
+      left join gcp_compute_firewall f
+        on ni ->> 'network' = f.network
     where
-      ni ->> 'subnetwork' = s.self_link
-      and ni ->> 'network' = f.network
-      and i.project = s.project
-      and i.project = f.project
-      and i.id = any($1);
+      i.id =  any($1);
   EOQ
 
   param "compute_instance_ids" {}
