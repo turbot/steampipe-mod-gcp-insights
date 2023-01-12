@@ -1,3 +1,20 @@
+## v0.4 [2023-01-12]
+
+_Dependencies_
+
+- Steampipe `v0.18.0` or higher is now required ([#56](https://github.com/turbot/steampipe-mod-gcp-insights/pull/56))
+- GCP plugin `v0.32.0` or higher is now required. ([#56](https://github.com/turbot/steampipe-mod-gcp-insights/pull/56))
+
+_What's new?_
+
+- Added resource relationship graphs across all the detail dashboards to highlight the relationship the resource shares with other resources. ([#55](https://github.com/turbot/steampipe-mod-gcp-insights/pull/55))
+- New dashboards added: ([#55](https://github.com/turbot/steampipe-mod-gcp-insights/pull/55))
+  - [GCP Compute Subnetwork Detail](https://hub.steampipe.io/mods/turbot/gcp_insights/dashboards/dashboard.compute_subnetwork_detail)
+  - [GCP Pub/Sub Topic Detail](https://hub.steampipe.io/mods/turbot/gcp_insights/dashboards/dashboard.pubsub_topic_detail_detail)
+  - [GCP SQL Database Instance Dashboard](https://hub.steampipe.io/mods/turbot/gcp_insights/dashboards/dashboard.sql_database_instance_dashboard)
+  - [GCP SQL Database Instance Detail](https://hub.steampipe.io/mods/turbot/gcp_insights/dashboards/dashboard.sql_database_instance_detail)
+  - [GCP Storage Bucket Detail](https://hub.steampipe.io/mods/turbot/aws_insights/dashboards/dashboard.storage_bucket_detail)
+
 ## v0.3 [2022-05-09]
 
 _Enhancements_
