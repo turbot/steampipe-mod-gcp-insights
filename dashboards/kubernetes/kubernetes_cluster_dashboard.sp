@@ -1,4 +1,4 @@
-dashboard "gcp_kubernetes_cluster_dashboard" {
+dashboard "kubernetes_cluster_dashboard" {
 
   title         = "GCP Kubernetes Cluster Dashboard"
   documentation = file("./dashboards/kubernetes/docs/kubernetes_cluster_dashboard.md")
@@ -10,32 +10,32 @@ dashboard "gcp_kubernetes_cluster_dashboard" {
   container {
 
     card {
-      query = query.gcp_kubernetes_cluster_count
+      query = query.kubernetes_cluster_count
       width = 2
     }
 
     card {
-      query = query.gcp_kubernetes_cluster_node_count
+      query = query.kubernetes_cluster_node_count
       width = 2
     }
 
     card {
-      query = query.gcp_kubernetes_cluster_database_encryption_count
+      query = query.kubernetes_cluster_database_encryption_count
       width = 2
     }
 
     card {
-      query = query.gcp_kubernetes_cluster_degraded_count
+      query = query.kubernetes_cluster_degraded_count
       width = 2
     }
 
     card {
-      query = query.gcp_kubernetes_cluster_shielded_nodes_disabled_count
+      query = query.kubernetes_cluster_shielded_nodes_disabled_count
       width = 2
     }
 
     card {
-      query = query.gcp_kubernetes_cluster_auto_repair_disabled_count
+      query = query.kubernetes_cluster_auto_repair_disabled_count
       width = 2
     }
 
@@ -47,7 +47,7 @@ dashboard "gcp_kubernetes_cluster_dashboard" {
 
     chart {
       title = "Cluster Status"
-      query = query.gcp_kubernetes_cluster_status
+      query = query.kubernetes_cluster_status
       type  = "donut"
       width = 3
 
@@ -63,7 +63,7 @@ dashboard "gcp_kubernetes_cluster_dashboard" {
 
     chart {
       title = "Database Encryption Status"
-      query = query.gcp_kubernetes_cluster_encryption_status
+      query = query.kubernetes_cluster_encryption_status
       type  = "donut"
       width = 3
 
@@ -79,7 +79,7 @@ dashboard "gcp_kubernetes_cluster_dashboard" {
 
     chart {
       title = "Shielded Nodes Status"
-      query = query.gcp_kubernetes_cluster_shielded_nodes_status
+      query = query.kubernetes_cluster_shielded_nodes_status
       type  = "donut"
       width = 3
 
@@ -95,7 +95,7 @@ dashboard "gcp_kubernetes_cluster_dashboard" {
 
     chart {
       title = "Node Auto-Repair Status"
-      query = query.gcp_kubernetes_cluster_auto_repair_status
+      query = query.kubernetes_cluster_auto_repair_status
       type  = "donut"
       width = 3
 
@@ -117,28 +117,28 @@ dashboard "gcp_kubernetes_cluster_dashboard" {
 
     chart {
       title = "Clusters by Project"
-      query = query.gcp_kubernetes_cluster_by_project
+      query = query.kubernetes_cluster_by_project
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Clusters by Location"
-      query = query.gcp_kubernetes_cluster_by_location
+      query = query.kubernetes_cluster_by_location
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Clusters by State"
-      query = query.gcp_kubernetes_cluster_by_state
+      query = query.kubernetes_cluster_by_state
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Clusters by Age"
-      query = query.gcp_kubernetes_cluster_by_creation_month
+      query = query.kubernetes_cluster_by_creation_month
       type  = "column"
       width = 3
     }
@@ -149,13 +149,13 @@ dashboard "gcp_kubernetes_cluster_dashboard" {
 
 # Card Queries
 
-query "gcp_kubernetes_cluster_count" {
+query "kubernetes_cluster_count" {
   sql = <<-EOQ
     select count(*) as "Clusters" from gcp_kubernetes_cluster;
   EOQ
 }
 
-query "gcp_kubernetes_cluster_node_count" {
+query "kubernetes_cluster_node_count" {
   sql = <<-EOQ
     select
       sum (current_node_count) as "Total Nodes"
@@ -164,7 +164,7 @@ query "gcp_kubernetes_cluster_node_count" {
   EOQ
 }
 
-query "gcp_kubernetes_cluster_database_encryption_count" {
+query "kubernetes_cluster_database_encryption_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -177,7 +177,7 @@ query "gcp_kubernetes_cluster_database_encryption_count" {
   EOQ
 }
 
-query "gcp_kubernetes_cluster_degraded_count" {
+query "kubernetes_cluster_degraded_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -190,7 +190,7 @@ query "gcp_kubernetes_cluster_degraded_count" {
   EOQ
 }
 
-query "gcp_kubernetes_cluster_shielded_nodes_disabled_count" {
+query "kubernetes_cluster_shielded_nodes_disabled_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -203,7 +203,7 @@ query "gcp_kubernetes_cluster_shielded_nodes_disabled_count" {
   EOQ
 }
 
-query "gcp_kubernetes_cluster_auto_repair_disabled_count" {
+query "kubernetes_cluster_auto_repair_disabled_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -219,7 +219,7 @@ query "gcp_kubernetes_cluster_auto_repair_disabled_count" {
 
 # Assessment Queries
 
-query "gcp_kubernetes_cluster_encryption_status" {
+query "kubernetes_cluster_encryption_status" {
   sql = <<-EOQ
     select
       encryption_status,
@@ -240,7 +240,7 @@ query "gcp_kubernetes_cluster_encryption_status" {
   EOQ
 }
 
-query "gcp_kubernetes_cluster_status" {
+query "kubernetes_cluster_status" {
   sql = <<-EOQ
     select
       status,
@@ -261,7 +261,7 @@ query "gcp_kubernetes_cluster_status" {
   EOQ
 }
 
-query "gcp_kubernetes_cluster_shielded_nodes_status" {
+query "kubernetes_cluster_shielded_nodes_status" {
   sql = <<-EOQ
     select
       status,
@@ -282,7 +282,7 @@ query "gcp_kubernetes_cluster_shielded_nodes_status" {
   EOQ
 }
 
-query "gcp_kubernetes_cluster_auto_repair_status" {
+query "kubernetes_cluster_auto_repair_status" {
   sql = <<-EOQ
     select
       status,
@@ -306,10 +306,10 @@ query "gcp_kubernetes_cluster_auto_repair_status" {
 
 # Analysis Queries
 
-query "gcp_kubernetes_cluster_by_project" {
+query "kubernetes_cluster_by_project" {
   sql = <<-EOQ
     select
-      p.title as "project",
+      p.title as "Project",
       count(i.*) as "total"
     from
       gcp_kubernetes_cluster as i,
@@ -322,7 +322,7 @@ query "gcp_kubernetes_cluster_by_project" {
   EOQ
 }
 
-query "gcp_kubernetes_cluster_by_location" {
+query "kubernetes_cluster_by_location" {
   sql = <<-EOQ
     select
       location,
@@ -334,7 +334,7 @@ query "gcp_kubernetes_cluster_by_location" {
   EOQ
 }
 
-query "gcp_kubernetes_cluster_by_state" {
+query "kubernetes_cluster_by_state" {
   sql = <<-EOQ
     select
       status,
@@ -346,7 +346,7 @@ query "gcp_kubernetes_cluster_by_state" {
   EOQ
 }
 
-query "gcp_kubernetes_cluster_by_creation_month" {
+query "kubernetes_cluster_by_creation_month" {
   sql = <<-EOQ
     with clusters as (
       select

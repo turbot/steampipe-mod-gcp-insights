@@ -1,5 +1,5 @@
-dashboard "gcp_compute_disk_encryption_report" {
-  
+dashboard "compute_disk_encryption_report" {
+
   title         = "GCP Compute Disk Encryption Report"
   documentation = file("./dashboards/compute/docs/compute_disk_report_encryption.md")
 
@@ -11,22 +11,22 @@ dashboard "gcp_compute_disk_encryption_report" {
   container {
 
     card {
-      query = query.gcp_compute_disk_count
+      query = query.compute_disk_count
       width = 2
     }
 
     card {
-      query = query.gcp_compute_disk_google_managed_encryption
+      query = query.compute_disk_google_managed_encryption
       width = 2
     }
 
     card {
-      query = query.gcp_compute_disk_customer_managed_encryption
+      query = query.compute_disk_customer_managed_encryption
       width = 2
     }
 
     card {
-      query = query.gcp_compute_disk_customer_supplied_encryption
+      query = query.compute_disk_customer_supplied_encryption
       width = 2
     }
 
@@ -42,15 +42,15 @@ dashboard "gcp_compute_disk_encryption_report" {
     }
 
     column "Name" {
-      href = "${dashboard.gcp_compute_disk_detail.url_path}?input.disk_id={{.ID | @uri}}"
+      href = "${dashboard.compute_disk_detail.url_path}?input.disk_id={{.ID | @uri}}"
     }
 
-    query = query.gcp_compute_disk_encryption_table
+    query = query.compute_disk_encryption_table
   }
 
 }
 
-query "gcp_compute_disk_google_managed_encryption" {
+query "compute_disk_google_managed_encryption" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -62,7 +62,7 @@ query "gcp_compute_disk_google_managed_encryption" {
   EOQ
 }
 
-query "gcp_compute_disk_customer_managed_encryption" {
+query "compute_disk_customer_managed_encryption" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -74,7 +74,7 @@ query "gcp_compute_disk_customer_managed_encryption" {
   EOQ
 }
 
-query "gcp_compute_disk_customer_supplied_encryption" {
+query "compute_disk_customer_supplied_encryption" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -86,7 +86,7 @@ query "gcp_compute_disk_customer_supplied_encryption" {
   EOQ
 }
 
-query "gcp_compute_disk_encryption_table" {
+query "compute_disk_encryption_table" {
   sql = <<-EOQ
     select
       d.name as "Name",

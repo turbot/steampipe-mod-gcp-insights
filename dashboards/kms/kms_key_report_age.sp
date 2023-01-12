@@ -1,4 +1,4 @@
-dashboard "gcp_kms_key_age_report" {
+dashboard "kms_key_age_report" {
 
   title         = "GCP KMS Key Age Report"
   documentation = file("./dashboards/kms/docs/kms_key_report_age.md")
@@ -11,38 +11,38 @@ dashboard "gcp_kms_key_age_report" {
   container {
 
     card {
-      query = query.gcp_kms_key_count
+      query = query.kms_key_count
       width = 2
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.gcp_kms_key_24_hours_count
+      query = query.kms_key_24_hours_count
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.gcp_kms_key_30_days_count
+      query = query.kms_key_30_days_count
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.gcp_kms_key_30_90_days_count
+      query = query.kms_key_30_90_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      query = query.gcp_kms_key_90_365_days_count
+      query = query.kms_key_90_365_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      query = query.gcp_kms_key_1_year_count
+      query = query.kms_key_1_year_count
     }
 
   }
@@ -56,12 +56,16 @@ dashboard "gcp_kms_key_age_report" {
       display = "none"
     }
 
-    query = query.gcp_kms_key_age_table
+    column "Name" {
+      href = "${dashboard.kms_key_detail.url_path}?input.key_name={{.Name | @uri}}"
+    }
+
+    query = query.kms_key_age_table
   }
 
 }
 
-query "gcp_kms_key_24_hours_count" {
+query "kms_key_24_hours_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -73,7 +77,7 @@ query "gcp_kms_key_24_hours_count" {
   EOQ
 }
 
-query "gcp_kms_key_30_days_count" {
+query "kms_key_30_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -85,7 +89,7 @@ query "gcp_kms_key_30_days_count" {
   EOQ
 }
 
-query "gcp_kms_key_30_90_days_count" {
+query "kms_key_30_90_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -97,7 +101,7 @@ query "gcp_kms_key_30_90_days_count" {
   EOQ
 }
 
-query "gcp_kms_key_90_365_days_count" {
+query "kms_key_90_365_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -109,7 +113,7 @@ query "gcp_kms_key_90_365_days_count" {
   EOQ
 }
 
-query "gcp_kms_key_1_year_count" {
+query "kms_key_1_year_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -121,7 +125,7 @@ query "gcp_kms_key_1_year_count" {
   EOQ
 }
 
-query "gcp_kms_key_age_table" {
+query "kms_key_age_table" {
   sql = <<-EOQ
     select
       k.name as "Name",

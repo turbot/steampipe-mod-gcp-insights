@@ -1,4 +1,4 @@
-dashboard "gcp_compute_network_dashboard" {
+dashboard "compute_network_dashboard" {
 
   title         = "GCP Compute Network Dashboard"
   documentation = file("./dashboards/compute/docs/compute_network_dashboard.md")
@@ -10,22 +10,22 @@ dashboard "gcp_compute_network_dashboard" {
   container {
 
     card {
-      query = query.gcp_compute_network_count
+      query = query.compute_network_count
       width = 2
     }
 
     card {
-      query = query.gcp_compute_network_total_mtu
+      query = query.compute_network_total_mtu
       width = 2
     }
 
     card {
-      query = query.gcp_compute_network_default_count
+      query = query.compute_network_default_count
       width = 2
     }
 
     card {
-      query = query.gcp_compute_network_no_subnet_count
+      query = query.compute_network_no_subnet_count
       width = 2
     }
 
@@ -39,7 +39,7 @@ dashboard "gcp_compute_network_dashboard" {
       title = "Default Networks"
       type  = "donut"
       width = 4
-      query = query.gcp_compute_network_default_status
+      query = query.compute_network_default_status
 
       series "count" {
         point "non-default" {
@@ -55,7 +55,7 @@ dashboard "gcp_compute_network_dashboard" {
       title = "Empty Networks (No Subnets)"
       type  = "donut"
       width = 4
-      query = query.gcp_compute_network_subnet_status
+      query = query.compute_network_subnet_status
 
       series "count" {
         point "non-empty" {
@@ -75,21 +75,21 @@ dashboard "gcp_compute_network_dashboard" {
 
     chart {
       title = "Networks by Project"
-      query = query.gcp_compute_network_by_project
+      query = query.compute_network_by_project
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Networks by Routing Mode"
-      query = query.gcp_compute_network_by_routing_mode
+      query = query.compute_network_by_routing_mode
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Networks by Creation Mode"
-      query = query.gcp_compute_network_by_creation_mode
+      query = query.compute_network_by_creation_mode
       type  = "column"
       width = 4
     }
@@ -100,19 +100,19 @@ dashboard "gcp_compute_network_dashboard" {
 
 # Card Queries
 
-query "gcp_compute_network_count" {
+query "compute_network_count" {
   sql = <<-EOQ
     select count(*) as "Networks" from gcp_compute_network;
   EOQ
 }
 
-query "gcp_compute_network_total_mtu" {
+query "compute_network_total_mtu" {
   sql = <<-EOQ
     select sum(mtu) as "Total MTU (Bytes)" from gcp_compute_network;
   EOQ
 }
 
-query "gcp_compute_network_default_count" {
+query "compute_network_default_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -125,7 +125,7 @@ query "gcp_compute_network_default_count" {
   EOQ
 }
 
-query "gcp_compute_network_no_subnet_count" {
+query "compute_network_no_subnet_count" {
   sql = <<-EOQ
     select
        count(*) as value,
@@ -141,7 +141,7 @@ query "gcp_compute_network_no_subnet_count" {
 
 # Assessment Queries
 
-query "gcp_compute_network_default_status" {
+query "compute_network_default_status" {
   sql = <<-EOQ
     select
       case
@@ -156,7 +156,7 @@ query "gcp_compute_network_default_status" {
   EOQ
 }
 
-query "gcp_compute_network_subnet_status" {
+query "compute_network_subnet_status" {
   sql = <<-EOQ
     select
       case when s.id is null then 'empty' else 'non-empty' end as status,
@@ -171,10 +171,10 @@ query "gcp_compute_network_subnet_status" {
 
 # Analysis Queries
 
-query "gcp_compute_network_by_project" {
+query "compute_network_by_project" {
   sql = <<-EOQ
     select
-      p.title as "project",
+      p.title as "Project",
       count(n.*) as "total"
     from
       gcp_compute_network as n,
@@ -187,7 +187,7 @@ query "gcp_compute_network_by_project" {
   EOQ
 }
 
-query "gcp_compute_network_by_routing_mode" {
+query "compute_network_by_routing_mode" {
   sql = <<-EOQ
     select
       routing_mode as "Routing Mode",
@@ -201,7 +201,7 @@ query "gcp_compute_network_by_routing_mode" {
   EOQ
 }
 
-query "gcp_compute_network_by_creation_mode" {
+query "compute_network_by_creation_mode" {
   sql = <<-EOQ
     select
       case when auto_create_subnetworks then 'auto' else 'custom' end as "Creation Mode",

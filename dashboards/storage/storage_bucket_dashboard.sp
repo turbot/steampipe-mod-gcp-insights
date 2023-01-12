@@ -1,4 +1,4 @@
-dashboard "gcp_storage_bucket_dashboard" {
+dashboard "storage_bucket_dashboard" {
 
   title         = "GCP Storage Bucket Dashboard"
   documentation = file("./dashboards/storage/docs/storage_bucket_dashboard.md")
@@ -11,33 +11,33 @@ dashboard "gcp_storage_bucket_dashboard" {
 
     # Analysis
     card {
-      query = query.gcp_storage_bucket_count
+      query = query.storage_bucket_count
       width = 2
     }
 
     card {
-      query = query.gcp_storage_bucket_public_access_count
+      query = query.storage_bucket_public_access_count
       width = 2
     }
 
     # Assessments
     card {
-      query = query.gcp_storage_bucket_versioning_disabled_count
+      query = query.storage_bucket_versioning_disabled_count
       width = 2
     }
 
     card {
-      query = query.gcp_storage_bucket_no_retention_policy_count
+      query = query.storage_bucket_no_retention_policy_count
       width = 2
     }
 
     card {
-      query = query.gcp_storage_bucket_logging_disabled_count
+      query = query.storage_bucket_logging_disabled_count
       width = 2
     }
 
     card {
-      query = query.gcp_storage_bucket_uniform_bucket_level_access_disabled_count
+      query = query.storage_bucket_uniform_bucket_level_access_disabled_count
       width = 2
     }
 
@@ -49,7 +49,7 @@ dashboard "gcp_storage_bucket_dashboard" {
 
     chart {
       title = "Public/Private"
-      query = query.gcp_storage_bucket_by_public_access
+      query = query.storage_bucket_by_public_access
       type  = "donut"
       width = 4
 
@@ -65,7 +65,7 @@ dashboard "gcp_storage_bucket_dashboard" {
 
     chart {
       title = "Versioning Status"
-      query = query.gcp_storage_bucket_versioning_status
+      query = query.storage_bucket_versioning_status
       type  = "donut"
       width = 4
 
@@ -81,7 +81,7 @@ dashboard "gcp_storage_bucket_dashboard" {
 
     chart {
       title = "Retention Policy Status"
-      query = query.gcp_storage_bucket_retention_policy_status
+      query = query.storage_bucket_retention_policy_status
       type  = "donut"
       width = 4
 
@@ -97,7 +97,7 @@ dashboard "gcp_storage_bucket_dashboard" {
 
     chart {
       title = "Logging Status"
-      query = query.gcp_storage_bucket_logging_status
+      query = query.storage_bucket_logging_status
       type  = "donut"
       width = 4
 
@@ -113,7 +113,7 @@ dashboard "gcp_storage_bucket_dashboard" {
 
     chart {
       title = "Uniform Bucket Level Access"
-      query = query.gcp_storage_bucket_uniform_bucket_level_access_status
+      query = query.storage_bucket_uniform_bucket_level_access_status
       type  = "donut"
       width = 4
 
@@ -135,35 +135,35 @@ dashboard "gcp_storage_bucket_dashboard" {
 
     chart {
       title = "Buckets by Project"
-      query = query.gcp_storage_bucket_by_project
+      query = query.storage_bucket_by_project
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Buckets by Location"
-      query = query.gcp_storage_bucket_by_location
+      query = query.storage_bucket_by_location
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Buckets by Age"
-      query = query.gcp_storage_bucket_by_creation_month
+      query = query.storage_bucket_by_creation_month
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Buckets by Storage Class"
-      query = query.gcp_storage_bucket_by_storage_class
+      query = query.storage_bucket_by_storage_class
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Buckets by Encryption Type"
-      query = query.gcp_storage_bucket_by_encryption_type
+      query = query.storage_bucket_by_encryption_type
       type  = "column"
       width = 4
     }
@@ -173,13 +173,13 @@ dashboard "gcp_storage_bucket_dashboard" {
 
 # Card Queries
 
-query "gcp_storage_bucket_count" {
+query "storage_bucket_count" {
   sql = <<-EOQ
     select count(*) as "Buckets" from gcp_storage_bucket;
   EOQ
 }
 
-query "gcp_storage_bucket_public_access_count" {
+query "storage_bucket_public_access_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -192,7 +192,7 @@ query "gcp_storage_bucket_public_access_count" {
   EOQ
 }
 
-query "gcp_storage_bucket_versioning_disabled_count" {
+query "storage_bucket_versioning_disabled_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -205,7 +205,7 @@ query "gcp_storage_bucket_versioning_disabled_count" {
   EOQ
 }
 
-query "gcp_storage_bucket_no_retention_policy_count" {
+query "storage_bucket_no_retention_policy_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -218,7 +218,7 @@ query "gcp_storage_bucket_no_retention_policy_count" {
   EOQ
 }
 
-query "gcp_storage_bucket_logging_disabled_count" {
+query "storage_bucket_logging_disabled_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -231,7 +231,7 @@ query "gcp_storage_bucket_logging_disabled_count" {
   EOQ
 }
 
-query "gcp_storage_bucket_uniform_bucket_level_access_disabled_count" {
+query "storage_bucket_uniform_bucket_level_access_disabled_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -246,7 +246,7 @@ query "gcp_storage_bucket_uniform_bucket_level_access_disabled_count" {
 
 # Assessment Queries
 
-query "gcp_storage_bucket_by_public_access" {
+query "storage_bucket_by_public_access" {
   sql = <<-EOQ
     with bucket_access as (
       select
@@ -267,7 +267,7 @@ query "gcp_storage_bucket_by_public_access" {
   EOQ
 }
 
-query "gcp_storage_bucket_versioning_status" {
+query "storage_bucket_versioning_status" {
   sql = <<-EOQ
     with buckets as (
       select
@@ -288,7 +288,7 @@ query "gcp_storage_bucket_versioning_status" {
   EOQ
 }
 
-query "gcp_storage_bucket_retention_policy_status" {
+query "storage_bucket_retention_policy_status" {
   sql = <<-EOQ
     with buckets as (
       select
@@ -309,7 +309,7 @@ query "gcp_storage_bucket_retention_policy_status" {
   EOQ
 }
 
-query "gcp_storage_bucket_logging_status" {
+query "storage_bucket_logging_status" {
   sql = <<-EOQ
     with buckets as (
       select
@@ -330,7 +330,7 @@ query "gcp_storage_bucket_logging_status" {
   EOQ
 }
 
-query "gcp_storage_bucket_uniform_bucket_level_access_status" {
+query "storage_bucket_uniform_bucket_level_access_status" {
   sql = <<-EOQ
     with buckets as (
       select
@@ -353,10 +353,10 @@ query "gcp_storage_bucket_uniform_bucket_level_access_status" {
 
 # Analysis Queries
 
-query "gcp_storage_bucket_by_project" {
+query "storage_bucket_by_project" {
   sql = <<-EOQ
     select
-      p.title as "project",
+      p.title as "Project",
       count(b.*) as "total"
     from
       gcp_storage_bucket as b,
@@ -369,7 +369,7 @@ query "gcp_storage_bucket_by_project" {
   EOQ
 }
 
-query "gcp_storage_bucket_by_location" {
+query "storage_bucket_by_location" {
   sql = <<-EOQ
     select
       location,
@@ -381,7 +381,7 @@ query "gcp_storage_bucket_by_location" {
   EOQ
 }
 
-query "gcp_storage_bucket_by_storage_class" {
+query "storage_bucket_by_storage_class" {
   sql = <<-EOQ
     select
       storage_class,
@@ -393,7 +393,7 @@ query "gcp_storage_bucket_by_storage_class" {
   EOQ
 }
 
-query "gcp_storage_bucket_by_creation_month" {
+query "storage_bucket_by_creation_month" {
   sql = <<-EOQ
     with buckets as (
       select
@@ -438,7 +438,7 @@ query "gcp_storage_bucket_by_creation_month" {
   EOQ
 }
 
-query "gcp_storage_bucket_by_encryption_type" {
+query "storage_bucket_by_encryption_type" {
   sql = <<-EOQ
     with bucket_encryption_status as (
       select
