@@ -14,7 +14,7 @@ category "kms_key" {
 category "kms_key_ring" {
   title = "KMS Key Ring"
   color = local.security_color
-  icon  = "alternate_email"
+  icon  = "lock_reset"
 }
 
 category "kms_key_version" {
