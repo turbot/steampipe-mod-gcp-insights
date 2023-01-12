@@ -27,10 +27,6 @@ dashboard "storage_bucket_encryption_report" {
   }
 
   table {
-    column "Project ID" {
-      display = "none"
-    }
-
     column "Self-Link" {
       display = "none"
     }
@@ -39,8 +35,16 @@ dashboard "storage_bucket_encryption_report" {
       display = "none"
     }
 
+    column "KMS Self-Link" {
+      display = "none"
+    }
+
     column "Name" {
       href = "${dashboard.storage_bucket_detail.url_path}?input.bucket_id={{.ID | @uri}}"
+    }
+
+    column "KMS Key" {
+      href = "${dashboard.kms_key_detail.url_path}?input.key_self_link={{.'KMS Self-Link' | @uri}}"
     }
 
     query = query.storage_bucket_encryption_table
@@ -82,15 +86,14 @@ query "storage_bucket_encryption_table" {
         else 'Customer Managed'
       end as "Encryption Type",
       b.default_kms_key_name as "KMS Key",
-      p.name as "Project",
-      p.project_id as "Project ID",
+      b.project as "Project",
       b.location as "Location",
-      b.self_link as "Self-Link"
+      b.self_link as "Self-Link",
+      k.self_link as "KMS Self-Link"
     from
-      gcp_storage_bucket as b,
-      gcp_project as p
-    where
-      p.project_id = b.project
+      gcp_storage_bucket as b
+      left join gcp_kms_key as k
+        on k.self_link like '%' || b.default_kms_key_name
     order by
       b.name;
   EOQ
