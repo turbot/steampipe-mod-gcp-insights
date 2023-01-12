@@ -198,7 +198,7 @@ query "sql_database_instance_backup_enabled_count" {
     from
       gcp_sql_database_instance
     where
-      backup_enabled;
+      not backup_enabled;
   EOQ
 }
 
@@ -272,9 +272,9 @@ query "sql_database_instance_backup_status" {
     from (
       select name,
         case when backup_enabled then
-          'disabled'
-        else
           'enabled'
+        else
+          'disabled'
         end backup_status
       from
         gcp_sql_database_instance) as c
