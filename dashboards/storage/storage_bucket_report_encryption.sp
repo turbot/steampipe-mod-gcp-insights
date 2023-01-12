@@ -1,5 +1,5 @@
-dashboard "gcp_storage_bucket_encryption_report" {
-  
+dashboard "storage_bucket_encryption_report" {
+
   title         = "GCP Storage Bucket Encryption Report"
   documentation = file("./dashboards/storage/docs/storage_bucket_report_encryption.md")
 
@@ -11,35 +11,48 @@ dashboard "gcp_storage_bucket_encryption_report" {
   container {
 
     card {
-      query = query.gcp_storage_bucket_count
+      query = query.storage_bucket_count
       width = 2
     }
 
     card {
-      query = query.gcp_storage_bucket_google_managed_encryption
+      query = query.storage_bucket_google_managed_encryption
       width = 2
     }
 
     card {
-      query = query.gcp_storage_bucket_customer_managed_encryption
+      query = query.storage_bucket_customer_managed_encryption
       width = 2
     }
   }
 
   table {
-    column "Project ID" {
-      display = "none"
-    }
-
     column "Self-Link" {
       display = "none"
     }
-    query = query.gcp_storage_bucket_encryption_table
+
+    column "ID" {
+      display = "none"
+    }
+
+    column "KMS Self-Link" {
+      display = "none"
+    }
+
+    column "Name" {
+      href = "${dashboard.storage_bucket_detail.url_path}?input.bucket_id={{.ID | @uri}}"
+    }
+
+    column "KMS Key" {
+      href = "${dashboard.kms_key_detail.url_path}?input.key_self_link={{.'KMS Self-Link' | @uri}}"
+    }
+
+    query = query.storage_bucket_encryption_table
   }
 
 }
 
-query "gcp_storage_bucket_google_managed_encryption" {
+query "storage_bucket_google_managed_encryption" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -51,7 +64,7 @@ query "gcp_storage_bucket_google_managed_encryption" {
   EOQ
 }
 
-query "gcp_storage_bucket_customer_managed_encryption" {
+query "storage_bucket_customer_managed_encryption" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -63,24 +76,24 @@ query "gcp_storage_bucket_customer_managed_encryption" {
   EOQ
 }
 
-query "gcp_storage_bucket_encryption_table" {
+query "storage_bucket_encryption_table" {
   sql = <<-EOQ
     select
       b.name as "Name",
+      b.id as "ID",
       case
         when default_kms_key_name is null then 'Google Managed'
         else 'Customer Managed'
       end as "Encryption Type",
       b.default_kms_key_name as "KMS Key",
-      p.name as "Project",
-      p.project_id as "Project ID",
+      b.project as "Project",
       b.location as "Location",
-      b.self_link as "Self-Link"
+      b.self_link as "Self-Link",
+      k.self_link as "KMS Self-Link"
     from
-      gcp_storage_bucket as b,
-      gcp_project as p
-    where
-      p.project_id = b.project
+      gcp_storage_bucket as b
+      left join gcp_kms_key as k
+        on k.self_link like '%' || b.default_kms_key_name
     order by
       b.name;
   EOQ

@@ -1,4 +1,4 @@
-dashboard "gcp_compute_instance_age_report" {
+dashboard "compute_instance_age_report" {
 
   title         = "GCP Compute Instance Age Report"
   documentation = file("./dashboards/compute/docs/compute_instance_report_age.md")
@@ -11,38 +11,38 @@ dashboard "gcp_compute_instance_age_report" {
   container {
 
     card {
-      query = query.gcp_compute_instance_count
+      query = query.compute_instance_count
       width = 2
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.gcp_compute_instance_24_hours_count
+      query = query.compute_instance_24_hours_count
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.gcp_compute_instance_30_days_count
+      query = query.compute_instance_30_days_count
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.gcp_compute_instance_30_90_days_count
+      query = query.compute_instance_30_90_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      query = query.gcp_compute_instance_90_365_days_count
+      query = query.compute_instance_90_365_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      query = query.gcp_compute_instance_1_year_count
+      query = query.compute_instance_1_year_count
     }
 
   }
@@ -57,15 +57,15 @@ dashboard "gcp_compute_instance_age_report" {
     }
 
     column "Name" {
-      href = "${dashboard.gcp_compute_instance_detail.url_path}?input.instance_id={{.ID | @uri}}"
+      href = "${dashboard.compute_instance_detail.url_path}?input.instance_id={{.ID | @uri}}"
     }
 
-    query = query.gcp_compute_instance_age_table
+    query = query.compute_instance_age_table
   }
 
 }
 
-query "gcp_compute_instance_24_hours_count" {
+query "compute_instance_24_hours_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -77,7 +77,7 @@ query "gcp_compute_instance_24_hours_count" {
   EOQ
 }
 
-query "gcp_compute_instance_30_days_count" {
+query "compute_instance_30_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -89,7 +89,7 @@ query "gcp_compute_instance_30_days_count" {
   EOQ
 }
 
-query "gcp_compute_instance_30_90_days_count" {
+query "compute_instance_30_90_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -101,7 +101,7 @@ query "gcp_compute_instance_30_90_days_count" {
   EOQ
 }
 
-query "gcp_compute_instance_90_365_days_count" {
+query "compute_instance_90_365_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -113,7 +113,7 @@ query "gcp_compute_instance_90_365_days_count" {
   EOQ
 }
 
-query "gcp_compute_instance_1_year_count" {
+query "compute_instance_1_year_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -125,7 +125,7 @@ query "gcp_compute_instance_1_year_count" {
   EOQ
 }
 
-query "gcp_compute_instance_age_table" {
+query "compute_instance_age_table" {
   sql = <<-EOQ
     select
       i.name as "Name",

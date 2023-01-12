@@ -1,4 +1,4 @@
-dashboard "gcp_storage_bucket_age_report" {
+dashboard "storage_bucket_age_report" {
 
   title         = "GCP Storage Bucket Age Report"
   documentation = file("./dashboards/storage/docs/storage_bucket_report_age.md")
@@ -11,38 +11,38 @@ dashboard "gcp_storage_bucket_age_report" {
   container {
 
     card {
-      query = query.gcp_storage_bucket_count
+      query = query.storage_bucket_count
       width = 2
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.gcp_storage_bucket_24_hours_count
+      query = query.storage_bucket_24_hours_count
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.gcp_storage_bucket_30_days_count
+      query = query.storage_bucket_30_days_count
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.gcp_storage_bucket_30_90_days_count
+      query = query.storage_bucket_30_90_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      query = query.gcp_storage_bucket_90_365_days_count
+      query = query.storage_bucket_90_365_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      query = query.gcp_storage_bucket_1_year_count
+      query = query.storage_bucket_1_year_count
     }
 
   }
@@ -56,12 +56,20 @@ dashboard "gcp_storage_bucket_age_report" {
       display = "none"
     }
 
-    query = query.gcp_storage_bucket_age_table
+    column "ID" {
+      display = "none"
+    }
+
+    column "Name" {
+      href = "${dashboard.storage_bucket_detail.url_path}?input.bucket_id={{.ID | @uri}}"
+    }
+
+    query = query.storage_bucket_age_table
   }
 
 }
 
-query "gcp_storage_bucket_24_hours_count" {
+query "storage_bucket_24_hours_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -73,7 +81,7 @@ query "gcp_storage_bucket_24_hours_count" {
   EOQ
 }
 
-query "gcp_storage_bucket_30_days_count" {
+query "storage_bucket_30_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -85,7 +93,7 @@ query "gcp_storage_bucket_30_days_count" {
   EOQ
 }
 
-query "gcp_storage_bucket_30_90_days_count" {
+query "storage_bucket_30_90_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -97,7 +105,7 @@ query "gcp_storage_bucket_30_90_days_count" {
   EOQ
 }
 
-query "gcp_storage_bucket_90_365_days_count" {
+query "storage_bucket_90_365_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -109,7 +117,7 @@ query "gcp_storage_bucket_90_365_days_count" {
   EOQ
 }
 
-query "gcp_storage_bucket_1_year_count" {
+query "storage_bucket_1_year_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -121,10 +129,11 @@ query "gcp_storage_bucket_1_year_count" {
   EOQ
 }
 
-query "gcp_storage_bucket_age_table" {
+query "storage_bucket_age_table" {
   sql = <<-EOQ
     select
       b.name as "Name",
+      b.id as "ID",
       now()::date - b.time_created::date as "Age in Days",
       b.time_created as "Create Time",
       p.name as "Project",

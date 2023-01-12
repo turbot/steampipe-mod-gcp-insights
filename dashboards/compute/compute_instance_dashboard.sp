@@ -1,4 +1,4 @@
-dashboard "gcp_compute_instance_dashboard" {
+dashboard "compute_instance_dashboard" {
 
   title         = "GCP Compute Instance Dashboard"
   documentation = file("./dashboards/compute/docs/compute_instance_dashboard.md")
@@ -11,28 +11,28 @@ dashboard "gcp_compute_instance_dashboard" {
 
     # Analysis
     card {
-      query = query.gcp_compute_instance_count
+      query = query.compute_instance_count
       width = 2
     }
 
     # Assessments
     card {
-      query = query.gcp_compute_instance_with_public_ip_address_count
+      query = query.compute_instance_with_public_ip_address_count
       width = 2
     }
 
     card {
-      query = query.gcp_compute_instance_deletion_protection_disabled_count
+      query = query.compute_instance_deletion_protection_disabled_count
       width = 2
     }
 
     card {
-      query = query.gcp_compute_instance_confidential_vm_service_disabled_count
+      query = query.compute_instance_confidential_vm_service_disabled_count
       width = 2
     }
 
     card {
-      query = query.gcp_compute_shielded_vm_disabled_count
+      query = query.compute_shielded_vm_disabled_count
       width = 2
     }
   }
@@ -43,7 +43,7 @@ dashboard "gcp_compute_instance_dashboard" {
 
     chart {
       title = "Public/Private"
-      query = query.gcp_compute_instance_by_public_ip
+      query = query.compute_instance_by_public_ip
       type  = "donut"
       width = 3
 
@@ -59,7 +59,7 @@ dashboard "gcp_compute_instance_dashboard" {
 
     chart {
       title = "Deletion Protection Status"
-      query = query.gcp_compute_instance_deletion_protection_status
+      query = query.compute_instance_deletion_protection_status
       type  = "donut"
       width = 3
 
@@ -75,7 +75,7 @@ dashboard "gcp_compute_instance_dashboard" {
 
     chart {
       title = "Confidential VM Status"
-      query = query.gcp_compute_instance_confidential_vm_service_status
+      query = query.compute_instance_confidential_vm_service_status
       type  = "donut"
       width = 3
 
@@ -91,7 +91,7 @@ dashboard "gcp_compute_instance_dashboard" {
 
     chart {
       title = "Shielded VM Status"
-      query = query.gcp_compute_instance_shielded_vm_status
+      query = query.compute_instance_shielded_vm_status
       type  = "donut"
       width = 3
 
@@ -113,42 +113,42 @@ dashboard "gcp_compute_instance_dashboard" {
 
     chart {
       title = "Instances by Project"
-      query = query.gcp_compute_instance_by_project
+      query = query.compute_instance_by_project
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Instances by Location"
-      query = query.gcp_compute_instance_by_location
+      query = query.compute_instance_by_location
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Instances by State"
-      query = query.gcp_compute_instance_by_state
+      query = query.compute_instance_by_state
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Instances by Age"
-      query = query.gcp_compute_instance_by_creation_month
+      query = query.compute_instance_by_creation_month
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Instances by Type"
-      query = query.gcp_compute_instance_by_type
+      query = query.compute_instance_by_type
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Instances by CPU Platform"
-      query = query.gcp_compute_instance_by_cpu_platform
+      query = query.compute_instance_by_cpu_platform
       type  = "column"
       width = 4
     }
@@ -157,18 +157,18 @@ dashboard "gcp_compute_instance_dashboard" {
 
   container {
 
-    title  = "Performance & Utilization"
+    title = "Performance & Utilization"
 
     chart {
       title = "Top 10 CPU - Last 7 days"
-      query = query.gcp_compute_top10_cpu_past_week
+      query = query.compute_top10_cpu_past_week
       type  = "line"
       width = 6
     }
 
     chart {
       title = "Average Max Daily CPU - Last 30 days"
-      query = query.gcp_compute_instance_by_cpu_utilization_category
+      query = query.compute_instance_by_cpu_utilization_category
       type  = "column"
       width = 6
     }
@@ -179,13 +179,13 @@ dashboard "gcp_compute_instance_dashboard" {
 
 # Card Queries
 
-query "gcp_compute_instance_count" {
+query "compute_instance_count" {
   sql = <<-EOQ
     select count(*) as "Instances" from gcp_compute_instance;
   EOQ
 }
 
-query "gcp_compute_instance_with_public_ip_address_count" {
+query "compute_instance_with_public_ip_address_count" {
   sql = <<-EOQ
     with instance_with_access_config as (
     select
@@ -206,7 +206,7 @@ query "gcp_compute_instance_with_public_ip_address_count" {
   EOQ
 }
 
-query "gcp_compute_instance_deletion_protection_disabled_count" {
+query "compute_instance_deletion_protection_disabled_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -219,7 +219,7 @@ query "gcp_compute_instance_deletion_protection_disabled_count" {
   EOQ
 }
 
-query "gcp_compute_instance_confidential_vm_service_disabled_count" {
+query "compute_instance_confidential_vm_service_disabled_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -232,7 +232,7 @@ query "gcp_compute_instance_confidential_vm_service_disabled_count" {
   EOQ
 }
 
-query "gcp_compute_shielded_vm_disabled_count" {
+query "compute_shielded_vm_disabled_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -247,7 +247,7 @@ query "gcp_compute_shielded_vm_disabled_count" {
 
 # Assessment Queries
 
-query "gcp_compute_instance_by_public_ip" {
+query "compute_instance_by_public_ip" {
   sql = <<-EOQ
     with instance_with_access_config as (
     select
@@ -270,7 +270,7 @@ query "gcp_compute_instance_by_public_ip" {
   EOQ
 }
 
-query "gcp_compute_instance_deletion_protection_status" {
+query "compute_instance_deletion_protection_status" {
   sql = <<-EOQ
     with instances as (
       select
@@ -291,7 +291,7 @@ query "gcp_compute_instance_deletion_protection_status" {
   EOQ
 }
 
-query "gcp_compute_instance_confidential_vm_service_status" {
+query "compute_instance_confidential_vm_service_status" {
   sql = <<-EOQ
     with instances as (
       select
@@ -312,7 +312,7 @@ query "gcp_compute_instance_confidential_vm_service_status" {
   EOQ
 }
 
-query "gcp_compute_instance_shielded_vm_status" {
+query "compute_instance_shielded_vm_status" {
   sql = <<-EOQ
     with instances as (
       select
@@ -335,10 +335,10 @@ query "gcp_compute_instance_shielded_vm_status" {
 
 # Analysis Queries
 
-query "gcp_compute_instance_by_project" {
+query "compute_instance_by_project" {
   sql = <<-EOQ
     select
-      p.title as "project",
+      p.title as "Project",
       count(i.*) as "total"
     from
       gcp_compute_instance as i,
@@ -351,7 +351,7 @@ query "gcp_compute_instance_by_project" {
   EOQ
 }
 
-query "gcp_compute_instance_by_location" {
+query "compute_instance_by_location" {
   sql = <<-EOQ
     select
       location,
@@ -363,7 +363,7 @@ query "gcp_compute_instance_by_location" {
   EOQ
 }
 
-query "gcp_compute_instance_by_state" {
+query "compute_instance_by_state" {
   sql = <<-EOQ
     select
       status,
@@ -375,7 +375,7 @@ query "gcp_compute_instance_by_state" {
   EOQ
 }
 
-query "gcp_compute_instance_by_creation_month" {
+query "compute_instance_by_creation_month" {
   sql = <<-EOQ
     with instances as (
       select
@@ -420,7 +420,7 @@ query "gcp_compute_instance_by_creation_month" {
   EOQ
 }
 
-query "gcp_compute_instance_by_type" {
+query "compute_instance_by_type" {
   sql = <<-EOQ
     select 
       machine_type_name as "Type", 
@@ -434,7 +434,7 @@ query "gcp_compute_instance_by_type" {
   EOQ
 }
 
-query "gcp_compute_instance_by_cpu_platform" {
+query "compute_instance_by_cpu_platform" {
   sql = <<-EOQ
     select 
       cpu_platform as "Type", 
@@ -450,7 +450,7 @@ query "gcp_compute_instance_by_cpu_platform" {
 
 # Performance Queries
 
-query "gcp_compute_top10_cpu_past_week" {
+query "compute_top10_cpu_past_week" {
   sql = <<-EOQ
     with top_n as (
     select
@@ -481,7 +481,7 @@ query "gcp_compute_top10_cpu_past_week" {
 }
 
 # underused if avg CPU < 10% every day for last month
-query "gcp_compute_instance_by_cpu_utilization_category" {
+query "compute_instance_by_cpu_utilization_category" {
   sql = <<-EOQ
     with cpu_buckets as (
       select

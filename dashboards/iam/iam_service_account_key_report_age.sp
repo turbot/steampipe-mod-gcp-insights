@@ -1,6 +1,6 @@
-dashboard "gcp_service_account_key_age_report" {
+dashboard "service_account_key_age_report" {
 
-  title = "GCP IAM Service Account Key Age Report"
+  title         = "GCP IAM Service Account Key Age Report"
   documentation = file("./dashboards/iam/docs/iam_service_account_key_report_age.md")
 
   tags = merge(local.iam_common_tags, {
@@ -12,37 +12,37 @@ dashboard "gcp_service_account_key_age_report" {
 
     card {
       width = 2
-      sql   = query.gcp_service_account_key_count.sql
+      sql   = query.service_account_key_count.sql
     }
 
     card {
       type  = "info"
       width = 2
-      sql   = query.gcp_service_account_key_24_hours_count.sql
+      sql   = query.service_account_key_24_hours_count.sql
     }
 
     card {
       type  = "info"
       width = 2
-      sql   = query.gcp_service_account_key_30_days_count.sql
+      sql   = query.service_account_key_30_days_count.sql
     }
 
     card {
       type  = "info"
       width = 2
-      sql   = query.gcp_service_account_key_30_90_days_count.sql
+      sql   = query.service_account_key_30_90_days_count.sql
     }
 
     card {
       width = 2
       type  = "info"
-      sql   = query.gcp_service_account_key_90_365_days_count.sql
+      sql   = query.service_account_key_90_365_days_count.sql
     }
 
     card {
       width = 2
       type  = "info"
-      sql   = query.gcp_service_account_key_1_year_count.sql
+      sql   = query.service_account_key_1_year_count.sql
     }
 
   }
@@ -52,12 +52,12 @@ dashboard "gcp_service_account_key_age_report" {
       display = "none"
     }
 
-    sql = query.gcp_service_account_key_age_table.sql
+    sql = query.service_account_key_age_table.sql
   }
 
 }
 
-query "gcp_service_account_key_count" {
+query "service_account_key_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -67,7 +67,7 @@ query "gcp_service_account_key_count" {
   EOQ
 }
 
-query "gcp_service_account_key_24_hours_count" {
+query "service_account_key_24_hours_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -79,7 +79,7 @@ query "gcp_service_account_key_24_hours_count" {
   EOQ
 }
 
-query "gcp_service_account_key_30_days_count" {
+query "service_account_key_30_days_count" {
   sql = <<-EOQ
      select
         count(*) as value,
@@ -91,7 +91,7 @@ query "gcp_service_account_key_30_days_count" {
   EOQ
 }
 
-query "gcp_service_account_key_30_90_days_count" {
+query "service_account_key_30_90_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -103,7 +103,7 @@ query "gcp_service_account_key_30_90_days_count" {
   EOQ
 }
 
-query "gcp_service_account_key_90_365_days_count" {
+query "service_account_key_90_365_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -115,7 +115,7 @@ query "gcp_service_account_key_90_365_days_count" {
   EOQ
 }
 
-query "gcp_service_account_key_1_year_count" {
+query "service_account_key_1_year_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -127,7 +127,7 @@ query "gcp_service_account_key_1_year_count" {
   EOQ
 }
 
-query "gcp_service_account_key_age_table" {
+query "service_account_key_age_table" {
   sql = <<-EOQ
     select
       k.service_account_name as "Service Account Name",
