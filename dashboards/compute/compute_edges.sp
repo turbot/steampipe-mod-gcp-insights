@@ -356,15 +356,13 @@ edge "compute_instance_to_compute_subnetwork" {
       s.id::text as to_id
     from
       gcp_compute_instance i,
-      gcp_compute_subnetwork s,
-      gcp_compute_firewall f,
       jsonb_array_elements(network_interfaces) as ni
+      left join gcp_compute_subnetwork s
+        on ni ->> 'subnetwork' = s.self_link
+      left join gcp_compute_firewall f
+        on ni ->> 'network' = f.network
     where
-      ni ->> 'subnetwork' = s.self_link
-      and ni ->> 'network' = f.network
-      and i.project = s.project
-      and i.project = f.project
-      and i.id = any($1);
+      i.id =  any($1);
   EOQ
 
   param "compute_instance_ids" {}
