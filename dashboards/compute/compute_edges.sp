@@ -269,7 +269,10 @@ edge "compute_instance_group_to_compute_network" {
 
   sql = <<-EOQ
     select
-      case when g.subnetwork = '' and f.network is null then (g.id::text)
+      case
+      -- Instance group having no subnet (returns empty string) and firewall
+      when g.subnetwork = '' and f.network is null then (g.id::text)
+      -- Instance group having no subnet (returns empty string)
       when g.subnetwork = '' and f.network is not null then (f.id::text)
       else (s.id::text) end as from_id,
       n.id::text as to_id
