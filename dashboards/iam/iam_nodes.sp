@@ -1,3 +1,24 @@
+node "iam_member" {
+  category = category.iam_member
+
+  sql = <<-EOQ
+    select
+      split_part(m,':',2) as id,
+      split_part(m,':',2) as title,
+      jsonb_build_object(
+        'Binding', 'Member'
+      ) as properties
+    from
+      gcp_service_account,
+      jsonb_array_elements(iam_policy -> 'bindings') as b,
+      jsonb_array_elements_text(b-> 'members') as m
+    where
+      name = any($1);
+  EOQ
+
+  param "iam_service_account_names" {}
+}
+
 node "iam_role" {
   category = category.iam_role
 
@@ -43,3 +64,26 @@ node "iam_service_account" {
 
   param "iam_service_account_names" {}
 }
+
+node "iam_service_account_key" {
+  category = category.iam_service_account_key
+
+  sql = <<-EOQ
+    select
+      name as id,
+      title,
+      jsonb_build_object(
+        'Type', key_type,
+        'Valid after Time', valid_after_time,
+        'Region', location,
+        'Project', project
+      ) as properties
+    from
+      gcp_service_account_key
+    where
+      name = any($1);
+  EOQ
+
+  param "iam_service_account_key_names" {}
+}
+

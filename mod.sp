@@ -13,10 +13,10 @@ mod "gcp_insights" {
     image       = "/images/mods/turbot/gcp-insights-social-graphic.png"
   }
 
-  require {
-    steampipe = "0.18.0"
-    plugin "gcp" {
-      version = "0.32.0"
-    }
-  }
+  # require {
+  #   steampipe = "0.18.0"
+  #   plugin "gcp" {
+  #     version = "0.32.0"
+  #   }
+  # }
 }
