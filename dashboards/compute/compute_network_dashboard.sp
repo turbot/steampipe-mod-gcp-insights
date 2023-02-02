@@ -11,22 +11,22 @@ dashboard "compute_network_dashboard" {
 
     card {
       query = query.compute_network_count
-      width = 2
+      width = 3
     }
 
     card {
       query = query.compute_network_total_mtu
-      width = 2
+      width = 3
     }
 
     card {
       query = query.compute_network_default_count
-      width = 2
+      width = 3
     }
 
     card {
       query = query.compute_network_no_subnet_count
-      width = 2
+      width = 3
     }
 
   }

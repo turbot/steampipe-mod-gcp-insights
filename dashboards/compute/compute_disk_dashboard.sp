@@ -12,18 +12,18 @@ dashboard "compute_disk_dashboard" {
     # Analysis
     card {
       query = query.compute_disk_count
-      width = 2
+      width = 3
     }
 
     card {
       query = query.compute_disk_storage_total
-      width = 2
+      width = 3
     }
 
     # Assessments
     card {
       query = query.compute_disk_unattached_count
-      width = 2
+      width = 3
     }
 
   }
@@ -303,7 +303,7 @@ query "compute_disk_by_creation_month" {
       from
         generate_series(date_trunc('month',
         (
-        select 
+        select
           min(creation_timestamp)
         from disks)),
         date_trunc('month',
@@ -332,28 +332,28 @@ query "compute_disk_by_creation_month" {
 
 query "compute_disk_by_encryption_type" {
   sql = <<-EOQ
-    select 
-      disk_encryption_key_type as "Encryption Type", 
-      count(*) as "disks" 
-    from 
-      gcp_compute_disk 
-    group by 
-      disk_encryption_key_type 
-    order by 
+    select
+      disk_encryption_key_type as "Encryption Type",
+      count(*) as "disks"
+    from
+      gcp_compute_disk
+    group by
+      disk_encryption_key_type
+    order by
       disk_encryption_key_type;
   EOQ
 }
 
 query "compute_disk_by_type" {
   sql = <<-EOQ
-    select 
-      type_name as "Type", 
-      count(*) as "disks" 
-    from 
-      gcp_compute_disk 
-    group by 
-      type_name 
-    order by 
+    select
+      type_name as "Type",
+      count(*) as "disks"
+    from
+      gcp_compute_disk
+    group by
+      type_name
+    order by
       type_name;
   EOQ
 }
@@ -419,7 +419,7 @@ query "compute_disk_storage_by_creation_month" {
       from
         generate_series(date_trunc('month',
         (
-        select 
+        select
           min(creation_timestamp)
         from disks)),
         date_trunc('month',
@@ -448,28 +448,28 @@ query "compute_disk_storage_by_creation_month" {
 
 query "compute_disk_storage_by_encryption_type" {
   sql = <<-EOQ
-    select 
-      disk_encryption_key_type as "Encryption Type", 
-      sum(size_gb) as "GB" 
-    from 
-      gcp_compute_disk 
-    group by 
-      disk_encryption_key_type 
-    order by 
+    select
+      disk_encryption_key_type as "Encryption Type",
+      sum(size_gb) as "GB"
+    from
+      gcp_compute_disk
+    group by
+      disk_encryption_key_type
+    order by
       disk_encryption_key_type;
   EOQ
 }
 
 query "compute_disk_storage_by_type" {
   sql = <<-EOQ
-    select 
-      type_name as "Type", 
+    select
+      type_name as "Type",
       sum(size_gb) as "GB"
-    from 
-      gcp_compute_disk 
-    group by 
-      type_name 
-    order by 
+    from
+      gcp_compute_disk
+    group by
+      type_name
+    order by
       type_name;
   EOQ
 }

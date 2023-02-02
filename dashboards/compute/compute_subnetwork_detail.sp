@@ -16,25 +16,25 @@ dashboard "compute_subnetwork_detail" {
   container {
 
     card {
-      width = 2
+      width = 3
       query = query.compute_subnetwork_cidr_range
       args  = [self.input.subnetwork_id.value]
     }
 
     card {
-      width = 2
+      width = 3
       query = query.compute_subnetwork_purpose
       args  = [self.input.subnetwork_id.value]
     }
 
     card {
-      width = 2
+      width = 3
       query = query.compute_subnetwork_is_default
       args  = [self.input.subnetwork_id.value]
     }
 
     card {
-      width = 2
+      width = 3
       query = query.compute_subnetwork_flow_logs
       args  = [self.input.subnetwork_id.value]
     }
