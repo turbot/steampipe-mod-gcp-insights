@@ -1,5 +1,5 @@
 edge "iam_member_to_iam_role" {
-  title = "role"
+  title = "can assume"
 
   sql = <<-EOQ
     with role_name as (
@@ -22,6 +22,31 @@ edge "iam_member_to_iam_role" {
     where
       rn.role_name = r
       and rn.name= any($1);
+  EOQ
+
+  param "iam_role_ids" {}
+}
+
+edge "iam_role_to_iam_policy" {
+  title = "attaches"
+
+  sql = <<-EOQ
+    select
+      coalesce(b ->> 'role', s.name::text) as from_id,
+      p.title as to_id
+    from
+      gcp_iam_policy as p,
+      jsonb_array_elements(bindings) as b,
+      jsonb_array_elements_text(b -> 'members') as m,
+      split_part(m,'serviceAccount:',2) as member_name,
+      split_part(b ->> 'role','roles/',2) as m_role_name,
+      gcp_iam_role as r,
+      split_part(name,'roles/',2) as role_name,
+      gcp_service_account as s
+    where
+      m like 'serviceAccount:%'
+      and m_role_name = role_name
+      and r.name = any($1);
   EOQ
 
   param "iam_role_ids" {}
@@ -62,25 +87,6 @@ edge "iam_service_account_to_compute_firewall" {
   param "iam_service_account_names" {}
 }
 
-edge "iam_service_account_to_compute_instance" {
-  title = "compute instance"
-
-  sql = <<-EOQ
-    select
-      s.name as from_id,
-      i.id::text as to_id
-    from
-      gcp_service_account as s,
-      gcp_compute_instance as i,
-      jsonb_array_elements(service_accounts) as sa
-    where
-      sa ->> 'email' = s.email
-      and s.name = any($1);
-  EOQ
-
-  param "iam_service_account_names" {}
-}
-
 edge "iam_service_account_to_compute_instance_template" {
   title = "instance template"
 
@@ -101,7 +107,7 @@ edge "iam_service_account_to_compute_instance_template" {
 }
 
 edge "iam_service_account_to_iam_member" {
-  title = "member"
+  title = "has member"
 
   sql = <<-EOQ
     select
@@ -113,6 +119,26 @@ edge "iam_service_account_to_iam_member" {
       jsonb_array_elements_text(b-> 'members') as m
     where
       name = any($1);
+  EOQ
+
+  param "iam_service_account_names" {}
+}
+
+edge "iam_service_account_to_iam_role" {
+  title = "can assume"
+
+  sql = <<-EOQ
+    select
+      member_name as from_id,
+      b ->> 'role' as to_id
+    from
+      gcp_iam_policy,
+      jsonb_array_elements(bindings) as b,
+      jsonb_array_elements_text(b -> 'members') as m,
+      split_part(m,'serviceAccount:',2) as member_name
+    where
+      m like 'serviceAccount:%'
+      and member_name = any($1);
   EOQ
 
   param "iam_service_account_names" {}

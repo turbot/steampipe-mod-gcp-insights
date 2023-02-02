@@ -10,6 +10,12 @@ category "iam_member" {
   icon  = "text:member"
 }
 
+category "iam_policy" {
+  title = "IAM Policy"
+  color = local.iam_color
+  icon  = "rule_folder"
+}
+
 category "iam_role" {
   title = "IAM Role"
   color = local.iam_color

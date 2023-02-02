@@ -16,13 +16,13 @@ dashboard "iam_service_account_detail" {
   container {
 
     card {
-      width = 2
+      width = 3
       query = query.iam_service_account_default
       args  = [self.input.service_account_name.value]
     }
 
     card {
-      width = 2
+      width = 3
       query = query.iam_service_account_enabled
       args  = [self.input.service_account_name.value]
     }
@@ -40,6 +40,16 @@ dashboard "iam_service_account_detail" {
 
   with "compute_instance_templates_for_iam_service_account" {
     query = query.compute_instance_templates_for_iam_service_account
+    args  = [self.input.service_account_name.value]
+  }
+
+  with "iam_member_roles_for_iam_service_account" {
+    query = query.iam_member_roles_for_iam_service_account
+    args  = [self.input.service_account_name.value]
+  }
+
+  with "iam_policies_for_iam_service_account" {
+    query = query.iam_policies_for_iam_service_account
     args  = [self.input.service_account_name.value]
   }
 
@@ -118,6 +128,20 @@ dashboard "iam_service_account_detail" {
       }
 
       node {
+        base = node.iam_policy
+        args = {
+          iam_policy_ids = with.iam_policies_for_iam_service_account.rows[*].policy_id
+        }
+      }
+
+      node {
+        base = node.iam_role
+        args = {
+          iam_role_ids = with.iam_member_roles_for_iam_service_account.rows[*].role_id
+        }
+      }
+
+      node {
         base = node.iam_role
         args = {
           iam_role_ids = with.iam_roles_for_iam_service_account.rows[*].role_id
@@ -153,7 +177,21 @@ dashboard "iam_service_account_detail" {
       }
 
       edge {
+        base = edge.compute_instance_to_iam_service_account
+        args = {
+          compute_instance_ids = with.compute_instances_for_iam_service_account.rows[*].instance_id
+        }
+      }
+
+      edge {
         base = edge.iam_member_to_iam_role
+        args = {
+          iam_role_ids = with.iam_member_roles_for_iam_service_account.rows[*].role_id
+        }
+      }
+
+      edge {
+        base = edge.iam_role_to_iam_policy
         args = {
           iam_role_ids = with.iam_roles_for_iam_service_account.rows[*].role_id
         }
@@ -174,13 +212,6 @@ dashboard "iam_service_account_detail" {
       }
 
       edge {
-        base = edge.iam_service_account_to_compute_instance
-        args = {
-          iam_service_account_names = [self.input.service_account_name.value]
-        }
-      }
-
-      edge {
         base = edge.iam_service_account_to_compute_instance_template
         args = {
           iam_service_account_names = [self.input.service_account_name.value]
@@ -189,6 +220,13 @@ dashboard "iam_service_account_detail" {
 
       edge {
         base = edge.iam_service_account_to_iam_member
+        args = {
+          iam_service_account_names = [self.input.service_account_name.value]
+        }
+      }
+
+      edge {
+        base = edge.iam_service_account_to_iam_role
         args = {
           iam_service_account_names = [self.input.service_account_name.value]
         }
@@ -294,7 +332,7 @@ query "compute_instance_templates_for_iam_service_account" {
   EOQ
 }
 
-query "iam_roles_for_iam_service_account" {
+query "iam_member_roles_for_iam_service_account" {
   sql = <<-EOQ
     with role_name as (
       select
@@ -314,6 +352,36 @@ query "iam_roles_for_iam_service_account" {
     where
       rn.role_name = r
       and s.name= $1;
+  EOQ
+}
+
+query "iam_policies_for_iam_service_account" {
+  sql = <<-EOQ
+    select
+      title as policy_id
+    from
+      gcp_iam_policy,
+      jsonb_array_elements(bindings) as b,
+      jsonb_array_elements_text(b -> 'members') as m,
+      split_part(m,'serviceAccount:',2) as member_name
+    where
+      m like 'serviceAccount:%'
+      and member_name = $1;
+  EOQ
+}
+
+query "iam_roles_for_iam_service_account" {
+  sql = <<-EOQ
+    select
+      b ->> 'role' as role_id
+    from
+      gcp_iam_policy,
+      jsonb_array_elements(bindings) as b,
+      jsonb_array_elements_text(b -> 'members') as m,
+      split_part(m,'serviceAccount:',2) as member_name
+    where
+      m like 'serviceAccount:%'
+      and member_name = $1;
   EOQ
 }
 

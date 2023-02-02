@@ -19,6 +19,28 @@ node "iam_member" {
   param "iam_service_account_names" {}
 }
 
+node "iam_policy" {
+  category = category.iam_policy
+
+  sql = <<-EOQ
+    select
+      title as id,
+      title,
+      jsonb_build_object(
+        'Title', title,
+        'Project', project,
+        'Location', location,
+        'Version', version
+      ) as properties
+    from
+      gcp_iam_policy
+    where
+      title = any($1);
+  EOQ
+
+  param "iam_policy_ids" {}
+}
+
 node "iam_role" {
   category = category.iam_role
 
