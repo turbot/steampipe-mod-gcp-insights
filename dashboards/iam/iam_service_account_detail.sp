@@ -1,7 +1,7 @@
 dashboard "iam_service_account_detail" {
 
   title         = "GCP IAM Service Account Detail"
-  # documentation = file("./dashboards/iam/docs/iam_service_account_detail.md")
+  documentation = file("./dashboards/iam/docs/iam_service_account_detail.md")
 
   tags = merge(local.iam_common_tags, {
     type = "Detail"
