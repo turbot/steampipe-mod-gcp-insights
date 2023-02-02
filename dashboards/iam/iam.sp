@@ -7,7 +7,7 @@ locals {
 category "iam_member" {
   title = "IAM Member"
   color = local.iam_color
-  icon  = "text:member"
+  icon  = "component_exchange"
 }
 
 category "iam_policy" {
