@@ -439,7 +439,7 @@ query "iam_service_account_default" {
   sql = <<-EOQ
     select
       'Project Default' as label,
-      case when s.email = p.default_service_account then 'Default' else 'Not Default' end as value
+      case when s.email = p.default_service_account then 'Yes' else 'No' end as value
     from
       gcp_compute_project_metadata as p,
       gcp_service_account as s
