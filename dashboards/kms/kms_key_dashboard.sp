@@ -11,12 +11,12 @@ dashboard "kms_key_dashboard" {
 
     card {
       query = query.kms_key_count
-      width = 2
+      width = 3
     }
 
     card {
       query = query.kms_rotation_disabled_count
-      width = 2
+      width = 3
     }
 
   }

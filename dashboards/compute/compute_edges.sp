@@ -150,6 +150,25 @@ edge "compute_disk_to_kms_key_version" {
   param "compute_disk_ids" {}
 }
 
+## Compute Firewall
+
+edge "compute_firewall_to_iam_service_account" {
+  title = "service account"
+
+  sql = <<-EOQ
+    select
+      id::text as from_id,
+      t as to_id
+    from
+      gcp_compute_firewall,
+      jsonb_array_elements_text(target_service_accounts) as t
+    where
+      id::text = any($1);
+  EOQ
+
+  param "compute_firewall_ids" {}
+}
+
 ## Compute Image
 
 edge "compute_image_to_compute_disk" {
@@ -293,11 +312,11 @@ edge "compute_instance_group_to_compute_subnetwork" {
       s.id::text as to_id
     from
       gcp_compute_instance_group g
-      join gcp_compute_network n 
+      join gcp_compute_network n
         on g.network = n.self_link
-      left join gcp_compute_subnetwork s 
+      left join gcp_compute_subnetwork s
         on g.subnetwork = s.self_link
-      left join gcp_compute_firewall f 
+      left join gcp_compute_firewall f
         on g.network = f.network
     where
       g.id = any($1);

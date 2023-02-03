@@ -266,7 +266,7 @@ query "sql_database_instance_database_version" {
   sql = <<-EOQ
     select
       'State' as label,
-      state as  value
+      initcap(state) as  value
     from
       gcp_sql_database_instance
     where

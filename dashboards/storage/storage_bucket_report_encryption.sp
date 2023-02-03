@@ -12,17 +12,17 @@ dashboard "storage_bucket_encryption_report" {
 
     card {
       query = query.storage_bucket_count
-      width = 2
+      width = 3
     }
 
     card {
       query = query.storage_bucket_google_managed_encryption
-      width = 2
+      width = 3
     }
 
     card {
       query = query.storage_bucket_customer_managed_encryption
-      width = 2
+      width = 3
     }
   }
 

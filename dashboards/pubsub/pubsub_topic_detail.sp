@@ -16,13 +16,13 @@ dashboard "pubsub_topic_detail" {
   container {
 
     card {
-      width = 2
+      width = 3
       query = query.pubsub_topic_encryption
       args  = [self.input.self_link.value]
     }
 
     card {
-      width = 2
+      width = 3
       query = query.pubsub_topic_labeled
       args  = [self.input.self_link.value]
     }

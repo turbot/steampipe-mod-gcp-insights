@@ -16,7 +16,7 @@ dashboard "compute_instance_group_detail" {
   container {
 
     card {
-      width = 2
+      width = 3
       query = query.compute_instance_group_size
       args  = [self.input.group_id.value]
     }
