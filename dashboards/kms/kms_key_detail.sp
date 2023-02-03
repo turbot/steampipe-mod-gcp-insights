@@ -332,7 +332,7 @@ query "kms_key_purpose" {
   sql = <<-EOQ
     select
       'Purpose' as label,
-      purpose as value
+      initcap(purpose) as value
     from
       gcp_kms_key
       where
@@ -368,7 +368,7 @@ query "kms_key_protection_level" {
   sql = <<-EOQ
     select
       'Protection Level' as label,
-      version_template->>'protectionLevel' as value
+      initcap(version_template->>'protectionLevel') as value
     from
       gcp_kms_key
     where
@@ -380,7 +380,7 @@ query "kms_key_algorithm" {
   sql = <<-EOQ
     select
       'Algorithm' as label,
-      version_template->>'algorithm' as value
+      initcap(version_template->>'algorithm') as value
     from
       gcp_kms_key
     where

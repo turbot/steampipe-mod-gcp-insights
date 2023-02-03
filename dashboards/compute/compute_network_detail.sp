@@ -357,7 +357,7 @@ query "compute_network_is_default" {
   sql = <<-EOQ
     select
       'Default Network' as label,
-      case when name <> 'default' then 'ok' else 'Default network' end as value,
+      case when name <> 'default' then 'ok' else 'Default Network' end as value,
       case when name <> 'default' then 'ok' else 'alert' end as type
     from
       gcp_compute_network
@@ -370,7 +370,7 @@ query "compute_network_routing_mode" {
   sql = <<-EOQ
     select
       'Routing Mode' as label,
-      routing_mode as value
+      initcap(routing_mode) as value
     from
       gcp_compute_network
     where
