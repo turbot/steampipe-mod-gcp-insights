@@ -1,3 +1,18 @@
+## v0.5 [2023-02-03]
+
+_What's new?_
+
+- New dashboards added: ([#62](https://github.com/turbot/steampipe-mod-gcp-insights/pull/62))
+  - [GCP IAM Service Account Detail](https://hub.steampipe.io/mods/turbot/gcp_insights/dashboards/dashboard.iam_service_account_detail)
+
+_Enhancements_
+
+- Updated the `card` width across all the dashboards to enhance readability. ([#62](https://github.com/turbot/steampipe-mod-gcp-insights/pull/62))
+
+_Bug fixes_
+
+- Fixed the `GCP Compute Instance Group Detail` dashboard to correctly display the compute network resources associated with the instance group. ([#60](https://github.com/turbot/steampipe-mod-gcp-insights/pull/60))
+
 ## v0.4 [2023-01-12]
 
 _Dependencies_
