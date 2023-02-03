@@ -289,7 +289,7 @@ query "iam_service_account_input" {
   EOQ
 }
 
-# # With queries
+# With queries
 
 query "cloudfunction_functions_for_iam_service_account" {
   sql = <<-EOQ
@@ -433,7 +433,7 @@ query "target_compute_firewalls_for_iam_service_account" {
   EOQ
 }
 
-# # Card queries
+# Card queries
 
 query "iam_service_account_default" {
   sql = <<-EOQ
@@ -444,7 +444,7 @@ query "iam_service_account_default" {
       gcp_compute_project_metadata as p,
       gcp_service_account as s
     where
-      s.name = $1
+      s.name = $1;
   EOQ
 }
 
@@ -457,11 +457,11 @@ query "iam_service_account_enabled" {
     from
       gcp_service_account
     where
-      name = $1
+      name = $1;
   EOQ
 }
 
-# # Other detail page queries
+# Other detail page queries
 
 query "iam_storage_account_overview" {
   sql = <<-EOQ
@@ -476,7 +476,7 @@ query "iam_storage_account_overview" {
     from
       gcp_service_account
     where
-      name = $1
+      name = $1;
   EOQ
 }
 
@@ -492,6 +492,6 @@ query "iam_storage_account_keys" {
       gcp_service_account as s
     where
       s.email = k.service_account_name
-      and s.name = $1
+      and s.name = $1;
   EOQ
 }

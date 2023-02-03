@@ -163,7 +163,7 @@ edge "compute_firewall_to_iam_service_account" {
       gcp_compute_firewall,
       jsonb_array_elements_text(target_service_accounts) as t
     where
-      id::text = any($1)
+      id::text = any($1);
   EOQ
 
   param "compute_firewall_ids" {}
