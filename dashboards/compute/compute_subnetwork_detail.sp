@@ -242,7 +242,7 @@ query "compute_subnetwork_input" {
 query "compute_subnetwork_purpose" {
   sql = <<-EOQ
     select
-      purpose as "Purpose"
+      initcap(purpose) as "Purpose"
     from
       gcp_compute_subnetwork
     where
