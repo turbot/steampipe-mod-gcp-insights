@@ -149,6 +149,13 @@ dashboard "compute_instance_group_detail" {
       }
 
       edge {
+        base = edge.compute_instance_group_to_compute_network
+        args = {
+          compute_instance_group_ids = [self.input.group_id.value]
+        }
+      }
+
+      edge {
         base = edge.compute_instance_group_to_compute_subnetwork
         args = {
           compute_instance_group_ids = [self.input.group_id.value]

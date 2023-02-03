@@ -288,12 +288,19 @@ edge "compute_instance_group_to_compute_network" {
 
   sql = <<-EOQ
     select
-      case when g.subnetwork = '' then (g.id::text) else (s.id::text) end as from_id,
+      case
+      -- Instance group having no subnet (returns empty string) and firewall
+      when g.subnetwork = '' and f.network is null then (g.id::text)
+      -- Instance group having no subnet (returns empty string)
+      when g.subnetwork = '' and f.network is not null then (f.id::text)
+      else (s.id::text) end as from_id,
       n.id::text as to_id
     from
       gcp_compute_instance_group g
         left join gcp_compute_subnetwork s
-        on g.subnetwork = s.self_link,
+        on g.subnetwork = s.self_link
+        left join gcp_compute_firewall f
+        on g.network = f.network,
       gcp_compute_network n
     where
       g.network = n.self_link
