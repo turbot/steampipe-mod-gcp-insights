@@ -25,6 +25,7 @@ category "iam_role" {
 category "iam_service_account" {
   title = "IAM Service Account"
   color = local.iam_color
+  href  = "/gcp_insights.dashboard.iam_service_account_detail?input.service_account_name={{.properties.'Name' | @uri}}"
   icon  = "settings_account_box"
 }
 

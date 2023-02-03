@@ -72,6 +72,7 @@ node "iam_service_account" {
       s.name as id,
       s.title,
       jsonb_build_object(
+        'Name', s.name,
         'ID', s.unique_id,
         'Enabled', not s.disabled,
         'Region', s.location,
