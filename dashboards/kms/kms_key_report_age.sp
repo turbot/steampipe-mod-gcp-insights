@@ -142,6 +142,7 @@ query "kms_key_age_table" {
     where
       p.project_id = k.project
     order by
+      k.create_time,
       k.name;
   EOQ
 }

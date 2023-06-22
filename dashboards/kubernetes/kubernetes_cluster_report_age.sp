@@ -147,6 +147,7 @@ query "kubernetes_cluster_age_table" {
     where
       p.project_id = c.project
     order by
+      c.create_time,
       c.name;
   EOQ
 }

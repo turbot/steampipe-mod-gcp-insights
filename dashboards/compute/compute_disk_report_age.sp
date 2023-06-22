@@ -143,6 +143,7 @@ query "compute_disk_age_table" {
     where
       p.project_id = d.project
     order by
+      d.creation_timestamp,
       d.name;
   EOQ
 }

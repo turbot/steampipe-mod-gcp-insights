@@ -143,6 +143,7 @@ query "compute_instance_age_table" {
     where
       p.project_id = i.project
     order by
+      i.creation_timestamp,
       i.name;
   EOQ
 }

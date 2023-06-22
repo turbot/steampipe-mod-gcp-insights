@@ -130,12 +130,12 @@ query "service_account_key_1_year_count" {
 query "service_account_key_age_table" {
   sql = <<-EOQ
     select
-      k.service_account_name as "Service Account Name",
       k.name as "Key Name",
-      k.key_type as "Key Type",
+      k.service_account_name as "Service Account Name",
       now()::date - k.valid_after_time::date as "Age in Days",
       k.valid_after_time as "Create Date",
       p.name as "Project",
+      k.key_type as "Key Type",
       p.project_id as "Project ID"
     from
       gcp_service_account_key as k,
@@ -143,7 +143,8 @@ query "service_account_key_age_table" {
     where
       p.project_id = k.project
     order by
-      k.service_account_name,
-      k.name;
+      k.valid_after_time,
+      k.name,
+      k.service_account_name;
   EOQ
 }
