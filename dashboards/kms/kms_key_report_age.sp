@@ -129,9 +129,9 @@ query "kms_key_age_table" {
   sql = <<-EOQ
     select
       k.name as "Name",
-      k.key_ring_name as "Key Ring Name",
       now()::date - k.create_time::date as "Age in Days",
       k.create_time as "Create Time",
+      k.key_ring_name as "Key Ring Name",
       p.name as "Project",
       p.project_id as "Project ID",
       k.location as "Location",
