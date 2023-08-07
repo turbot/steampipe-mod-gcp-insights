@@ -132,8 +132,8 @@ query "kubernetes_cluster_1_year_count" {
 query "kubernetes_cluster_age_table" {
   sql = <<-EOQ
     select
-      c.id::text as "ID",
       c.name as "Name",
+      c.id::text as "ID",
       now()::date - c.create_time::date as "Age in Days",
       c.create_time as "Create Time",
       c.status as "Status",
@@ -147,6 +147,7 @@ query "kubernetes_cluster_age_table" {
     where
       p.project_id = c.project
     order by
+      c.create_time,
       c.name;
   EOQ
 }

@@ -146,6 +146,7 @@ query "storage_bucket_age_table" {
     where
       p.project_id = b.project
     order by
+      b.time_created,
       b.name;
   EOQ
 }
