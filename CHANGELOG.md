@@ -1,3 +1,10 @@
+## v0.6 [2023-08-07]
+
+_Bug fixes_
+
+- Updated the Age Report dashboards to order by the creation time of the resource. ([#66](https://github.com/turbot/steampipe-mod-gcp-insights/pull/66))
+- Fixed dashboard localhost URLs in README and index doc. ([#65](https://github.com/turbot/steampipe-mod-gcp-insights/pull/65))
+
 ## v0.5 [2023-02-03]
 
 _What's new?_
