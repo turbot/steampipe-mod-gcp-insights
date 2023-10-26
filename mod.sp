@@ -14,9 +14,11 @@ mod "gcp_insights" {
   }
 
   require {
-    steampipe = "0.18.0"
+    steampipe {
+      min_version = "0.18.0"
+    }
     plugin "gcp" {
-      version = "0.32.0"
+      min_version = "0.32.0"
     }
   }
 }
