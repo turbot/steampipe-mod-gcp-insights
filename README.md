@@ -5,7 +5,8 @@
 
 An GCP dashboarding tool that can be used to view dashboards and reports across all of your GCP projects.
 
-![image](https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/main/docs/images/gcp_compute_instance_dashboard.png)
+<!-- ![image](https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/main/docs/images/gcp_compute_instance_dashboard.png) -->
+![image](https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/add-new-checks/docs/images/gcp_compute_instance_dashboard.png)
 
 ## Overview
 
@@ -49,7 +50,7 @@ Finally, install the mod:
 mkdir dashboards
 cd dashboards
 powerpipe mod init
-powerpipe mod install github.com/turbot/powerpipe-mod-gcp-insights
+powerpipe mod install github.com/turbot/steampipe-mod-gcp-insights
 ```
 
 ### Browsing Dashboards

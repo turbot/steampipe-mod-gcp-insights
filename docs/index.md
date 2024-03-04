@@ -2,12 +2,18 @@
 
 Create dashboards and reports for your GCP resources using Powerpipe and Steampipe.
 
-<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/main/docs/images/gcp_compute_instance_dashboard.png" width="50%" type="thumbnail"/>
+<!-- <img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/main/docs/images/gcp_compute_instance_dashboard.png" width="50%" type="thumbnail"/>
 <img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/main/docs/images/gcp_compute_instance_detail.png" width="50%" type="thumbnail"/>
 <img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/main/docs/images/gcp_compute_network_detail.png" width="50%" type="thumbnail"/>
 <img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/main/docs/images/gcp_sql_database_instance_detail.png" width="50%" type="thumbnail"/>
 <img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/main/docs/images/gcp_kms_key_age.png" width="50%" type="thumbnail"/>
-<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/main/docs/images/gcp_storage_bucket_encryption.png" width="50%" type="thumbnail"/>
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/main/docs/images/gcp_storage_bucket_encryption.png" width="50%" type="thumbnail"/> -->
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/add-new-checks/docs/images/gcp_compute_instance_dashboard.png" width="50%" type="thumbnail"/>
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/add-new-checks/docs/images/gcp_compute_instance_detail.png" width="50%" type="thumbnail"/>
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/add-new-checks/docs/images/gcp_compute_network_detail.png" width="50%" type="thumbnail"/>
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/add-new-checks/docs/images/gcp_sql_database_instance_detail.png" width="50%" type="thumbnail"/>
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/add-new-checks/docs/images/gcp_kms_key_age.png" width="50%" type="thumbnail"/>
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/add-new-checks/docs/images/gcp_storage_bucket_encryption.png" width="50%" type="thumbnail"/>
 
 ## Overview
 
@@ -25,6 +31,8 @@ Dashboards are available for Compute, IAM, KMS, Kubernetes and Storage services.
 ## Documentation
 
 - **[Dashboards →](https://hub.powerpipe.io/mods/turbot/gcp_insights/dashboards)**
+
+## Getting Started
 
 ### Installation
 
@@ -49,7 +57,7 @@ Finally, install the mod:
 mkdir dashboards
 cd dashboards
 powerpipe mod init
-powerpipe mod install github.com/turbot/powerpipe-mod-gcp-insights
+powerpipe mod install github.com/turbot/steampipe-mod-gcp-insights
 ```
 
 ### Browsing Dashboards
