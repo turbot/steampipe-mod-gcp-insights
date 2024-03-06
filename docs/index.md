@@ -2,18 +2,12 @@
 
 Create dashboards and reports for your GCP resources using Powerpipe and Steampipe.
 
-<!-- <img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/main/docs/images/gcp_compute_instance_dashboard.png" width="50%" type="thumbnail"/>
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/main/docs/images/gcp_compute_instance_dashboard.png" width="50%" type="thumbnail"/>
 <img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/main/docs/images/gcp_compute_instance_detail.png" width="50%" type="thumbnail"/>
 <img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/main/docs/images/gcp_compute_network_detail.png" width="50%" type="thumbnail"/>
 <img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/main/docs/images/gcp_sql_database_instance_detail.png" width="50%" type="thumbnail"/>
 <img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/main/docs/images/gcp_kms_key_age.png" width="50%" type="thumbnail"/>
-<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/main/docs/images/gcp_storage_bucket_encryption.png" width="50%" type="thumbnail"/> -->
-<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/add-new-checks/docs/images/gcp_compute_instance_dashboard.png" width="50%" type="thumbnail"/>
-<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/add-new-checks/docs/images/gcp_compute_instance_detail.png" width="50%" type="thumbnail"/>
-<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/add-new-checks/docs/images/gcp_compute_network_detail.png" width="50%" type="thumbnail"/>
-<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/add-new-checks/docs/images/gcp_sql_database_instance_detail.png" width="50%" type="thumbnail"/>
-<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/add-new-checks/docs/images/gcp_kms_key_age.png" width="50%" type="thumbnail"/>
-<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/add-new-checks/docs/images/gcp_storage_bucket_encryption.png" width="50%" type="thumbnail"/>
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-gcp-insights/main/docs/images/gcp_storage_bucket_encryption.png" width="50%" type="thumbnail"/>
 
 ## Overview
 
@@ -26,7 +20,7 @@ Dashboards can help answer questions like:
 - Is versioning enabled?
 - What are the relationships between closely connected resources like network subnets, routers, associated DNS policies, and instances?
 
-Dashboards are available for Compute, IAM, KMS, Kubernetes and Storage services.
+Dashboards are available for 10+ services, including Compute, IAM, KMS, Kubernetes, Storage, and more!
 
 ## Documentation
 
