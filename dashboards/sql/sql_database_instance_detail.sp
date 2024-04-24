@@ -361,33 +361,67 @@ query "primary_sql_database_instances_for_sql_database_instance" {
       gcp_sql_database_instance
     where
       master_instance_name is not null
-      and self_link = $1;
+      and self_link = $1
+      and project = split_part($1, '/', 7)
   EOQ
 }
 
 query "compute_networks_for_sql_database_instance" {
   sql = <<-EOQ
-    select
+    with sql_database_instance as (
+      select
+        self_link,
+        ip_configuration
+      from
+        gcp_sql_database_instance
+      where
+        project = split_part($1, '/', 7)
+        and self_link = $1
+    ), compute_network as (
+      select
+        id,
+        name
+      from
+        gcp_compute_network
+      where
+        project = split_part($1, '/', 7)
+    ) select
       n.id::text as network_id
     from
-      gcp_sql_database_instance as i,
-      gcp_compute_network as n
+      sql_database_instance as i,
+      compute_network as n
     where
-      split_part(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
-      and i.self_link = $1;
+      split_part(i.ip_configuration->>'privateNetwork','networks/', 2) = n.name
   EOQ
 }
 
 query "kms_keys_for_sql_database_instance" {
   sql = <<-EOQ
+    with sql_database_instance as (
+      select
+        self_link,
+        kms_key_name
+      from
+        gcp_sql_database_instance
+      where
+        project = split_part($1, '/', 7)
+        and self_link = $1
+    ), kms_key as (
+      select
+        self_link,
+        name
+      from
+        gcp_kms_key
+      where
+        project = split_part($1, '/', 7)
+    )
     select
       k.self_link
     from
       gcp_sql_database_instance as i,
       gcp_kms_key as k
     where
-      i.self_link = $1 
-      and i.kms_key_name = concat('projects', split_part(k.self_link,'projects',2));
+      i.kms_key_name = concat('projects', split_part(k.self_link,'projects',2));
   EOQ
 }
 
@@ -398,7 +432,8 @@ query "sql_backups_for_sql_database_instance" {
     from
       gcp_sql_backup
     where
-      self_link like $1 || '/%';
+      self_link like $1 || '/%'
+      and project = split_part($1, '/', 7);
   EOQ
 }
 
@@ -409,7 +444,8 @@ query "sql_databases_for_sql_database_instance" {
     from
       gcp_sql_database d
     where
-      d.self_link like $1 || '/%';
+      d.self_link like $1 || '/%'
+      and d.project = split_part($1, '/', 7)
   EOQ
 }
 
@@ -421,7 +457,8 @@ query "replica_sql_database_instances_for_sql_database_instance" {
       gcp_sql_database_instance
     where
       master_instance_name is not null
-      and replace(self_link, name, split_part(master_instance_name, ':', 2)) = $1;
+      and replace(self_link, name, split_part(master_instance_name, ':', 2)) = $1
+      and project = split_part($1, '/', 7)
   EOQ
 }
 

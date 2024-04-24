@@ -228,14 +228,22 @@ query "pubsub_topic_labeled" {
 
 query "kubernetes_clusters_for_pubsub_topic" {
   sql = <<-EOQ
+    with pubsub_topic as (
+      select
+        self_link
+      from
+        gcp_pubsub_topic
+      where
+        project = split_part($1, '/', 7)
+        and self_link = $1
+    )
     select
       c.id::text as cluster_id
     from
       gcp_kubernetes_cluster c,
-      gcp_pubsub_topic t
+      pubsub_topic t
     where
-      t.self_link = $1
-      and c.notification_config is not null
+      c.notification_config is not null
       and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
   EOQ
 }
@@ -266,7 +274,8 @@ query "kms_keys_for_pubsub_topic" {
       k.self_link like '%' || p.kms_key_name
       and kms_key_name <> ''
       and kms_key_name is not null
-      and p.self_link = $1;
+      and p.self_link = $1
+      and p.project = split_part($1, '/', 7)
   EOQ
 }
 
@@ -280,7 +289,8 @@ query "pubsub_snapshots_for_pubsub_topic" {
     where
       s.topic_name = t.name
       and s.project = t.project
-      and t.self_link = $1;
+      and t.self_link = $1
+      and t.project = split_part($1, '/', 7);
   EOQ
 }
 
