@@ -35,8 +35,7 @@ node "sql_database" {
       ) as properties
     from
       gcp_sql_database d
-    where
-      d.self_link = any($1);
+      join unnest($1::text[]) as a on d.self_link = a and d.project = split_part(a, '/', 7);
   EOQ
 
   param "sql_database_self_links" {}
@@ -61,8 +60,7 @@ node "sql_database_instance" {
       ) as properties
     from
       gcp_sql_database_instance
-    where
-      self_link = any($1);
+      join unnest($1::text[]) as a on self_link = a and project = split_part(a, '/', 7);
   EOQ
 
   param "database_instance_self_links" {}

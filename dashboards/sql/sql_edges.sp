@@ -24,11 +24,11 @@ edge "sql_database_instance_to_compute_network" {
       i.self_link as from_id,
       n.id::text as to_id
     from
-      gcp_sql_database_instance as i,
+      gcp_sql_database_instance as i
+      join unnest($1::text[]) as a on i.self_link = a and i.project = split_part(a, '/', 7),
       gcp_compute_network as n
     where
-      split_part(i.ip_configuration->>'privateNetwork','networks/',2) = n.name
-      and i.self_link = any($1);
+      split_part(i.ip_configuration->>'privateNetwork','networks/',2) = n.name;
   EOQ
 
   param "database_instance_self_links" {}
@@ -42,11 +42,11 @@ edge "sql_database_instance_to_kms_key" {
       i.self_link as from_id,
       k.self_link as to_id
     from
-      gcp_sql_database_instance as i,
+      gcp_sql_database_instance as i
+      join unnest($1::text[]) as a on i.self_link = a and i.project = split_part(a, '/', 7),
       gcp_kms_key as k
     where
-      i.self_link = any($1) 
-      and i.kms_key_name = concat('projects', split_part(k.self_link,'projects',2));
+      i.kms_key_name = concat('projects', split_part(k.self_link,'projects',2));
   EOQ
 
   param "database_instance_self_links" {}
@@ -63,7 +63,8 @@ edge "sql_database_instance_to_sql_backup" {
       gcp_sql_backup,
       jsonb_array_elements_text($1) sl
     where
-      self_link like sl || '/%';
+      self_link like sl || '/%'
+      and project = split_part(sl, '/', 7)
   EOQ
 
   param "database_instance_self_links" {}
@@ -80,7 +81,8 @@ edge "sql_database_instance_to_sql_database" {
       gcp_sql_database d,
       jsonb_array_elements_text($1) sl
     where
-      self_link like sl || '/%';
+      self_link like sl || '/%'
+      and project = split_part(sl, '/', 7)
   EOQ
 
   param "database_instance_self_links" {}
@@ -95,6 +97,7 @@ edge "sql_database_instance_to_sql_database_instance" {
       self_link as to_id
     from
       gcp_sql_database_instance
+      join unnest($1::text[]) as a on self_link = a and project = split_part(a, '/', 7)
     where
       replace(self_link, name, split_part(master_instance_name, ':', 2)) = any($1);
   EOQ
