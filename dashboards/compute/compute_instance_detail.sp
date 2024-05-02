@@ -237,7 +237,7 @@ query "compute_instance_input" {
   sql = <<-EOQ
     select
       name as label,
-      id::text as value,
+      id::text || '/' || project as value,
       json_build_object(
         'location', location,
         'project', project,
@@ -260,7 +260,8 @@ query "compute_instance_status" {
     from
       gcp_compute_instance
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -272,7 +273,8 @@ query "compute_instance_type" {
     from
       gcp_compute_instance
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -285,7 +287,8 @@ query "compute_instance_deletion_protection" {
     from
       gcp_compute_instance
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -306,7 +309,8 @@ query "compute_instance_public_access" {
       jsonb_array_elements(network_interfaces) nic,
       jsonb_array_elements(nic -> 'accessConfigs') d
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -319,7 +323,8 @@ query "compute_instance_confidential_vm_service" {
     from
       gcp_compute_instance
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -327,85 +332,165 @@ query "compute_instance_confidential_vm_service" {
 
 query "compute_instance_groups_for_compute_instance" {
   sql = <<-EOQ
+    with compute_instance as (
+      select
+        id,
+        self_link
+      from
+        gcp_compute_instance
+      where
+        id = (split_part($1, '/', 1))::bigint
+        and project = split_part($1, '/', 2)
+    ), compute_instance_group as (
+      select
+        id,
+        instances,
+        project
+      from
+        gcp_compute_instance_group
+    )
     select
-      g.id::text as group_id
+      g.id::text || '/' || g.project as group_id
     from
-      gcp_compute_instance as ins,
-      gcp_compute_instance_group as g,
+      compute_instance as ins,
+      compute_instance_group as g,
       jsonb_array_elements(instances) as i
     where
-      (i ->> 'instance') = ins.self_link
-      and ins.id = $1;
+      (i ->> 'instance') = ins.self_link;
   EOQ
 }
 
 query "compute_disks_for_compute_instance" {
   sql = <<-EOQ
+    with compute_instance as (
+      select
+        id,
+        disks
+      from
+        gcp_compute_instance
+      where
+        id = (split_part($1, '/', 1))::bigint
+        and project = split_part($1, '/', 2)
+    ), compute_disk as (
+      select
+        self_link,
+        id,
+        project
+      from
+        gcp_compute_disk
+    )
     select
-      d.id::text as disk_id
+      d.id::text || '/' || d.project as disk_id
     from
-      gcp_compute_instance i,
-      gcp_compute_disk d,
+      compute_instance i,
+      compute_disk d,
       jsonb_array_elements(disks) as disk
     where
-      d.self_link = (disk ->> 'source')
-      and i.id = $1;
+      d.self_link = (disk ->> 'source');
   EOQ
 }
 
 query "compute_firewalls_for_compute_instance" {
   sql = <<-EOQ
+    with compute_instance as (
+      select
+        id,
+        network_interfaces
+      from
+        gcp_compute_instance
+      where
+        id = (split_part($1, '/', 1))::bigint
+        and project = split_part($1, '/', 2)
+    ), compute_firewall as (
+      select
+        network,
+        id
+      from
+        gcp_compute_firewall
+    )
     select
       f.id::text as firewall_id
     from
-      gcp_compute_instance i,
-      gcp_compute_firewall f,
+      compute_instance i,
+      compute_firewall f,
       jsonb_array_elements(network_interfaces) as ni
     where
-      ni ->> 'network' = f.network
-      and i.id = $1;
+      ni ->> 'network' = f.network;
   EOQ
 }
 
 query "compute_networks_for_compute_instance" {
   sql = <<-EOQ
+    with compute_instance as (
+      select
+        id,
+        network_interfaces
+      from
+        gcp_compute_instance
+      where
+        id = (split_part($1, '/', 1))::bigint
+        and project = split_part($1, '/', 2)
+    ), compute_network as (
+      select
+        self_link,
+        id,
+        project
+      from
+        gcp_compute_network
+    )
     select
-      n.id::text as network_id
+      n.id::text || '/' || n.project as network_id
     from
-      gcp_compute_instance i,
-      gcp_compute_network n,
+      compute_instance i,
+      compute_network n,
       jsonb_array_elements(network_interfaces) as ni
     where
-      ni ->> 'network' = n.self_link
-      and i.id = $1;
+      ni ->> 'network' = n.self_link;
   EOQ
 }
 
 query "compute_subnets_for_compute_instance" {
   sql = <<-EOQ
+    with compute_instance as (
+      select
+        id,
+        network_interfaces
+      from
+        gcp_compute_instance
+      where
+        id = (split_part($1, '/', 1))::bigint
+        and project = split_part($1, '/', 2)
+    ), compute_subnetwork as (
+      select
+        self_link,
+        id,
+        project
+      from
+        gcp_compute_subnetwork
+    )
     select
-      s.id::text as subnetwork_id
+      s.id::text || '/' || s.project as subnetwork_id
     from
-      gcp_compute_instance i,
-      gcp_compute_subnetwork s,
+      compute_instance i,
+      compute_subnetwork s,
       jsonb_array_elements(network_interfaces) as ni
     where
-      ni ->> 'subnetwork' = s.self_link
-      and i.id = $1;
+      ni ->> 'subnetwork' = s.self_link;
   EOQ
 }
 
 query "iam_service_accounts_for_compute_instance" {
   sql = <<-EOQ
     select
-      s.name as account_name
+      s.name || '/' || s.project as account_name
     from
       gcp_compute_instance i,
       gcp_service_account s,
       jsonb_array_elements(service_accounts) as sa
     where
       sa ->> 'email' = s.email
-      and i.id = $1;
+      and i.id = (split_part($1, '/', 1))::bigint
+      and i.project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -423,7 +508,8 @@ query "compute_instance_overview" {
     from
       gcp_compute_instance
     where
-      id = $1
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -435,7 +521,8 @@ query "compute_instance_tags" {
       from
         gcp_compute_instance
       where
-        id = $1
+        id = (split_part($1, '/', 1))::bigint
+        and project = split_part($1, '/', 2)
     )
     select
       key as "Key",
@@ -461,7 +548,8 @@ query "compute_instance_attached_disks" {
       gcp_compute_instance,
       jsonb_array_elements(disks) as d
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -474,7 +562,8 @@ query "compute_instance_shielded_vm" {
     from
       gcp_compute_instance
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -492,6 +581,7 @@ query "compute_instance_network_interfaces" {
       jsonb_array_elements(network_interfaces) as nic,
       jsonb_array_elements(nic -> 'accessConfigs') ac
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 }

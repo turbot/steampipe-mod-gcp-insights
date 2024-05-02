@@ -131,8 +131,7 @@ node "compute_disk" {
       ) as properties
     from
       gcp_compute_disk
-    where
-      id = any($1);
+      join unnest($1::text[]) as u on id = (split_part(u, '/', 1))::bigint and project = split_part(u, '/', 2);
   EOQ
 
   param "compute_disk_ids" {}
@@ -156,7 +155,7 @@ node "compute_firewall" {
     from
       gcp_compute_firewall f
     where
-      f.id = any($1);
+      f.id = any($1)
   EOQ
 
   param "compute_firewall_ids" {}
@@ -200,7 +199,7 @@ node "compute_forwarding_rule" {
     from
       gcp_compute_global_forwarding_rule r
     where
-      r.id = any($1)
+      r.id = any($1);
   EOQ
 
   param "compute_forwarding_rule_ids" {}
@@ -247,8 +246,7 @@ node "compute_instance" {
       ) as properties
     from
       gcp_compute_instance
-    where
-      id = any($1);
+      join unnest($1::text[]) as u on id = (split_part(u, '/', 1))::bigint and project = split_part(u, '/', 2);
   EOQ
 
   param "compute_instance_ids" {}
@@ -271,8 +269,7 @@ node "compute_instance_group" {
       ) as properties
     from
       gcp_compute_instance_group g
-    where
-      id = any($1);
+      join unnest($1::text[]) as u on g.id = (split_part(u, '/', 1))::bigint and g.project = split_part(u, '/', 2);
   EOQ
 
   param "compute_instance_group_ids" {}
@@ -316,8 +313,7 @@ node "compute_network" {
       ) as properties
     from
       gcp_compute_network n
-    where
-      n.id = any($1);
+      join unnest($1::text[]) as u on n.id = (split_part(u, '/', 1))::bigint and n.project = split_part(u, '/', 2);
   EOQ
 
   param "compute_network_ids" {}
@@ -336,10 +332,9 @@ node "compute_network_peers" {
         p ->> 'exchangeSubnetRoutes' as exchange_subnet_routes,
         p ->> 'exportSubnetRoutesWithPublicIp' as export_subnet_routes_with_public_ip
       from
-        gcp_compute_network,
+        gcp_compute_network
+        join unnest($1::text[]) as u on id = (split_part(u, '/', 1))::bigint and project = split_part(u, '/', 2),
         jsonb_array_elements(peerings) as p
-      where
-        id = any($1)
     )
     select
       network as id,
@@ -397,7 +392,7 @@ node "compute_router" {
       ) as properties
     from
       gcp_compute_router r
-    where
+   where
       r.id = any($1);
   EOQ
 
@@ -444,8 +439,7 @@ node "compute_subnetwork" {
       ) as properties
     from
       gcp_compute_subnetwork s
-    where
-      s.id = any($1);
+      join unnest($1::text[]) as u on s.id = (split_part(u, '/', 1))::bigint and s.project = split_part(u, '/', 2);
   EOQ
 
   param "compute_subnetwork_ids" {}

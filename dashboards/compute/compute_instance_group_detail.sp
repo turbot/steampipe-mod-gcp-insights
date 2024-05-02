@@ -237,7 +237,7 @@ query "compute_instance_group_input" {
   sql = <<-EOQ
     select
       name as label,
-      id::text as value,
+      id::text || '/' || project as value,
       json_build_object(
         'location', location,
         'project', project,
@@ -260,7 +260,8 @@ query "compute_instance_group_size" {
     from
       gcp_compute_instance_group
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -276,21 +277,23 @@ query "compute_backend_services_for_compute_instance_group" {
       jsonb_array_elements(bs.backends) b
     where
       b ->> 'group' = g.self_link
-      and g.id = $1;
+      and g.id = (split_part($1, '/', 1))::bigint
+      and g.project = split_part($1, '/', 2);
   EOQ
 }
 
 query "kubernetes_clusters_for_compute_instance_group" {
   sql = <<-EOQ
     select
-      c.id::text as cluster_id
+      c.id::text || '/' || c.project as cluster_id
     from
       gcp_kubernetes_cluster c,
       gcp_compute_instance_group g,
       jsonb_array_elements_text(instance_group_urls) ig
     where
       split_part(ig, 'instanceGroupManagers/', 2) = g.name
-      and g.id = $1;
+      and g.id = (split_part($1, '/', 1))::bigint
+      and g.project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -303,7 +306,8 @@ query "compute_autoscalers_for_compute_instance_group" {
       gcp_compute_autoscaler a
     where
       g.name = split_part(a.target, 'instanceGroupManagers/', 2)
-      and g.id = $1;
+      and g.id = (split_part($1, '/', 1))::bigint
+      and g.project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -316,20 +320,22 @@ query "compute_firewalls_for_compute_instance_group" {
       gcp_compute_firewall f
     where
       g.network = f.network
-      and g.id = $1;
+      and g.id = (split_part($1, '/', 1))::bigint
+      and g.project = split_part($1, '/', 2);
   EOQ
 }
 
 query "compute_instances_for_compute_instance_group" {
   sql = <<-EOQ
     select
-      i.id::text as instance_id
+      i.id::text || '/' || i.project as instance_id
     from
       gcp_compute_instance as i,
       gcp_compute_instance_group as g,
       jsonb_array_elements(instances) as ins
     where
-      g.id = $1
+      g.id = (split_part($1, '/', 1))::bigint
+      and g.project = split_part($1, '/', 2)
       and (ins ->> 'instance') = i.self_link;
   EOQ
 }
@@ -337,28 +343,28 @@ query "compute_instances_for_compute_instance_group" {
 query "compute_networks_for_compute_instance_group" {
   sql = <<-EOQ
     select
-      n.id::text as network_id
+      n.id::text || '/' || n.project as network_id
     from
       gcp_compute_instance_group g
-        left join gcp_compute_subnetwork s
-        on g.subnetwork = s.self_link,
+      left join gcp_compute_subnetwork s on g.subnetwork = s.self_link,
       gcp_compute_network n
     where
       g.network = n.self_link
-      and g.id = $1;
+      and g.id = (split_part($1, '/', 1))::bigint
+      and g.project = split_part($1, '/', 2);
   EOQ
 }
 
 query "compute_subnets_for_compute_instance_group" {
   sql = <<-EOQ
     select
-      s.id::text as subnetwork_id
+      s.id::text || '/' || s.project as subnetwork_id
     from
       gcp_compute_instance_group g,
       gcp_compute_subnetwork s
     where
       g.subnetwork = s.self_link
-      and g.id = $1;
+      and g.id = (split_part($1, '/', 1))::bigint
   EOQ
 }
 
@@ -376,7 +382,8 @@ query "compute_instance_group_overview" {
     from
       gcp_compute_instance_group
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -393,7 +400,8 @@ query "compute_instance_group_attached_instances" {
       jsonb_array_elements(instances) as ins,
       gcp_compute_instance i
     where
-      g.id = $1
+      g.id = (split_part($1, '/', 1))::bigint
+      and g.project = split_part($1, '/', 2)
       and i.self_link = ins ->> 'instance';
   EOQ
 }
@@ -412,7 +420,8 @@ query "compute_instance_group_network_detail" {
     where
       g.network = n.self_link
       and g.subnetwork = s.self_link
-      and g.id = $1;
+      and g.id = (split_part($1, '/', 1))::bigint
+      and g.project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -430,6 +439,7 @@ query "compute_instance_firewall_detail" {
       gcp_compute_firewall f
     where
       g.network = f.network
-      and g.id = $1;
+      and g.id = (split_part($1, '/', 1))::bigint
+      and g.project = split_part($1, '/', 2);
   EOQ
 }

@@ -59,12 +59,12 @@ dashboard "pubsub_topic_detail" {
       title = "Relationships"
       type  = "graph"
 
-      # node {
-      #   base = node.iam_role
-      #   args = {
-      #     iam_role_ids = with.iam_roles_for_pubsub_topic.rows[*].role_id
-      #   }
-      # }
+      node {
+        base = node.iam_role
+        args = {
+          iam_role_ids = with.iam_roles_for_pubsub_topic.rows[*].role_id
+        }
+      }
 
       node {
         base = node.kms_key
@@ -108,12 +108,12 @@ dashboard "pubsub_topic_detail" {
         }
       }
 
-      # edge {
-      #   base = edge.pubsub_topic_to_iam_role
-      #   args = {
-      #     pubsub_topic_self_links = [self.input.self_link.value]
-      #   }
-      # }
+      edge {
+        base = edge.pubsub_topic_to_iam_role
+        args = {
+          pubsub_topic_self_links = [self.input.self_link.value]
+        }
+      }
 
       edge {
         base = edge.pubsub_topic_to_kms_key
@@ -232,7 +232,8 @@ query "kubernetes_clusters_for_pubsub_topic" {
   sql = <<-EOQ
     with pubsub_topic as (
       select
-        self_link
+        self_link,
+        project
       from
         gcp_pubsub_topic
       where
@@ -240,12 +241,13 @@ query "kubernetes_clusters_for_pubsub_topic" {
         and self_link = $1
     )
     select
-      c.id::text as cluster_id
+      c.id::text || '/' || c.project as cluster_id
     from
       gcp_kubernetes_cluster c,
       pubsub_topic t
     where
       c.notification_config is not null
+      and t.project = c.project
       and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
   EOQ
 }

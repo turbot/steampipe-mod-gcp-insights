@@ -311,7 +311,7 @@ query "compute_network_input" {
   sql = <<-EOQ
     select
       name as label,
-      id::text as value,
+      id::text || '/' || project as value,
       json_build_object(
         'project', project,
         'id', id::text
@@ -333,23 +333,40 @@ query "compute_network_mtu" {
     from
       gcp_compute_network
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
 query "compute_network_subnet_count" {
   sql = <<-EOQ
+    with compute_subnetwork as (
+      select
+        network_name,
+        project
+      from
+        gcp_compute_subnetwork
+    ), compute_network as (
+      select
+        name,
+        project,
+        id
+      from
+        gcp_compute_network
+      where
+        id = (split_part($1, '/', 1))::bigint
+        and project = split_part($1, '/', 2)
+    )
     select
       'Subnets' as label,
       count(*) as value,
       case when count(*) > 0 then 'ok' else 'alert' end as type
     from
-      gcp_compute_subnetwork s,
-      gcp_compute_network n
+      compute_subnetwork s,
+      compute_network n
     where
       s.network_name = n.name
-      and s.project = n.project
-      and n.id = $1;
+      and s.project = n.project;
   EOQ
 }
 
@@ -362,7 +379,8 @@ query "compute_network_is_default" {
     from
       gcp_compute_network
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -374,23 +392,40 @@ query "compute_network_routing_mode" {
     from
       gcp_compute_network
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
 query "network_firewall_rules_count" {
   sql = <<-EOQ
+    with compute_firewall as (
+      select
+        network,
+        project
+      from
+        gcp_compute_firewall
+    ), compute_network as (
+      select
+        name,
+        project,
+        id
+      from
+        gcp_compute_network
+      where
+        id = (split_part($1, '/', 1))::bigint
+        and project = split_part($1, '/', 2)
+    )
     select
       'Firewall Rules' as label,
       count(f.*) as value,
       case when count(f.*) > 0 then 'ok' else 'alert' end as type
     from
-      gcp_compute_firewall f,
-      gcp_compute_network n
+      compute_firewall f,
+      compute_network n
     where
       split_part(f.network, 'networks/', 2) = n.name
-      and f.project = n.project
-      and n.id = $1;
+      and f.project = n.project;
   EOQ
 }
 
@@ -403,47 +438,93 @@ query "auto_create_subnetwork" {
     from
       gcp_compute_network
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 }
 # With queries
 
 query "compute_vpn_gateways_for_compute_network" {
   sql = <<-EOQ
+    with compute_ha_vpn_gateway as (
+      select
+        id,
+        network
+      from
+        gcp_compute_ha_vpn_gateway
+    ), compute_network as (
+      select
+        self_link,
+        id
+      from
+        gcp_compute_network
+      where
+        id = (split_part($1, '/', 1))::bigint
+        and project = split_part($1, '/', 2)
+    )
     select
       g.id::text as gateway_id
     from
-      gcp_compute_ha_vpn_gateway g,
-      gcp_compute_network n
+      compute_ha_vpn_gateway g,
+      compute_network n
     where
-      g.network = n.self_link
-      and n.id = $1;
+      g.network = n.self_link;
   EOQ
 }
 
 query "compute_backend_services_for_compute_network" {
   sql = <<-EOQ
+    with compute_backend_service as (
+      select
+        id,
+        network
+      from
+        gcp_compute_backend_service
+    ), compute_network as (
+      select
+        self_link,
+        id
+      from
+        gcp_compute_network
+      where
+        id = (split_part($1, '/', 1))::bigint
+        and project = split_part($1, '/', 2)
+    )
     select
       bs.id::text as service_id
     from
-      gcp_compute_backend_service bs,
-      gcp_compute_network n
+      compute_backend_service bs,
+      compute_network n
     where
-      bs.network = n.self_link
-      and n.id = $1;
+      bs.network = n.self_link;
   EOQ
 }
 
 query "compute_firewalls_for_compute_network" {
   sql = <<-EOQ
+    with compute_firewall as (
+      select
+        id,
+        network
+      from
+        gcp_compute_firewall
+    ), compute_network as (
+      select
+        self_link,
+        id
+      from
+        gcp_compute_network
+      where
+        id = (split_part($1, '/', 1))::bigint
+        and project = split_part($1, '/', 2)
+    )
     select
       f.id::text as firewall_id
     from
-      gcp_compute_firewall f,
-      gcp_compute_network n
+      compute_firewall f,
+      compute_network n
     where
-      f.network = n.self_link
-      and n.id = $1;
+      f.network = n.self_link;
   EOQ
 }
 
@@ -457,7 +538,8 @@ query "compute_forwarding_rules_for_compute_network" {
     where
       split_part(fr.network, 'networks/', 2) = n.name
       and fr.project = n.project
-      and n.id = $1
+      and n.id = (split_part($1, '/', 1))::bigint
+      and n.project = split_part($1, '/', 2)
     union
 
     select
@@ -468,21 +550,23 @@ query "compute_forwarding_rules_for_compute_network" {
     where
       split_part(fr.network, 'networks/', 2) = n.name
       and fr.project = n.project
-      and n.id = $1
+      and n.id = (split_part($1, '/', 1))::bigint
+      and n.project = split_part($1, '/', 2);
   EOQ
 }
 
 query "compute_instances_for_compute_network" {
   sql = <<-EOQ
     select
-      i.id::text as instance_id
+      i.id::text || '/' || i.project as instance_id
     from
       gcp_compute_instance i,
       gcp_compute_network n,
       jsonb_array_elements(network_interfaces) as ni
     where
       n.self_link = ni ->> 'network'
-      and n.id = $1;
+      and n.id = (split_part($1, '/', 1))::bigint
+      and n.project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -495,20 +579,37 @@ query "compute_routers_for_compute_network" {
       gcp_compute_network n
     where
       r.network = n.self_link
-      and n.id = $1;
+      and n.id = (split_part($1, '/', 1))::bigint
+      and n.project = split_part($1, '/', 2);
   EOQ
 }
 
 query "compute_subnetworks_for_compute_network" {
   sql = <<-EOQ
+    with compute_subnetwork as (
+      select
+        id,
+        network,
+        project
+      from
+        gcp_compute_subnetwork
+    ), compute_network as (
+      select
+        id,
+        self_link
+      from
+        gcp_compute_network
+      where
+        id = (split_part($1, '/', 1))::bigint
+        and project = split_part($1, '/', 2)
+    )
     select
-      s.id::text as subnetwork_id
+      s.id::text || '/' || s.project as subnetwork_id
     from
-      gcp_compute_subnetwork s,
-      gcp_compute_network n
+      compute_subnetwork s,
+      compute_network n
     where
-      s.network = n.self_link
-      and n.id = $1;
+      s.network = n.self_link;
   EOQ
 }
 
@@ -522,21 +623,22 @@ query "dns_policies_for_compute_network" {
       gcp_compute_network n
     where
       pn ->> 'networkUrl' = n.self_link
-      and n.id = $1;
+      and n.id = (split_part($1, '/', 1))::bigint
+      and n.project = split_part($1, '/', 2);
   EOQ
 }
 
 query "kubernetes_clusters_for_compute_network" {
   sql = <<-EOQ
     select
-      c.id::text as cluster_id
+      c.id::text || '/' || c.project as cluster_id
     from
       gcp_kubernetes_cluster c,
       gcp_compute_network n
     where
       c.network = n.name
       and c.project = n.project
-      and n.id = $1;
+      and n.id = (split_part($1, '/', 1))::bigint;
   EOQ
 }
 
@@ -549,7 +651,8 @@ query "sql_database_instances_for_compute_network" {
       gcp_compute_network n
     where
       n.self_link like '%' || (i.ip_configuration ->> 'privateNetwork') || '%'
-      and n.id = $1;
+      and n.id = (split_part($1, '/', 1))::bigint
+      and n.project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -567,7 +670,8 @@ query "compute_network_overview" {
     from
       gcp_compute_network
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -584,7 +688,8 @@ query "compute_network_peering" {
       gcp_compute_network,
       jsonb_array_elements(peerings) as p
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -607,6 +712,7 @@ query "compute_network_subnet" {
     where
       s.network_name = n.name
       and s.project = n.project
-      and n.id = $1;
+      and n.id = (split_part($1, '/', 1))::bigint
+      and n.project = split_part($1, '/', 2);
   EOQ
 }

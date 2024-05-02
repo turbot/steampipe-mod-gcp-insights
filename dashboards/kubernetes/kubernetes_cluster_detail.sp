@@ -170,7 +170,7 @@ dashboard "kubernetes_cluster_detail" {
       node {
         base = node.pubsub_topic
         args = {
-          pubsub_topic_self_links = with.pubsub_topics_for_kubernetes_cluster.rows[*].self_link
+          pubsub_topic_self_links = with.pubsub_topics_for_kubernetes_cluster.rows[*].topic_name
         }
       }
 
@@ -324,7 +324,7 @@ query "kubernetes_cluster_input" {
   sql = <<-EOQ
     select
       name as label,
-      id as value,
+      id || '/' || project as value,
       json_build_object(
         'project', project,
         'location', location
@@ -345,7 +345,8 @@ query "kubernetes_cluster_node" {
     from
       gcp_kubernetes_cluster
     where
-      id = $1;
+      id = split_part($1, '/', 1)
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -356,7 +357,8 @@ query "kubernetes_cluster_autopilot_enabled" {
     from
       gcp_kubernetes_cluster
     where
-      id = $1;
+      id = split_part($1, '/', 1)
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -369,7 +371,8 @@ query "kubernetes_cluster_database_encryption" {
     from
       gcp_kubernetes_cluster
     where
-      id = $1;
+      id = split_part($1, '/', 1)
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -382,7 +385,8 @@ query "kubernetes_cluster_degraded" {
     from
       gcp_kubernetes_cluster
     where
-      id = $1;
+      id = split_part($1, '/', 1)
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -395,7 +399,8 @@ query "kubernetes_cluster_shielded_nodes_disabled" {
     from
       gcp_kubernetes_cluster
     where
-      id = $1;
+      id = split_part($1, '/', 1)
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -409,7 +414,8 @@ query "kubernetes_cluster_auto_repair_disabled" {
       gcp_kubernetes_cluster,
       jsonb_array_elements(node_pools) as np
     where
-      id = $1;
+      id = split_part($1, '/', 1)
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -425,7 +431,7 @@ query "bigquery_datasets_for_kubernetes_cluster" {
     where
       c.resource_usage_export_config -> 'bigqueryDestination' ->> 'datasetId' = d.dataset_id
       and d.project = c.project
-      and c.id = $1;
+      and c.id = split_part($1, '/', 1);
   EOQ
 }
 
@@ -441,14 +447,14 @@ query "compute_firewalls_for_kubernetes_cluster" {
       c.network = n.name
       and c.project = n.project
       and n.self_link = f.network
-      and c.id = $1;
+      and c.id = split_part($1, '/', 1);
   EOQ
 }
 
 query "compute_instance_groups_for_kubernetes_cluster" {
   sql = <<-EOQ
     select
-      g.id::text as group_id
+      g.id::text || '/' || g.project as group_id
     from
       gcp_kubernetes_node_pool p,
       gcp_compute_instance_group g,
@@ -459,14 +465,14 @@ query "compute_instance_groups_for_kubernetes_cluster" {
       and c.project = p.project
       and split_part(ig, 'instanceGroupManagers/', 2) = g.name
       and g.project = p.project
-      and c.id = $1;
+      and c.id = split_part($1, '/', 1);
   EOQ
 }
 
 query "compute_instances_for_kubernetes_cluster" {
   sql = <<-EOQ
     select
-      i.id::text as instance_id
+      i.id::text || '/' || i.project as instance_id
     from
       gcp_kubernetes_node_pool p,
       gcp_compute_instance_group g,
@@ -480,19 +486,19 @@ query "compute_instances_for_kubernetes_cluster" {
       and split_part(ig, 'instanceGroupManagers/', 2) = g.name
       and g.project = p.project
       and i.self_link = (g_ins ->> 'instance')
-      and c.id = $1;
+      and c.id = split_part($1, '/', 1);
   EOQ
 }
 
 query "compute_networks_for_kubernetes_cluster" {
   sql = <<-EOQ
     select
-      n.id::text as network_id
+      n.id::text || '/' || n.project as network_id
     from
       gcp_kubernetes_cluster c,
       gcp_compute_network n
     where
-      c.id = $1
+      c.id = split_part($1, '/', 1)
       and c.network = n.name
       and c.project = n.project;
   EOQ
@@ -501,13 +507,14 @@ query "compute_networks_for_kubernetes_cluster" {
 query "compute_subnets_for_kubernetes_cluster" {
   sql = <<-EOQ
     select
-      s.id::text as subnetwork_id
+      s.id::text || '/' || s.project as subnetwork_id
     from
       gcp_kubernetes_cluster c,
       gcp_compute_subnetwork s
     where
-      c.id = $1
-      and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
+      c.id = split_part($1, '/', 1)
+      and s.self_link like '%' || (c.network_config ->> 'Subnetwork') || '%'
+      and c.project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -520,9 +527,10 @@ query "kms_keys_for_kubernetes_cluster" {
       gcp_kms_key k
     where
       c.database_encryption_key_name is not null
+      and c.database_encryption_key_name <> ''
       and k.project = c.project
       and k.self_link like '%' || c.database_encryption_key_name
-      and c.id = $1;
+      and c.id = split_part($1, '/', 1);
   EOQ
 }
 
@@ -536,7 +544,7 @@ query "kubernetes_node_pools_for_kubernetes_cluster" {
     where
       p.cluster_name = c.name
       and p.project = c.project
-      and c.id = $1;
+      and c.id = split_part($1, '/', 1);
   EOQ
 }
 
@@ -548,7 +556,7 @@ query "pubsub_topics_for_kubernetes_cluster" {
       gcp_kubernetes_cluster c,
       gcp_pubsub_topic t
     where
-      c.id = $1
+      c.id = split_part($1, '/', 1)
       and c.notification_config is not null
       and t.project = c.project
       and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
@@ -568,7 +576,8 @@ query "kubernetes_cluster_overview" {
     from
       gcp_kubernetes_cluster
     where
-      id = $1;
+      id = split_part($1, '/', 1)
+      and project = split_part($1, '/', 2);
   EOQ
 
 }
@@ -581,7 +590,8 @@ query "kubernetes_cluster_tags" {
       from
         gcp_kubernetes_cluster
       where
-        id = $1
+        id = split_part($1, '/', 1)
+        and project = split_part($1, '/', 2)
     )
     select
       key as "Key",
@@ -606,7 +616,8 @@ query "kubernetes_cluster_ip_allocation_policy" {
     from
       gcp_kubernetes_cluster
     where
-      id = $1;
+      id = split_part($1, '/', 1)
+      and project = split_part($1, '/', 2);
   EOQ
 
 }
@@ -623,7 +634,8 @@ query "kubernetes_cluster_addons_config" {
     from
       gcp_kubernetes_cluster
     where
-      id = $1;
+      id = split_part($1, '/', 1)
+      and project = split_part($1, '/', 2);
   EOQ
 
 }
@@ -638,7 +650,8 @@ query "kubernetes_cluster_network_config" {
     from
       gcp_kubernetes_cluster
     where
-      id = $1;
+      id = split_part($1, '/', 1)
+      and project = split_part($1, '/', 2);
   EOQ
 
 }
@@ -651,7 +664,8 @@ query "kubernetes_cluster_lm" {
     from
       gcp_kubernetes_cluster
     where
-      id = $1;
+      id = split_part($1, '/', 1)
+      and project = split_part($1, '/', 2);
   EOQ
 
 }
@@ -664,7 +678,8 @@ query "kubernetes_cluster_notification_config" {
     from
       gcp_kubernetes_cluster
     where
-      id = $1;
+      id = split_part($1, '/', 1)
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -679,7 +694,8 @@ query "kubernetes_cluster_private_cluster_config" {
     from
       gcp_kubernetes_cluster
     where
-      id = $1;
+      id = split_part($1, '/', 1)
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -700,6 +716,7 @@ query "kubernetes_cluster_node_detail" {
     from
       gcp_kubernetes_cluster
     where
-      id = $1;
+      id = split_part($1, '/', 1)
+      and project = split_part($1, '/', 2);
   EOQ
 }
