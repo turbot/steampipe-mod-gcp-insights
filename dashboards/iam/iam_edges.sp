@@ -62,9 +62,9 @@ edge "iam_service_account_to_cloudfunction_function" {
     from
       gcp_cloudfunctions_function as f,
       gcp_service_account as s
+      join unnest($1::text[]) as u on s.name = split_part(u, '/', 1) and s.project = split_part(u, '/', 2)
     where
-      f.service_account_email = s.email
-      and s.name = any($1);
+      f.service_account_email = s.email;
   EOQ
 
   param "iam_service_account_names" {}
@@ -78,10 +78,9 @@ edge "iam_service_account_to_compute_firewall" {
       s as from_id,
       id::text as to_id
     from
-      gcp_compute_firewall,
+      gcp_compute_firewall ,
       jsonb_array_elements_text(source_service_accounts) as s
-    where
-      s = any($1);
+      join unnest($1::text[]) as u on s = split_part(u, '/', 1)
   EOQ
 
   param "iam_service_account_names" {}
@@ -95,12 +94,12 @@ edge "iam_service_account_to_compute_instance_template" {
       s.name as from_id,
       t.id::text as to_id
     from
-      gcp_service_account as s,
+      gcp_service_account as s
+      join unnest($1::text[]) as u on s.name = split_part(u, '/', 1),
       gcp_compute_instance_template as t,
       jsonb_array_elements(instance_service_accounts) as tsa
     where
       tsa ->> 'email' = s.email
-      and s.name = any($1);
   EOQ
 
   param "iam_service_account_names" {}
@@ -114,11 +113,10 @@ edge "iam_service_account_to_iam_member" {
       name as from_id,
       split_part(m,':',2) as to_id
     from
-      gcp_service_account,
+      gcp_service_account
+      join unnest($1::text[]) as u on name = split_part(u, '/', 1) and project = split_part(u, '/', 2),
       jsonb_array_elements(iam_policy -> 'bindings') as b,
       jsonb_array_elements_text(b-> 'members') as m
-    where
-      name = any($1);
   EOQ
 
   param "iam_service_account_names" {}
@@ -136,9 +134,9 @@ edge "iam_service_account_to_iam_role" {
       jsonb_array_elements(bindings) as b,
       jsonb_array_elements_text(b -> 'members') as m,
       split_part(m,'serviceAccount:',2) as member_name
+      join unnest($1::text[]) as u on member_name = split_part(u, '/', 1)
     where
-      m like 'serviceAccount:%'
-      and member_name = any($1);
+      m like 'serviceAccount:%';
   EOQ
 
   param "iam_service_account_names" {}
@@ -153,8 +151,7 @@ edge "iam_service_account_to_iam_service_account_key" {
       name as to_id
     from
       gcp_service_account_key
-    where
-      service_account_name = any($1);
+      join unnest($1::text[]) as u on service_account_name = split_part(u, '/', 1);
   EOQ
 
   param "iam_service_account_names" {}
@@ -170,9 +167,9 @@ edge "iam_service_account_to_pubsub_subscription" {
     from
       gcp_pubsub_subscription as p,
       gcp_service_account as s
+      join unnest($1::text[]) as u on s.name = split_part(u, '/', 1) and s.project = split_part(u, '/', 2)
     where
-      p.push_config_oidc_token_service_account_email = s.email
-      and s.name = any($1);
+      p.push_config_oidc_token_service_account_email = s.email;
   EOQ
 
   param "iam_service_account_names" {}

@@ -7,11 +7,11 @@ edge "pubsub_topic_to_iam_role" {
       i.name as to_id
     from
       gcp_iam_role i,
-      gcp_pubsub_topic t,
+      gcp_pubsub_topic t
+      join unnest($1::text[]) as a on t.self_link = a and t.project = split_part(a, '/', 6),
       jsonb_array_elements(t.iam_policy->'bindings') as roles
     where
-      roles ->> 'role' = i.name
-      and t.self_link = any($1);
+      roles ->> 'role' = i.name;
   EOQ
 
   param "pubsub_topic_self_links" {}
@@ -25,11 +25,11 @@ edge "pubsub_topic_to_kms_key" {
       p.self_link as from_id,
       k.self_link as to_id
     from
-      gcp_pubsub_topic p,
+      gcp_pubsub_topic p
+      join unnest($1::text[]) as a on p.self_link = a and p.project = split_part(a, '/', 6),
       gcp_kms_key k
     where
-      k.self_link like '%' || kms_key_name
-      and p.self_link = any($1);
+      k.self_link like '%' || kms_key_name;
   EOQ
 
   param "pubsub_topic_self_links" {}
@@ -45,9 +45,9 @@ edge "pubsub_topic_to_pubsub_snapshot" {
     from
       gcp_pubsub_snapshot s,
       gcp_pubsub_topic t
+      join unnest($1::text[]) as a on t.self_link = a and t.project = split_part(a, '/', 6)
     where
-      s.topic_name = t.name
-      and t.self_link = any($1);
+      s.topic_name = t.name;
   EOQ
 
   param "pubsub_topic_self_links" {}
@@ -63,9 +63,9 @@ edge "pubsub_topic_to_pubsub_subscription" {
     from
       gcp_pubsub_subscription s,
       gcp_pubsub_topic t
+      join unnest($1::text[]) as a on t.self_link = a and t.project = split_part(a, '/', 6)
     where
-      s.topic_name = t.name
-      and t.self_link = any($1);
+      s.topic_name = t.name;
   EOQ
 
   param "pubsub_topic_self_links" {}

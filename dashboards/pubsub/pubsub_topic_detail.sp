@@ -207,7 +207,8 @@ query "pubsub_topic_encryption" {
     from
       gcp_pubsub_topic
     where
-      self_link = $1;
+      project = split_part($1, '/', 6)
+      and self_link = $1;
   EOQ
 }
 
@@ -220,7 +221,8 @@ query "pubsub_topic_labeled" {
     from
       gcp_pubsub_topic
     where
-      self_link = $1;
+      project = split_part($1, '/', 6)
+      and self_link = $1;
   EOQ
 }
 
@@ -228,73 +230,144 @@ query "pubsub_topic_labeled" {
 
 query "kubernetes_clusters_for_pubsub_topic" {
   sql = <<-EOQ
+    with pubsub_topic as (
+      select
+        self_link,
+        project
+      from
+        gcp_pubsub_topic
+      where
+        project = split_part($1, '/', 6)
+        and self_link = $1
+    )
     select
-      c.id::text as cluster_id
+      c.id::text || '/' || c.project as cluster_id
     from
       gcp_kubernetes_cluster c,
-      gcp_pubsub_topic t
+      pubsub_topic t
     where
-      t.self_link = $1
-      and c.notification_config is not null
+      c.notification_config is not null
+      and t.project = c.project
       and t.self_link like '%' || (c.notification_config -> 'pubsub' ->> 'topic') || '%';
   EOQ
 }
 
 query "iam_roles_for_pubsub_topic" {
   sql = <<-EOQ
+    with iam_role as (
+      select
+        name
+      from
+        gcp_iam_role
+      where
+        project = split_part($1, '/', 6)
+    ), pubsub_topic as (
+      select
+        self_link,
+        iam_policy
+      from
+        gcp_pubsub_topic
+      where
+        project = split_part($1, '/', 6)
+        and self_link = $1
+    )
     select
       i.name as role_id
     from
-      gcp_iam_role i,
-      gcp_pubsub_topic t,
+      iam_role i,
+      pubsub_topic t,
       jsonb_array_elements(t.iam_policy->'bindings') as roles
     where
-      roles ->> 'role' = i.name
-      and i.project = t.project
-      and t.self_link = $1;
+      roles ->> 'role' = i.name;
   EOQ
 }
 
 query "kms_keys_for_pubsub_topic" {
   sql = <<-EOQ
+    with kms_key as (
+      select
+        self_link
+      from
+        gcp_kms_key
+    ), pubsub_topic as (
+      select
+        self_link,
+        kms_key_name
+      from
+        gcp_pubsub_topic
+      where
+        kms_key_name <> ''
+        and kms_key_name is not null
+        and project = split_part($1, '/', 6)
+        and self_link = $1
+    )
     select
       k.self_link
     from
-      gcp_pubsub_topic p,
-      gcp_kms_key k
+      pubsub_topic p,
+      kms_key k
     where
-      k.self_link like '%' || p.kms_key_name
-      and kms_key_name <> ''
-      and kms_key_name is not null
-      and p.self_link = $1;
+      k.self_link like '%' || p.kms_key_name;
   EOQ
 }
 
 query "pubsub_snapshots_for_pubsub_topic" {
   sql = <<-EOQ
+    with pubsub_snapshot as (
+      select
+        self_link,
+        topic_name
+      from
+        gcp_pubsub_snapshot
+      where
+        project = split_part($1, '/', 6)
+    ), pubsub_topic as (
+      select
+        self_link,
+        name
+      from
+        gcp_pubsub_topic
+      where
+        project = split_part($1, '/', 6)
+        and self_link = $1
+    )
     select
       s.self_link as snapshot_self_link
     from
-      gcp_pubsub_snapshot s,
-      gcp_pubsub_topic t
+      pubsub_snapshot s,
+      pubsub_topic t
     where
-      s.topic_name = t.name
-      and s.project = t.project
-      and t.self_link = $1;
+      s.topic_name = t.name;
   EOQ
 }
 
 query "pubsub_subscriptions_for_pubsub_topic" {
   sql = <<-EOQ
+    with pubsub_subscription as (
+      select
+        self_link,
+        topic_name
+      from
+        gcp_pubsub_subscription
+      where
+        project = split_part($1, '/', 6)
+    ), pubsub_topic as (
+      select
+        self_link,
+        name
+      from
+        gcp_pubsub_topic
+      where
+        project = split_part($1, '/', 6)
+        and self_link = $1
+    )
     select
       s.self_link as subscription_self_link
     from
-      gcp_pubsub_subscription s,
-      gcp_pubsub_topic t
+      pubsub_subscription s,
+      pubsub_topic t
     where
-      s.topic_name = t.name
-      and s.project = t.project
-      and t.self_link = $1;
+      s.topic_name = t.name;
   EOQ
 }
 
@@ -308,7 +381,8 @@ query "pubsub_topic_overview" {
     from
       gcp_pubsub_topic
     where
-      self_link = $1;
+      project = split_part($1, '/', 6)
+      and self_link = $1;
   EOQ
 }
 
@@ -320,7 +394,8 @@ query "pubsub_topic_tags" {
     from
       gcp_pubsub_topic
     where
-      self_link = $1;
+      project = split_part($1, '/', 6)
+      and self_link = $1;
   EOQ
 }
 
@@ -344,6 +419,28 @@ query "pubsub_topic_encryption_details" {
 
 query "pubsub_topic_subscription_details" {
   sql = <<-EOQ
+    with pubsub_subscription as (
+      select
+        name,
+        self_link,
+        topic_name,
+        retain_acked_messages,
+        message_retention_duration,
+        dead_letter_policy_max_delivery_attempts
+      from
+        gcp_pubsub_subscription
+      where
+        project = split_part($1, '/', 6)
+    ), pubsub_topic as (
+      select
+        self_link,
+        name
+      from
+        gcp_pubsub_topic
+      where
+        project = split_part($1, '/', 6)
+        and self_link = $1
+    )
     select
       k.name as "Name",
       topic_name as "Topic Name",
@@ -351,11 +448,9 @@ query "pubsub_topic_subscription_details" {
       retain_acked_messages as "Retain Acknowledged Messages",
       dead_letter_policy_max_delivery_attempts as "Maximum Number of Delivery Attempts"
     from
-      gcp_pubsub_topic p,
-      gcp_pubsub_subscription k
+      pubsub_topic p,
+      pubsub_subscription k
     where
-      p.name = k.topic_name
-      and p.project = k.project
-      and p.self_link = $1;
+      p.name = k.topic_name;
   EOQ
 }

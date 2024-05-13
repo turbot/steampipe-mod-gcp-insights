@@ -13,8 +13,7 @@ node "pubsub_snapshot" {
       ) as properties
     from
       gcp_pubsub_snapshot k
-    where
-      k.self_link = any($1);
+      join unnest($1::text[]) as a on k.self_link = a and k.project = split_part(a, '/', 6);
   EOQ
 
   param "pubsub_snapshot_self_links" {}
@@ -35,8 +34,7 @@ node "pubsub_subscription" {
       ) as properties
     from
       gcp_pubsub_subscription k
-    where
-      k.self_link = any($1);
+      join unnest($1::text[]) as a on k.self_link = a and k.project = split_part(a, '/', 6);
   EOQ
 
   param "pubsub_subscription_self_links" {}
@@ -58,8 +56,7 @@ node "pubsub_topic" {
       ) as properties
     from
       gcp_pubsub_topic
-    where
-      self_link = any($1);
+      join unnest($1::text[]) as a on self_link = a and project = split_part(a, '/', 6);
   EOQ
 
   param "pubsub_topic_self_links" {}
