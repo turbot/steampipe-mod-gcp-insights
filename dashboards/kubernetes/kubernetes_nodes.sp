@@ -17,8 +17,7 @@ node "kubernetes_cluster" {
       ) as properties
     from
       gcp_kubernetes_cluster
-    where
-      id = any($1);
+      join unnest($1::text[]) as u on id = split_part(u, '/', 1) and project = split_part(u, '/', 2);
   EOQ
 
   param "kubernetes_cluster_ids" {}

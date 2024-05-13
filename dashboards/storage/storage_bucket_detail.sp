@@ -187,7 +187,7 @@ query "storage_bucket_input" {
   sql = <<-EOQ
     select
       title as label,
-      id as value,
+      id || '/' || project as value,
       json_build_object(
         'project', project
       ) as tags
@@ -208,7 +208,8 @@ query "storage_bucket_class" {
     from
       gcp_storage_bucket
     where
-      id = $1;
+      id = split_part($1, '/', 1)
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -221,7 +222,8 @@ query "storage_bucket_public_access" {
     from
       gcp_storage_bucket
     where
-      id = $1;
+      id = split_part($1, '/', 1)
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -234,7 +236,8 @@ query "storage_bucket_versioning_disabled" {
     from
       gcp_storage_bucket
     where
-      id = $1;
+      id = split_part($1, '/', 1)
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -247,7 +250,8 @@ query "storage_bucket_retention_policy" {
     from
       gcp_storage_bucket
     where
-      id = $1;
+      id = split_part($1, '/', 1)
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -260,7 +264,8 @@ query "storage_bucket_logging" {
     from
       gcp_storage_bucket
     where
-      id = $1;
+      id = split_part($1, '/', 1)
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -273,7 +278,8 @@ query "storage_bucket_uniform_bucket_level_access" {
     from
       gcp_storage_bucket
     where
-      id = $1;
+      id = split_part($1, '/', 1)
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -281,14 +287,29 @@ query "storage_bucket_uniform_bucket_level_access" {
 
 query "compute_backend_buckets_for_storage_bucket" {
   sql = <<-EOQ
+    with compute_backend_bucket as (
+      select
+        id,
+        bucket_name
+      from
+        gcp_compute_backend_bucket
+    ), storage_bucket as (
+      select
+        id,
+        name
+      from
+        gcp_storage_bucket
+      where
+        id = split_part($1, '/', 1)
+        and project = split_part($1, '/', 2)
+    )
     select
       c.id::text as bucket_id
     from
-      gcp_storage_bucket b,
-      gcp_compute_backend_bucket c
+      storage_bucket b,
+      compute_backend_bucket c
     where
-      b.id = $1
-      and b.name = c.bucket_name;
+      b.name = c.bucket_name;
   EOQ
 }
 
@@ -300,23 +321,38 @@ query "kms_keys_for_storage_bucket" {
       gcp_storage_bucket b,
       gcp_kms_key k
     where
-      b.id = $1
+      b.id = split_part($1, '/', 1)
+      and b.project = split_part($1, '/', 2)
       and b.default_kms_key_name is not null
-      and k.self_link like '%' || b.default_kms_key_name
+      and k.self_link like '%' || b.default_kms_key_name;
   EOQ
 }
 
 query "logging_buckets_for_storage_bucket" {
   sql = <<-EOQ
+    with logging_bucket as (
+      select
+        name
+      from
+        gcp_logging_bucket
+    ), storage_bucket as (
+      select
+        id,
+        log_bucket
+      from
+        gcp_storage_bucket
+      where
+        id = split_part($1, '/', 1)
+        and project = split_part($1, '/', 2)
+        and log_bucket is not null
+    )
     select
       l.name as bucket_name
     from
-      gcp_storage_bucket b,
-      gcp_logging_bucket l
+      storage_bucket b,
+      logging_bucket l
     where
-      b.id = $1
-      and b.log_bucket is not null
-      and b.log_bucket = l.name;
+      b.log_bucket = l.name;
   EOQ
 }
 
@@ -335,7 +371,8 @@ query "storage_bucket_overview" {
     from
       gcp_storage_bucket
     where
-      id = $1;
+      id = split_part($1, '/', 1)
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -347,7 +384,8 @@ query "storage_bucket_tags_detail" {
       from
         gcp_storage_bucket
       where
-        id = $1
+        id = split_part($1, '/', 1)
+        and project = split_part($1, '/', 2)
     )
     select
       key as "Key",
@@ -362,6 +400,26 @@ query "storage_bucket_tags_detail" {
 
 query "storage_bucket_logging_detail" {
   sql = <<-EOQ
+    with logging_bucket as (
+      select
+        name,
+        lifecycle_state,
+        retention_days,
+        create_time
+      from
+        gcp_logging_bucket
+    ), storage_bucket as (
+      select
+        id,
+        log_bucket,
+        log_object_prefix
+      from
+        gcp_storage_bucket
+      where
+        id = split_part($1, '/', 1)
+        and project = split_part($1, '/', 2)
+        and log_bucket is not null
+    )
     select
       b.log_bucket as "Log Bucket",
       b.log_object_prefix as "Log Object Prefix",
@@ -369,28 +427,44 @@ query "storage_bucket_logging_detail" {
       l.retention_days as "Retention Days",
       l.lifecycle_state as "Lifecycle State"
     from
-      gcp_storage_bucket b,
-      gcp_logging_bucket l
+      storage_bucket b,
+      logging_bucket l
     where
-      b.id = $1
-      and b.log_bucket is not null
-      and b.log_bucket = l.name;
+      b.log_bucket = l.name;
   EOQ
 }
 
 query "storage_bucket_compute_backend_bucket_detail" {
   sql = <<-EOQ
+    with compute_backend_bucket as (
+      select
+        id,
+        name,
+        creation_timestamp,
+        location,
+        bucket_name
+      from
+        gcp_compute_backend_bucket
+    ), storage_bucket as (
+      select
+        id,
+        name
+      from
+        gcp_storage_bucket
+      where
+        id = split_part($1, '/', 1)
+        and project = split_part($1, '/', 2)
+    )
     select
       c.id as "Backend Bucket ID",
       c.name as "Backend Bucket Name",
       c.creation_timestamp as "Created Time",
       c.location as "Location"
     from
-      gcp_storage_bucket b,
-      gcp_compute_backend_bucket c
+      storage_bucket b,
+      compute_backend_bucket c
     where
-      b.id = $1
-      and b.name = c.bucket_name;
+      b.name = c.bucket_name;
   EOQ
 }
 
@@ -405,9 +479,9 @@ query "storage_bucket_encryption_detail" {
       k.self_link as "Self Link"
     from
       gcp_storage_bucket b
-        left join gcp_kms_key k
-        on split_part(b.default_kms_key_name, 'cryptoKeys/', 2) = k.name
+      left join gcp_kms_key k on split_part(b.default_kms_key_name, 'cryptoKeys/', 2) = k.name
     where
-      b.id = $1;
+      b.id = split_part($1, '/', 1)
+      and b.project = split_part($1, '/', 2)
   EOQ
 }

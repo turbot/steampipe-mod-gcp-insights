@@ -306,7 +306,7 @@ query "compute_disk_input" {
   sql = <<-EOQ
     select
       name as label,
-      id::text as value,
+      id::text || '/' || project as value,
       json_build_object(
         'location', location,
         'project', project,
@@ -329,7 +329,8 @@ query "compute_disk_storage" {
     from
       gcp_compute_disk
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -341,7 +342,8 @@ query "compute_disk_status" {
     from
       gcp_compute_disk
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -353,7 +355,8 @@ query "compute_disk_type" {
     from
       gcp_compute_disk
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -372,7 +375,8 @@ query "compute_disk_attached_instances_count" {
     from
       gcp_compute_disk
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -384,7 +388,8 @@ query "compute_disk_encryption" {
     from
       gcp_compute_disk
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -396,7 +401,8 @@ query "compute_disk_attached_instances" {
       from
         gcp_compute_disk, jsonb_array_elements_text(users) as instance_selflink
       where
-        id =$1
+        id = (split_part($1, '/', 1))::bigint
+        and project = split_part($1, '/', 2)
     )
     select
       i.name as "Name",
@@ -420,7 +426,8 @@ query "compute_disk_encryption_status" {
     from
       gcp_compute_disk
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -429,14 +436,15 @@ query "compute_disk_encryption_status" {
 query "compute_instances_for_compute_disk" {
   sql = <<-EOQ
     select
-      i.id::text as instance_id
+      i.id::text || '/' || i.project as instance_id
     from
       gcp_compute_disk d,
       gcp_compute_instance i,
       jsonb_array_elements(disks) as disk
     where
       d.self_link = (disk ->> 'source')
-      and d.id = $1;
+      and d.id = (split_part($1, '/', 1))::bigint
+      and d.project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -449,7 +457,8 @@ query "compute_resource_policies_for_compute_disk" {
       jsonb_array_elements_text(resource_policies) as rp,
       gcp_compute_resource_policy r
     where
-      d.id = $1
+      d.id = (split_part($1, '/', 1))::bigint
+      and d.project = split_part($1, '/', 2)
       and rp = r.self_link;
   EOQ
 }
@@ -457,26 +466,27 @@ query "compute_resource_policies_for_compute_disk" {
 query "source_compute_disks_for_compute_disk" {
   sql = <<-EOQ
     select
-      d.source_disk_id as disk_id
+      d.source_disk_id || '/' || d.project as disk_id
     from
       gcp_compute_disk d
     where
       d.source_disk_id != ''
-      and d.id = $1;
+      and d.id = (split_part($1, '/', 1))::bigint
+      and d.project = split_part($1, '/', 2);
   EOQ
 }
 
 query "source_compute_images_for_compute_disk" {
   sql = <<-EOQ
     select
-      i.id::text as image_id
+      i.id::text || '/' || i.project as image_id
     from
       gcp_compute_disk d,
       gcp_compute_image i
     where
-      d.id = $1
+      d.source_image = i.self_link
+      and d.id = (split_part($1, '/', 1))::bigint
       and d.source_image <> ''
-      and d.source_image = i.self_link;
   EOQ
 }
 
@@ -488,7 +498,8 @@ query "source_compute_snapshots_for_compute_disk" {
       gcp_compute_disk d,
       gcp_compute_snapshot s
     where
-      d.id = $1
+      d.id = (split_part($1, '/', 1))::bigint
+      and d.project = split_part($1, '/', 2)
       and d.source_snapshot = s.self_link;
   EOQ
 }
@@ -503,19 +514,21 @@ query "kms_keys_for_compute_disk" {
     where
       d.disk_encryption_key is not null
       and k.self_link like '%' || split_part(d.disk_encryption_key ->> 'kmsKeyName', '/cryptoKeyVersions/', 1)
-      and d.id = $1;
+      and d.id = (split_part($1, '/', 1))::bigint
+      and d.project = split_part($1, '/', 2);
   EOQ
 }
 
 query "target_compute_disks_for_compute_disk" {
   sql = <<-EOQ
     select
-      cd.id::text as disk_id
+      cd.id::text || '/' || cd.project as disk_id
     from
       gcp_compute_disk d,
       gcp_compute_disk cd
     where
-      d.id = $1
+      d.id = (split_part($1, '/', 1))::bigint
+      and d.project = split_part($1, '/', 2)
       and d.id::text = cd.source_disk_id;
   EOQ
 }
@@ -523,13 +536,14 @@ query "target_compute_disks_for_compute_disk" {
 query "target_compute_images_for_compute_disk" {
   sql = <<-EOQ
     select
-      i.id::text as image_id
+      i.id::text || '/' || i.project as image_id
     from
       gcp_compute_disk d,
       gcp_compute_image i
     where
-      d.id = $1
-      and d.self_link = i.source_disk;
+      d.self_link = i.source_disk
+      and d.id = (split_part($1, '/', 1))::bigint
+      -- and d.project = split_part($1, '/', 2)
   EOQ
 }
 
@@ -541,7 +555,8 @@ query "target_compute_snapshots_for_compute_disk" {
       gcp_compute_disk d,
       gcp_compute_snapshot s
     where
-      d.id = $1
+      d.id = (split_part($1, '/', 1))::bigint
+      and d.project = split_part($1, '/', 2)
       and d.self_link = s.source_disk;
   EOQ
 }
@@ -560,7 +575,8 @@ query "compute_disk_overview" {
     from
       gcp_compute_disk
     where
-      id = $1
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2)
   EOQ
 }
 
@@ -572,7 +588,8 @@ query "compute_disk_tags" {
       from
         gcp_compute_disk
       where
-        id = $1
+        id = (split_part($1, '/', 1))::bigint
+        and project = split_part($1, '/', 2)
     )
     select
       key as "Key",
@@ -594,7 +611,7 @@ query "compute_disk_read_throughput" {
       gcp_compute_disk_metric_read_ops_hourly
     where
       timestamp >= current_date - interval '7 day'
-      and name in (select name from gcp_compute_disk where id = $1)
+      and name in (select name from gcp_compute_disk where id = (split_part($1, '/', 1))::bigint and project = split_part($1, '/', 2))
     order by
       timestamp;
   EOQ
@@ -609,7 +626,7 @@ query "compute_disk_write_throughput" {
       gcp_compute_disk_metric_write_ops
     where
       timestamp >= current_date - interval '7 day'
-      and name in (select name from gcp_compute_disk where id = $1)
+      and name in (select name from gcp_compute_disk where id = (split_part($1, '/', 1))::bigint and project = split_part($1, '/', 2))
     order by
       timestamp;
   EOQ

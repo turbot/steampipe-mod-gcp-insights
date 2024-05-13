@@ -1,3 +1,9 @@
+## v0.9 [2024-05-13]
+
+_Enhancements_
+
+- Queries have been optimized to better work with the connection quals. ([#78](https://github.com/turbot/steampipe-mod-gcp-insights/pull/78))
+
 ## v0.8 [2024-03-06]
 
 _Powerpipe_

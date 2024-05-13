@@ -47,11 +47,11 @@ edge "compute_disk_to_compute_disk" {
       d.id::text as from_id,
       cd.id::text as to_id
     from
-      gcp_compute_disk d,
+      gcp_compute_disk d
+      join unnest($1::text[]) as u on d.id = (split_part(u, '/', 1))::bigint and d.project = split_part(u, '/', 2),
       gcp_compute_disk cd
     where
-      d.id = any($1)
-      and d.id::text = cd.source_disk_id;
+      d.id::text = cd.source_disk_id;
   EOQ
 
   param "compute_disk_ids" {}
@@ -65,11 +65,11 @@ edge "compute_disk_to_compute_image" {
       d.id::text as from_id,
       i.id::text as to_id
     from
-      gcp_compute_disk d,
+      gcp_compute_disk d
+      join unnest($1::text[]) as u on d.id = (split_part(u, '/', 1))::bigint and d.project = split_part(u, '/', 2),
       gcp_compute_image i
     where
-      d.id = any($1)
-      and d.self_link = i.source_disk;
+      d.self_link = i.source_disk;
   EOQ
 
   param "compute_disk_ids" {}
@@ -83,12 +83,12 @@ edge "compute_disk_to_compute_resource_policy" {
       d.id::text as from_id,
       r.id as to_id
     from
-      gcp_compute_disk d,
+      gcp_compute_disk d
+      join unnest($1::text[]) as u on d.id = (split_part(u, '/', 1))::bigint and d.project = split_part(u, '/', 2),
       jsonb_array_elements_text(resource_policies) as rp,
       gcp_compute_resource_policy r
     where
-      d.id = any($1)
-      and rp = r.self_link;
+      rp = r.self_link;
   EOQ
 
   param "compute_disk_ids" {}
@@ -102,11 +102,11 @@ edge "compute_disk_to_compute_snapshot" {
       d.id::text as from_id,
       s.name as to_id
     from
-      gcp_compute_disk d,
+      gcp_compute_disk d
+      join unnest($1::text[]) as u on d.id = (split_part(u, '/', 1))::bigint and d.project = split_part(u, '/', 2),
       gcp_compute_snapshot s
     where
-      d.id = any($1)
-      and d.self_link = s.source_disk;
+      d.self_link = s.source_disk;
   EOQ
 
   param "compute_disk_ids" {}
@@ -120,11 +120,11 @@ edge "compute_disk_to_kms_key" {
       d.id::text as from_id,
       k.self_link as to_id
     from
-      gcp_compute_disk d,
+      gcp_compute_disk d
+      join unnest($1::text[]) as u on d.id = (split_part(u, '/', 1))::bigint and d.project = split_part(u, '/', 2),
       gcp_kms_key k
     where
-      d.id = any($1)
-      and d.disk_encryption_key is not null
+      d.disk_encryption_key is not null
       and k.self_link like '%' || split_part(d.disk_encryption_key ->> 'kmsKeyName', '/cryptoKeyVersions/', 1);
   EOQ
 
@@ -139,12 +139,12 @@ edge "compute_disk_to_kms_key_version" {
       d.id::text as from_id,
       k.self_link as to_id
     from
-      gcp_compute_disk d,
+      gcp_compute_disk d
+      join unnest($1::text[]) as u on d.id = (split_part(u, '/', 1))::bigint and d.project = split_part(u, '/', 2),
       gcp_kms_key_version k
     where
       d.disk_encryption_key is not null
-      and k.self_link like '%' || (d.disk_encryption_key ->> 'kmsKeyName')
-      and d.id = any($1);
+      and k.self_link like '%' || (d.disk_encryption_key ->> 'kmsKeyName');
   EOQ
 
   param "compute_disk_ids" {}
@@ -236,11 +236,11 @@ edge "compute_instance_group_to_compute_autoscaler" {
       g.id::text as from_id,
       a.id::text as to_id
     from
-      gcp_compute_instance_group g,
+      gcp_compute_instance_group g
+      join unnest($1::text[]) as u on g.id = (split_part(u, '/', 1))::bigint and g.project = split_part(u, '/', 2),
       gcp_compute_autoscaler a
     where
-      g.name = split_part(a.target, 'instanceGroupManagers/', 2)
-      and g.id = any($1);
+      g.name = split_part(a.target, 'instanceGroupManagers/', 2);
   EOQ
 
   param "compute_instance_group_ids" {}
@@ -254,11 +254,11 @@ edge "compute_instance_group_to_compute_firewall" {
       g.id::text as from_id,
       f.id::text as to_id
     from
-      gcp_compute_instance_group g,
+      gcp_compute_instance_group g
+      join unnest($1::text[]) as u on g.id = (split_part(u, '/', 1))::bigint and g.project = split_part(u, '/', 2),
       gcp_compute_firewall f
     where
-      g.network = f.network
-      and g.id = any($1);
+      g.network = f.network;
   EOQ
 
   param "compute_instance_group_ids" {}
@@ -273,11 +273,11 @@ edge "compute_instance_group_to_compute_instance" {
       i.id::text as to_id
     from
       gcp_compute_instance as i,
-      gcp_compute_instance_group as g,
+      gcp_compute_instance_group as g
+      join unnest($1::text[]) as u on g.id = (split_part(u, '/', 1))::bigint and g.project = split_part(u, '/', 2),
       jsonb_array_elements(instances) as ins
     where
-      g.id = any($1)
-      and (ins ->> 'instance') = i.self_link;
+      (ins ->> 'instance') = i.self_link;
   EOQ
 
   param "compute_instance_group_ids" {}
@@ -297,14 +297,12 @@ edge "compute_instance_group_to_compute_network" {
       n.id::text as to_id
     from
       gcp_compute_instance_group g
-        left join gcp_compute_subnetwork s
-        on g.subnetwork = s.self_link
-        left join gcp_compute_firewall f
-        on g.network = f.network,
+      join unnest($1::text[]) as u on g.id = (split_part(u, '/', 1))::bigint and g.project = split_part(u, '/', 2)
+      left join gcp_compute_subnetwork s on g.subnetwork = s.self_link
+      left join gcp_compute_firewall f on g.network = f.network,
       gcp_compute_network n
     where
-      g.network = n.self_link
-      and g.id = any($1);
+      g.network = n.self_link;
   EOQ
 
   param "compute_instance_group_ids" {}
@@ -319,14 +317,10 @@ edge "compute_instance_group_to_compute_subnetwork" {
       s.id::text as to_id
     from
       gcp_compute_instance_group g
-      join gcp_compute_network n
-        on g.network = n.self_link
-      left join gcp_compute_subnetwork s
-        on g.subnetwork = s.self_link
-      left join gcp_compute_firewall f
-        on g.network = f.network
-    where
-      g.id = any($1);
+      join unnest($1::text[]) as u on g.id = (split_part(u, '/', 1))::bigint and g.project = split_part(u, '/', 2)
+      join gcp_compute_network n on g.network = n.self_link
+      left join gcp_compute_subnetwork s on g.subnetwork = s.self_link
+      left join gcp_compute_firewall f on g.network = f.network;
   EOQ
 
   param "compute_instance_group_ids" {}
@@ -342,12 +336,13 @@ edge "compute_instance_to_compute_disk" {
       i.id::text as from_id,
       d.id::text as to_id
     from
-      gcp_compute_instance i,
+      gcp_compute_instance i
+      join unnest($1::text[]) as u on i.id = (split_part(u, '/', 1))::bigint and i.project = split_part(u, '/', 2),
+      gcp_compute_firewall f,
       gcp_compute_disk d,
       jsonb_array_elements(disks) as disk
     where
-      i.id = any($1)
-      and d.self_link = (disk ->> 'source');
+      d.self_link = (disk ->> 'source');
   EOQ
 
   param "compute_instance_ids" {}
@@ -361,12 +356,12 @@ edge "compute_instance_to_compute_firewall" {
       i.id::text as from_id,
       f.id::text as to_id
     from
-      gcp_compute_instance i,
+      gcp_compute_instance i
+      join unnest($1::text[]) as u on i.id = (split_part(u, '/', 1))::bigint and i.project = split_part(u, '/', 2),
       gcp_compute_firewall f,
       jsonb_array_elements(network_interfaces) as ni
     where
-      ni ->> 'network' = f.network
-      and i.id = any($1);
+      ni ->> 'network' = f.network;
   EOQ
 
   param "compute_instance_ids" {}
@@ -380,14 +375,11 @@ edge "compute_instance_to_compute_subnetwork" {
       coalesce(f.id::text, i.id::text) as from_id,
       s.id::text as to_id
     from
-      gcp_compute_instance i,
+      gcp_compute_instance i
+      join unnest($1::text[]) as u on i.id = (split_part(u, '/', 1))::bigint and i.project = split_part(u, '/', 2),
       jsonb_array_elements(network_interfaces) as ni
-      left join gcp_compute_subnetwork s
-        on ni ->> 'subnetwork' = s.self_link
-      left join gcp_compute_firewall f
-        on ni ->> 'network' = f.network
-    where
-      i.id =  any($1);
+      left join gcp_compute_subnetwork s on ni ->> 'subnetwork' = s.self_link
+      left join gcp_compute_firewall f on ni ->> 'network' = f.network;
   EOQ
 
   param "compute_instance_ids" {}
@@ -401,12 +393,12 @@ edge "compute_instance_to_iam_service_account" {
       i.id::text as from_id,
       s.name as to_id
     from
-      gcp_compute_instance i,
+      gcp_compute_instance i
+      join unnest($1::text[]) as u on i.id = (split_part(u, '/', 1))::bigint and i.project = split_part(u, '/', 2),
       gcp_service_account s,
       jsonb_array_elements(service_accounts) as sa
     where
-      sa ->> 'email' = s.email
-      and i.id = any($1);
+      sa ->> 'email' = s.email;
   EOQ
 
   param "compute_instance_ids" {}
@@ -424,9 +416,9 @@ edge "compute_network_to_compute_backend_service" {
     from
       gcp_compute_backend_service bs,
       gcp_compute_network n
+      join unnest($1::text[]) as u on n.id = (split_part(u, '/', 1))::bigint and n.project = split_part(u, '/', 2)
     where
-      bs.network = n.self_link
-      and n.id = any($1);
+      bs.network = n.self_link;
   EOQ
 
   param "compute_network_ids" {}
@@ -442,9 +434,9 @@ edge "compute_network_to_compute_firewall" {
     from
       gcp_compute_firewall f,
       gcp_compute_network n
+      join unnest($1::text[]) as u on n.id = (split_part(u, '/', 1))::bigint and n.project = split_part(u, '/', 2)
     where
-      f.network = n.self_link
-      and n.id = any($1);
+      f.network = n.self_link;
   EOQ
 
   param "compute_network_ids" {}
@@ -460,10 +452,10 @@ edge "compute_network_to_compute_forwarding_rule" {
     from
       gcp_compute_forwarding_rule fr,
       gcp_compute_network n
+      join unnest($1::text[]) as u on n.id = (split_part(u, '/', 1))::bigint and n.project = split_part(u, '/', 2)
     where
       split_part(fr.network, 'networks/', 2) = n.name
       and fr.project = n.project
-      and n.id = any($1)
 
     union
 
@@ -473,10 +465,10 @@ edge "compute_network_to_compute_forwarding_rule" {
     from
       gcp_compute_global_forwarding_rule fr,
       gcp_compute_network n
+      join unnest($1::text[]) as u on n.id = (split_part(u, '/', 1))::bigint and n.project = split_part(u, '/', 2)
     where
       split_part(fr.network, 'networks/', 2) = n.name
-      and fr.project = n.project
-      and n.id = any($1);
+      and fr.project = n.project;
   EOQ
 
   param "compute_network_ids" {}
@@ -491,11 +483,11 @@ edge "compute_network_to_compute_instance" {
       n.id::text as from_id
     from
       gcp_compute_instance i,
-      gcp_compute_network n,
+      gcp_compute_network n
+      join unnest($1::text[]) as u on n.id = (split_part(u, '/', 1))::bigint and n.project = split_part(u, '/', 2),
       jsonb_array_elements(network_interfaces) as ni
     where
-      n.self_link = ni ->> 'network'
-      and n.id = any($1);
+      n.self_link = ni ->> 'network';
   EOQ
 
   param "compute_network_ids" {}
@@ -511,10 +503,9 @@ edge "compute_network_to_compute_network_peers" {
         p ->> 'name' as name,
         'projects' || split_part(p ->> 'network', 'projects', 2) as network
       from
-        gcp_compute_network,
+        gcp_compute_network
+        join unnest($1::text[]) as u on id = (split_part(u, '/', 1))::bigint and project = split_part(u, '/', 2),
         jsonb_array_elements(peerings) as p
-      where
-        id = any($1)
     )
     select
       id::text as from_id,
@@ -536,9 +527,9 @@ edge "compute_network_to_compute_router" {
     from
       gcp_compute_router r,
       gcp_compute_network n
+      join unnest($1::text[]) as u on n.id = (split_part(u, '/', 1))::bigint and n.project = split_part(u, '/', 2)
     where
-      r.network = n.self_link
-      and n.id = any($1);
+      r.network = n.self_link;
   EOQ
 
   param "compute_network_ids" {}
@@ -554,9 +545,9 @@ edge "compute_network_to_compute_subnetwork" {
     from
       gcp_compute_subnetwork s,
       gcp_compute_network n
+      join unnest($1::text[]) as u on n.id = (split_part(u, '/', 1))::bigint and n.project = split_part(u, '/', 2)
     where
-      s.network = n.self_link
-      and n.id = any($1);
+      s.network = n.self_link;
   EOQ
 
   param "compute_network_ids" {}
@@ -573,9 +564,9 @@ edge "compute_network_to_dns_policy" {
       gcp_dns_policy p,
       jsonb_array_elements(p.networks) pn,
       gcp_compute_network n
+      join unnest($1::text[]) as u on n.id = (split_part(u, '/', 1))::bigint and n.project = split_part(u, '/', 2)
     where
-      pn ->> 'networkUrl' = n.self_link
-      and n.id = any($1);
+      pn ->> 'networkUrl' = n.self_link;
   EOQ
 
   param "compute_network_ids" {}
@@ -591,9 +582,9 @@ edge "compute_network_to_kubernetes_cluster" {
     from
       gcp_kubernetes_cluster c,
       gcp_compute_network n
+      join unnest($1::text[]) as u on n.id = (split_part(u, '/', 1))::bigint and n.project = split_part(u, '/', 2)
     where
-      n.id = any($1)
-      and n.id = c.network
+      (n.id)::text = c.network;
   EOQ
 
   param "compute_network_ids" {}
@@ -609,9 +600,9 @@ edge "compute_network_to_sql_database_instance" {
     from
       gcp_sql_database_instance i,
       gcp_compute_network n
+      join unnest($1::text[]) as u on n.id = (split_part(u, '/', 1))::bigint and n.project = split_part(u, '/', 2)
     where
-      n.self_link like '%' || (i.ip_configuration ->> 'privateNetwork') || '%'
-      and n.id = any($1);
+      n.self_link like '%' || (i.ip_configuration ->> 'privateNetwork') || '%';
   EOQ
 
   param "compute_network_ids" {}
@@ -685,9 +676,9 @@ edge "compute_subnetwork_to_compute_address" {
     from
       gcp_compute_address a,
       gcp_compute_subnetwork s
+      join unnest($1::text[]) as u on s.id = (split_part(u, '/', 1))::bigint and s.project = split_part(u, '/', 2)
     where
-      s.id = any($1)
-      and s.self_link = a.subnetwork
+      s.self_link = a.subnetwork
 
     union
 
@@ -697,9 +688,9 @@ edge "compute_subnetwork_to_compute_address" {
     from
       gcp_compute_global_address a,
       gcp_compute_subnetwork s
+      join unnest($1::text[]) as u on s.id = (split_part(u, '/', 1))::bigint and s.project = split_part(u, '/', 2)
     where
-      s.id = any($1)
-      and s.self_link = a.subnetwork;
+      s.self_link = a.subnetwork;
   EOQ
 
   param "compute_subnetwork_ids" {}
@@ -715,9 +706,9 @@ edge "compute_subnetwork_to_compute_forwarding_rule" {
     from
       gcp_compute_forwarding_rule r,
       gcp_compute_subnetwork s
+      join unnest($1::text[]) as u on s.id = (split_part(u, '/', 1))::bigint and s.project = split_part(u, '/', 2)
     where
-      s.id = any($1)
-      and split_part(r.subnetwork, 'subnetworks/', 2) = s.name
+      split_part(r.subnetwork, 'subnetworks/', 2) = s.name
 
     union
 
@@ -727,9 +718,9 @@ edge "compute_subnetwork_to_compute_forwarding_rule" {
     from
       gcp_compute_global_forwarding_rule r,
       gcp_compute_subnetwork s
+      join unnest($1::text[]) as u on s.id = (split_part(u, '/', 1))::bigint and s.project = split_part(u, '/', 2)
     where
-      s.id = any($1)
-      and split_part(r.subnetwork, 'subnetworks/', 2) = s.name;
+      split_part(r.subnetwork, 'subnetworks/', 2) = s.name;
   EOQ
 
   param "compute_subnetwork_ids" {}
@@ -745,9 +736,9 @@ edge "compute_subnetwork_to_compute_instance_group" {
     from
       gcp_compute_instance_group g,
       gcp_compute_subnetwork s
+      join unnest($1::text[]) as u on s.id = (split_part(u, '/', 1))::bigint and s.project = split_part(u, '/', 2)
     where
-      g.subnetwork = s.self_link
-      and s.id = any($1);
+      g.subnetwork = s.self_link;
   EOQ
 
   param "compute_subnetwork_ids" {}
@@ -762,11 +753,11 @@ edge "compute_subnetwork_to_compute_instance" {
       i.id::text as to_id
     from
       gcp_compute_instance i,
-      gcp_compute_subnetwork s,
+      gcp_compute_subnetwork s
+      join unnest($1::text[]) as u on s.id = (split_part(u, '/', 1))::bigint and s.project = split_part(u, '/', 2),
       jsonb_array_elements(network_interfaces) as ni
     where
-      ni ->> 'subnetwork' = s.self_link
-      and s.id = any($1);
+      ni ->> 'subnetwork' = s.self_link;
   EOQ
 
   param "compute_subnetwork_ids" {}
@@ -783,9 +774,9 @@ edge "compute_subnetwork_to_compute_instance_template" {
       gcp_compute_instance_template t,
       jsonb_array_elements(instance_network_interfaces) ni,
       gcp_compute_subnetwork s
+      join unnest($1::text[]) as u on s.id = (split_part(u, '/', 1))::bigint and s.project = split_part(u, '/', 2)
     where
-      ni ->> 'subnetwork' = s.self_link
-      and s.id = any($1);
+      ni ->> 'subnetwork' = s.self_link;
   EOQ
 
   param "compute_subnetwork_ids" {}
@@ -799,11 +790,11 @@ edge "compute_subnetwork_to_compute_network" {
       s.id::text as from_id,
       n.id::text as to_id
     from
-      gcp_compute_subnetwork s,
+      gcp_compute_subnetwork s
+      join unnest($1::text[]) as u on s.id = (split_part(u, '/', 1))::bigint and s.project = split_part(u, '/', 2),
       gcp_compute_network n
     where
-      s.network = n.self_link
-      and s.id = any($1);
+      s.network = n.self_link;
   EOQ
 
   param "compute_subnetwork_ids" {}
@@ -819,9 +810,9 @@ edge "compute_subnetwork_to_kubernetes_cluster" {
     from
       gcp_kubernetes_cluster c,
       gcp_compute_subnetwork s
+      join unnest($1::text[]) as u on s.id = (split_part(u, '/', 1))::bigint and s.project = split_part(u, '/', 2)
     where
-      s.id = any($1)
-      and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
+      s.self_link like '%' || (c.network_config ->> 'Subnetwork') || '%';
   EOQ
 
   param "compute_subnetwork_ids" {}

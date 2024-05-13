@@ -224,7 +224,7 @@ query "compute_subnetwork_input" {
   sql = <<-EOQ
     select
       name as label,
-      id::text as value,
+      id::text || '/' || project as value,
       json_build_object(
         'location', location,
         'project', project,
@@ -246,7 +246,8 @@ query "compute_subnetwork_purpose" {
     from
       gcp_compute_subnetwork
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 
   param "id" {}
@@ -259,7 +260,8 @@ query "compute_subnetwork_cidr_range" {
     from
       gcp_compute_subnetwork
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 
   param "id" {}
@@ -274,7 +276,8 @@ query "compute_subnetwork_is_default" {
     from
       gcp_compute_subnetwork
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 
   param "id" {}
@@ -289,7 +292,8 @@ query "compute_subnetwork_flow_logs" {
     from
       gcp_compute_subnetwork
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 
   param "id" {}
@@ -300,13 +304,14 @@ query "compute_subnetwork_flow_logs" {
 query "compute_networks_for_compute_subnetwork" {
   sql = <<-EOQ
     select
-      n.id::text as network_id
+      n.id::text || '/' || n.project as network_id
     from
       gcp_compute_subnetwork s,
       gcp_compute_network n
     where
       s.network = n.self_link
-      and s.id = $1;
+      and s.id = (split_part($1, '/', 1))::bigint
+      and s.project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -318,7 +323,8 @@ query "compute_addresses_for_compute_subnetwork" {
       gcp_compute_address a,
       gcp_compute_subnetwork s
     where
-      s.id = $1
+      s.id = (split_part($1, '/', 1))::bigint
+      and s.project = split_part($1, '/', 2)
       and s.self_link = a.subnetwork
 
     union
@@ -329,7 +335,8 @@ query "compute_addresses_for_compute_subnetwork" {
       gcp_compute_global_address a,
       gcp_compute_subnetwork s
     where
-      s.id = $1
+      s.id = (split_part($1, '/', 1))::bigint
+      and s.project = split_part($1, '/', 2)
       and s.self_link = a.subnetwork;
   EOQ
 }
@@ -342,7 +349,8 @@ query "compute_forwarding_rules_for_compute_subnetwork" {
       gcp_compute_forwarding_rule r,
       gcp_compute_subnetwork s
     where
-      s.id = $1
+      s.id = (split_part($1, '/', 1))::bigint
+      and s.project = split_part($1, '/', 2)
       and split_part(r.subnetwork, 'subnetworks/', 2) = s.name
 
     union
@@ -353,7 +361,8 @@ query "compute_forwarding_rules_for_compute_subnetwork" {
       gcp_compute_global_forwarding_rule r,
       gcp_compute_subnetwork s
     where
-      s.id = $1
+      s.id = (split_part($1, '/', 1))::bigint
+      and s.project = split_part($1, '/', 2)
       and split_part(r.subnetwork, 'subnetworks/', 2) = s.name;
   EOQ
 }
@@ -361,13 +370,14 @@ query "compute_forwarding_rules_for_compute_subnetwork" {
 query "compute_instance_groups_for_compute_subnetwork" {
   sql = <<-EOQ
     select
-      g.id::text as group_id
+      g.id::text || '/' || g.project as group_id
     from
       gcp_compute_instance_group g,
       gcp_compute_subnetwork s
     where
       g.subnetwork = s.self_link
-      and s.id = $1;
+      and s.id = (split_part($1, '/', 1))::bigint
+      and s.project = split_part($1, '/', 2);
   EOQ
 }
 
@@ -381,34 +391,37 @@ query "compute_instance_templates_for_compute_subnetwork" {
       gcp_compute_subnetwork s
     where
       ni ->> 'subnetwork' = s.self_link
-      and s.id = $1;
+      and s.id = (split_part($1, '/', 1))::bigint
+      and s.project = split_part($1, '/', 2);
   EOQ
 }
 
 query "compute_instances_for_compute_subnetwork" {
   sql = <<-EOQ
     select
-      i.id::text as instance_id
+      i.id::text || '/' || i.project as instance_id
     from
       gcp_compute_instance i,
       gcp_compute_subnetwork s,
       jsonb_array_elements(network_interfaces) as ni
     where
       ni ->> 'subnetwork' = s.self_link
-      and s.id = $1;
+      and s.id = (split_part($1, '/', 1))::bigint
+      and s.project = split_part($1, '/', 2);
   EOQ
 }
 
 query "kubernetes_clusters_for_compute_subnetwork" {
   sql = <<-EOQ
     select
-      c.id::text as cluster_id
+      c.id::text || '/' || c.project as cluster_id
     from
       gcp_kubernetes_cluster c,
       gcp_compute_subnetwork s
     where
-      s.id = $1
-      and s.self_link like '%' || (c.network_config ->> 'subnetwork') || '%';
+      s.id = (split_part($1, '/', 1))::bigint
+      and s.project = split_part($1, '/', 2)
+      and s.self_link like '%' || (c.network_config ->> 'Subnetwork') || '%';
   EOQ
 }
 
@@ -426,7 +439,8 @@ query "compute_subnetwork_overview" {
     from
       gcp_compute_subnetwork
     where
-      id = $1;
+      id = (split_part($1, '/', 1))::bigint
+      and project = split_part($1, '/', 2);
   EOQ
 
   param "id" {}
@@ -448,7 +462,8 @@ query "compute_subnetwork_network" {
       gcp_compute_network n
     where
       s.network = n.self_link
-      and s.id = $1;
+      and s.id = (split_part($1, '/', 1))::bigint
+      and s.project = split_part($1, '/', 2);
   EOQ
 
   param "id" {}

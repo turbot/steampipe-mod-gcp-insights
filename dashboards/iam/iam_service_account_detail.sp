@@ -277,7 +277,7 @@ query "iam_service_account_input" {
   sql = <<-EOQ
     select
       title as label,
-      name as value,
+      name || '/' || project as value,
       json_build_object(
         'location', location,
         'project', project
@@ -300,21 +300,21 @@ query "cloudfunction_functions_for_iam_service_account" {
       gcp_service_account as s
     where
       f.service_account_email = s.email
-      and s.name = $1;
+      and s.name = split_part($1, '/', 1)
   EOQ
 }
 
 query "compute_instances_for_iam_service_account" {
   sql = <<-EOQ
     select
-      i.id::text as instance_id
+      i.id::text || '/' || i.project as instance_id
     from
       gcp_service_account as s,
       gcp_compute_instance as i,
       jsonb_array_elements(service_accounts) as sa
     where
       sa ->> 'email' = s.email
-      and s.name = $1;
+      and s.name = split_part($1, '/', 1);
   EOQ
 }
 
@@ -328,7 +328,7 @@ query "compute_instance_templates_for_iam_service_account" {
       jsonb_array_elements(instance_service_accounts) as tsa
     where
       tsa ->> 'email' = s.email
-      and s.name = $1;
+      and s.name = split_part($1, '/', 1);
   EOQ
 }
 
@@ -351,7 +351,7 @@ query "iam_member_roles_for_iam_service_account" {
       split_part(b ->> 'role','roles/',2) as r
     where
       rn.role_name = r
-      and s.name= $1;
+      and s.name = split_part($1, '/', 1);
   EOQ
 }
 
@@ -366,7 +366,7 @@ query "iam_policies_for_iam_service_account" {
       split_part(m,'serviceAccount:',2) as member_name
     where
       m like 'serviceAccount:%'
-      and member_name = $1;
+      and member_name = split_part($1, '/', 1);
   EOQ
 }
 
@@ -381,7 +381,7 @@ query "iam_roles_for_iam_service_account" {
       split_part(m,'serviceAccount:',2) as member_name
     where
       m like 'serviceAccount:%'
-      and member_name = $1;
+      and member_name = split_part($1, '/', 1);
   EOQ
 }
 
@@ -392,7 +392,7 @@ query "iam_service_account_keys_for_iam_service_account" {
     from
       gcp_service_account_key
     where
-      service_account_name = $1;
+      service_account_name = split_part($1, '/', 1);
   EOQ
 }
 
@@ -405,7 +405,7 @@ query "pubsub_subscriptions_for_iam_service_account" {
       gcp_service_account as s
     where
       p.push_config_oidc_token_service_account_email = s.email
-      and s.name = $1;
+      and s.name = split_part($1, '/', 1);
   EOQ
 }
 
@@ -417,7 +417,7 @@ query "source_compute_firewalls_for_iam_service_account" {
       gcp_compute_firewall,
       jsonb_array_elements_text(target_service_accounts) as t
     where
-      t = $1;
+      t = split_part($1, '/', 1);
   EOQ
 }
 
@@ -429,7 +429,7 @@ query "target_compute_firewalls_for_iam_service_account" {
       gcp_compute_firewall,
       jsonb_array_elements_text(source_service_accounts) as s
     where
-      s = $1;
+      s = split_part($1, '/', 1);
   EOQ
 }
 
@@ -444,7 +444,7 @@ query "iam_service_account_default" {
       gcp_compute_project_metadata as p,
       gcp_service_account as s
     where
-      s.name = $1;
+      s.name = split_part($1, '/', 1);
   EOQ
 }
 
@@ -457,7 +457,7 @@ query "iam_service_account_enabled" {
     from
       gcp_service_account
     where
-      name = $1;
+      name = split_part($1, '/', 1);
   EOQ
 }
 
@@ -476,7 +476,7 @@ query "iam_storage_account_overview" {
     from
       gcp_service_account
     where
-      name = $1;
+      name = split_part($1, '/', 1);
   EOQ
 }
 
@@ -492,6 +492,6 @@ query "iam_storage_account_keys" {
       gcp_service_account as s
     where
       s.email = k.service_account_name
-      and s.name = $1;
+      and s.name = split_part($1, '/', 1);
   EOQ
 }
