@@ -13,7 +13,7 @@ node "storage_bucket" {
       ) as properties
     from
       gcp_storage_bucket
-      join unnest($1::text[]) as u on id = split_part(u, '/', 1) and project = split_part(u, '/', 2);
+      join unnest($1::text[]) as u on id = u;
   EOQ
 
   param "storage_bucket_ids" {}

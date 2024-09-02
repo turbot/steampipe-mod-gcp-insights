@@ -88,7 +88,7 @@ dashboard "iam_service_account_detail" {
       node {
         base = node.cloudfunctions_function
         args = {
-          cloudfunctions_function_ids = with.cloudfunction_functions_for_iam_service_account.rows[*].function_id
+          cloudfunctions_function_self_link = with.cloudfunction_functions_for_iam_service_account.rows[*].function_self_link
         }
       }
 
@@ -294,7 +294,7 @@ query "iam_service_account_input" {
 query "cloudfunction_functions_for_iam_service_account" {
   sql = <<-EOQ
     select
-      f.name as function_id
+      f.self_link as function_self_link
     from
       gcp_cloudfunctions_function as f,
       gcp_service_account as s
