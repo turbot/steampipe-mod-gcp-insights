@@ -11,22 +11,22 @@ dashboard "cloudfunctions_function_dashboard" {
 
     card {
       query = query.cloudfunctions_function_count
-      width = 2
+      width = 3
     }
 
     card {
       query = query.cloudfunctions_function_encryption_count
-      width = 2
+      width = 3
     }
 
     card {
       query = query.cloudfunctions_function_event_triggered_service_count
-      width = 2
+      width = 3
     }
 
     card {
       query = query.cloudfunctions_function_https_triggered_service_count
-      width = 2
+      width = 3
     }
 
   }

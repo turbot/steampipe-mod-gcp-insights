@@ -306,7 +306,7 @@ node "compute_network" {
       n.id::text as id,
       n.title,
       jsonb_build_object(
-        'ID', n.id::text,
+        'ID', concat(n.id::text, '/' , n.project),
         'Name', n.name,
         'Created Time', n.creation_timestamp,
         'Project', project
@@ -430,7 +430,7 @@ node "compute_subnetwork" {
       s.id::text,
       s.title,
       jsonb_build_object(
-        'ID', s.id::text,
+        'ID', concat(s.id::text, '/' , s.project),
         'Name', s.name,
         'Created Time', s.creation_timestamp,
         'Location', s.location,
