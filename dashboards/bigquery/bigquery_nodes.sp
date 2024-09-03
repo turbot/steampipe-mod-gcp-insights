@@ -40,9 +40,31 @@ node "bigquery_table" {
       ) as properties
     from
       gcp_bigquery_table t
-    where
-      t.id = any($1);
+      join unnest($1::text[]) as u on id = (split_part(u, '/', 1)) and project = split_part(u, '/', 2);
   EOQ
 
   param "bigquery_table_ids" {}
+}
+
+node "kms_key" {
+  category = category.kms_key
+
+  sql = <<-EOQ
+    select
+      k.self_link,
+      k.name,
+      jsonb_build_object(
+        'Self Link', k.self_link,
+        'Name', k.name,
+        'Create Time', k.create_time,
+        'Purpose', k.purpose,
+        'Project', project
+      ) as properties
+    from
+      gcp_kms_key k
+    where
+      k.self_link = any($1);
+  EOQ
+
+  param "kms_key_names" {}
 }
