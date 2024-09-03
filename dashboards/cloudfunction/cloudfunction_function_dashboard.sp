@@ -29,7 +29,6 @@ dashboard "cloudfunctions_function_dashboard" {
       width = 2
     }
 
-
   }
 
   container {

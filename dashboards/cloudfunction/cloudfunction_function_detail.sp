@@ -62,91 +62,165 @@ dashboard "cloudfunctions_function_detail" {
     args  = [self.input.function_self_link.value]
   }
 
-   with "storage_buckets_for_cloudfunctions_function" {
+  with "storage_buckets_for_cloudfunctions_function" {
     query = query.storage_buckets_for_cloudfunctions_function
     args  = [self.input.function_self_link.value]
   }
 
-  container {
+  with "vpc_access_connector_for_cloudfunctions_function" {
+    query = query.vpc_access_connector_for_cloudfunctions_function
+    args  = [self.input.function_self_link.value]
+  }
 
-    graph {
-      title = "Relationships"
-      type  = "graph"
+  with "compute_networks_for_cloudfunctions_function" {
+    query = query.compute_networks_for_cloudfunctions_function
+    args  = [self.input.function_self_link.value]
+  }
+
+  with "compute_subnetworks_for_cloudfunctions_function" {
+    query = query.compute_subnetworks_for_cloudfunctions_function
+    args  = [self.input.function_self_link.value]
+  }
+
+  with "cloud_run_service_for_cloudfunctions_function" {
+    query = query.cloud_run_service_for_cloudfunctions_function
+    args  = [self.input.function_self_link.value]
+  }
+
+    container {
+
+      graph {
+        title = "Relationships"
+        type  = "graph"
 
 
-      node {
-        base = node.cloudfunctions_function
-        args = {
-          cloudfunctions_function_self_link = [self.input.function_self_link.value]
+        node {
+          base = node.cloudfunctions_function
+          args = {
+            cloudfunctions_function_self_link = [self.input.function_self_link.value]
+          }
+        }
+
+        node {
+          base = node.kms_key
+          args = {
+            kms_key_self_links = with.kms_keys_for_cloudfunctions_function.rows[*].self_link
+          }
+        }
+
+        node {
+          base = node.pubsub_topic
+          args = {
+            pubsub_topic_self_links = with.pubsub_topics_for_cloudfunctions_function.rows[*].self_link
+          }
+        }
+
+        node {
+          base = node.iam_service_account
+          args = {
+            iam_service_account_names = with.iam_service_accounts_for_cloudfunctions_function.rows[*].name
+          }
+        }
+
+        node {
+          base = node.storage_bucket
+          args = {
+            storage_bucket_ids = with.storage_buckets_for_cloudfunctions_function.rows[*].bucket_id
+          }
+        }
+
+        node {
+          base = node.vpc_access_connector
+          args = {
+            vpc_access_connector_self_links = with.vpc_access_connector_for_cloudfunctions_function.rows[*].vpc_access_connector_self_link
+          }
+        }
+
+        node {
+          base = node.compute_network
+          args = {
+            compute_network_ids = with.compute_networks_for_cloudfunctions_function.rows[*].network_id
+          }
+        }
+
+        node {
+          base = node.compute_subnetwork
+          args = {
+            compute_subnetwork_ids = with.compute_subnetworks_for_cloudfunctions_function.rows[*].subnetwork_id
+          }
+        }
+
+        node {
+          base = node.cloud_run_service
+          args = {
+            cloud_run_service_self_links = with.cloud_run_service_for_cloudfunctions_function.rows[*].self_link
+          }
+        }
+
+        edge {
+          base = edge.cloudfunctions_function_to_kms_key
+          args = {
+            cloudfunctions_function_self_link = [self.input.function_self_link.value]
+          }
+        }
+
+        edge {
+          base = edge.cloudfunctions_function_to_pubsub_topic
+          args = {
+            cloudfunctions_function_self_link = [self.input.function_self_link.value]
+          }
+        }
+
+        edge {
+          base = edge.cloudfunctions_function_to_pubsub_topic
+          args = {
+            cloudfunctions_function_self_link = [self.input.function_self_link.value]
+          }
+        }
+
+        edge {
+          base = edge.cloudfunctions_function_to_iam_service_account
+          args = {
+            cloudfunctions_function_self_link = [self.input.function_self_link.value]
+          }
+        }
+
+        edge {
+          base = edge.cloudfunctions_function_to_storage_bucket
+          args = {
+            cloudfunctions_function_self_link = [self.input.function_self_link.value]
+          }
+        }
+
+        edge {
+          base = edge.cloudfunctions_function_to_vpc_access_connector
+          args = {
+            cloudfunctions_function_self_link = [self.input.function_self_link.value]
+          }
+        }
+
+        edge {
+          base = edge.cloudfunctions_function_to_compute_network
+          args = {
+            cloudfunctions_function_self_link = [self.input.function_self_link.value]
+          }
+        }
+
+        edge {
+          base = edge.cloudfunctions_function_to_compute_subnetwork
+          args = {
+            cloudfunctions_function_self_link = [self.input.function_self_link.value]
+          }
+        }
+
+        edge {
+          base = edge.cloudrun_service_to_cloudfunctions_function
+          args = {
+            cloudfunctions_function_self_link = [self.input.function_self_link.value]
+          }
+        }
         }
       }
-
-      node {
-        base = node.kms_key
-        args = {
-          kms_key_self_links = with.kms_keys_for_cloudfunctions_function.rows[*].self_link
-        }
-      }
-
-      node {
-        base = node.pubsub_topic
-        args = {
-          pubsub_topic_self_links = with.pubsub_topics_for_cloudfunctions_function.rows[*].self_link
-        }
-      }
-
-      node {
-        base = node.iam_service_account
-        args = {
-          iam_service_account_names = with.iam_service_accounts_for_cloudfunctions_function.rows[*].name
-        }
-      }
-
-      node {
-        base = node.storage_bucket
-        args = {
-          storage_bucket_ids = with.storage_buckets_for_cloudfunctions_function.rows[*].bucket_id
-        }
-      }
-
-      edge {
-        base = edge.cloudfunctions_function_to_kms_key
-        args = {
-          cloudfunctions_function_self_link = [self.input.function_self_link.value]
-        }
-      }
-
-      edge {
-        base = edge.cloudfunctions_function_to_pubsub_topic
-        args = {
-          cloudfunctions_function_self_link = [self.input.function_self_link.value]
-        }
-      }
-
-      edge {
-        base = edge.cloudfunctions_function_to_pubsub_topic
-        args = {
-          cloudfunctions_function_self_link = [self.input.function_self_link.value]
-        }
-      }
-
-      edge {
-        base = edge.cloudfunctions_function_to_iam_service_account
-        args = {
-          cloudfunctions_function_self_link = [self.input.function_self_link.value]
-        }
-      }
-
-      # edge {
-      #   base = edge.cloudfunctions_function_to_kms_key
-      #   args = {
-      #     storage_bucket_ids = with.storage_buckets_for_kms_key.rows[*].bucket_id
-      #   }
-      # }
-
-    }
-
-    }
 
       container {
         width = 6
@@ -195,7 +269,7 @@ dashboard "cloudfunctions_function_detail" {
 
       }
 
-    }
+}
 
 # Input queries
 
@@ -232,7 +306,7 @@ query "cloudfunctions_function_runtime" {
 query "cloudfunctions_function_memory_in_mb" {
   sql = <<-EOQ
     select
-      available_memory_mb as "Available Memory(mb)"
+      available_memory_mb as "Available Memory(MB)"
     from
       gcp_cloudfunctions_function
     where
@@ -361,12 +435,12 @@ query "cloudfunctions_function_min_max_instances" {
 query "cloudfunctions_function_event_trigger" {
   sql = <<-EOQ
     select
-      event_trigger -> 'eventType 'as "Event Type",
-      event_trigger -> 'pubsubTopic' as "Pub/Sub Topic",
-      event_trigger -> 'retryPolicy' as "Retry Policy",
-      event_trigger -> 'serviceAccountEmail' as "Service Account Email",
-      event_trigger -> 'trigger' as "Trigger",
-      event_trigger -> 'triggerRegion' as "Trigger Region"
+      event_trigger ->> 'eventType 'as "Event Type",
+      event_trigger ->> 'pubsubTopic' as "Pub/Sub Topic",
+      event_trigger ->> 'retryPolicy' as "Retry Policy",
+      event_trigger ->> 'serviceAccountEmail' as "Service Account Email",
+      event_trigger ->> 'trigger' as "Trigger",
+      event_trigger ->> 'triggerRegion' as "Trigger Region"
     from
       gcp_cloudfunctions_function
     where
@@ -468,6 +542,85 @@ query "storage_buckets_for_cloudfunctions_function" {
     where
       i.self_link = $1
       and i.build_config -> 'source' -> 'storageSource' ->> 'bucket' = s.name;
+  EOQ
+}
+
+query "vpc_access_connector_for_cloudfunctions_function" {
+  sql = <<-EOQ
+    select
+      s.self_link as vpc_access_connector_self_link
+    from
+      gcp_cloudfunctions_function as i,
+      gcp_vpc_access_connector as s
+    where
+      i.self_link = $1
+      and i.vpc_connector = s.name;
+  EOQ
+}
+
+query "compute_networks_for_cloudfunctions_function" {
+  sql = <<-EOQ
+    with network_name as (
+      select
+        s.network as network_name,
+        s.location,
+        s.project
+      from
+        gcp_cloudfunctions_function as i,
+        gcp_vpc_access_connector as s
+      where
+        i.self_link = $1
+        and i.vpc_connector = s.name
+    ) select
+        n.id::text || '/' || n.project as network_id
+      from
+        gcp_compute_network as n,
+        network_name as v
+      where
+        n.name = v.network_name
+        and n.project = v.project
+        and n.location = v.location;
+  EOQ
+}
+
+query "compute_subnetworks_for_cloudfunctions_function" {
+  sql = <<-EOQ
+    with sub_network_name as (
+      select
+        s.network as network_name,
+        s.subnet ->> 'name' as subnet_name,
+        s.location,
+        s.project
+      from
+        gcp_cloudfunctions_function as i,
+        gcp_vpc_access_connector as s
+      where
+        i.self_link = $1
+        and i.vpc_connector = s.name
+        and subnet is not null
+    ) select
+        n.id::text || '/' || n.project as subnetwork_id
+      from
+        gcp_compute_subnetwork as n,
+        sub_network_name as v
+      where
+        n.name = v.subnet_name
+        and n.network_name = v.network_name
+        and n.project = v.project
+        and n.location = v.location;
+  EOQ
+}
+
+query "cloud_run_service_for_cloudfunctions_function" {
+  sql = <<-EOQ
+    select
+      s.self_link as self_link
+    from
+      gcp_cloudfunctions_function as i,
+      gcp_cloud_run_service as s
+    where
+      i.self_link = $1
+      and i.name = s.name;
   EOQ
 }
 
