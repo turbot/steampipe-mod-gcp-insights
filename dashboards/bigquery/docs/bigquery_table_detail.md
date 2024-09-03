@@ -5,4 +5,3 @@ This dashboard answers the following questions for each table:
 - What labels are applied?
 - How is the table partitioned, clustered?
 - Whether the table is encrypted?
-
