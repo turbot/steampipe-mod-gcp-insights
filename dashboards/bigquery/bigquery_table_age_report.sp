@@ -56,10 +56,6 @@ dashboard "bigquery_table_age_report" {
       display = "none"
     }
 
-    column "ID" {
-      href = "${dashboard.bigquery_table_detail.url_path}?input.table_id={{.ID | @uri}}"
-    }
-
     query = query.bigquery_table_age_table
   }
 
