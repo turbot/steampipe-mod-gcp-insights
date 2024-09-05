@@ -35,6 +35,8 @@ edge "composer_environment_to_iam_service_account" {
 }
 
 edge "composer_environment_to_compute_network" {
+  title = "network"
+
   sql = <<-EOQ
      select
         v.name as from_id,
@@ -51,6 +53,8 @@ edge "composer_environment_to_compute_network" {
 }
 
 edge "composer_environment_to_compute_subnetwork" {
+  title = "subnetwork"
+
   sql = <<-EOQ
      select
         n.id::text as from_id,

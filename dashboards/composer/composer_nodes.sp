@@ -1,5 +1,5 @@
 node "composer_environment" {
-  category = category.compute_backend_bucket
+  category = category.composer_environment
 
   sql = <<-EOQ
     select
