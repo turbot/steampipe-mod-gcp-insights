@@ -6,6 +6,6 @@ locals {
 
 category "composer_environment" {
   title = "Compute Environment"
-  color = local.orange
+  color = local.containers_color
   icon  = "add_a_photo"
 }
