@@ -10,27 +10,27 @@ dashboard "vertex_ai_endpoint_dashboard" {
   container {
 
     card {
-      query = query.gcp_vertex_ai_endpoint_count
+      query = query.vertex_ai_endpoint_count
       width = 2
     }
 
     card {
-      query = query.gcp_vertex_ai_endpoint_private_service_connect_count
+      query = query.vertex_ai_endpoint_private_service_connect_count
       width = 2
     }
 
     card {
-      query = query.gcp_vertex_ai_endpoint_with_monitoring_count
+      query = query.vertex_ai_endpoint_with_monitoring_count
       width = 2
     }
 
     card {
-      query = query.gcp_vertex_ai_endpoint_with_encryption_count
+      query = query.vertex_ai_endpoint_with_encryption_count
       width = 2
     }
 
     card {
-      query = query.gcp_vertex_ai_endpoint_traffic_split_count
+      query = query.vertex_ai_endpoint_traffic_split_count
       width = 2
     }
 
@@ -42,7 +42,7 @@ dashboard "vertex_ai_endpoint_dashboard" {
 
     chart {
       title = "Private Service Connect Status"
-      query = query.gcp_vertex_ai_endpoint_private_service_connect_status
+      query = query.vertex_ai_endpoint_private_service_connection_enabled
       type  = "donut"
       width = 3
 
@@ -58,7 +58,7 @@ dashboard "vertex_ai_endpoint_dashboard" {
 
     chart {
       title = "Endpoint Monitoring Status"
-      query = query.gcp_vertex_ai_endpoint_monitoring_status
+      query = query.vertex_ai_endpoint_monitoring_enabled
       type  = "donut"
       width = 3
 
@@ -74,7 +74,7 @@ dashboard "vertex_ai_endpoint_dashboard" {
 
     chart {
       title = "Encryption Status"
-      query = query.gcp_vertex_ai_endpoint_encryption_status
+      query = query.vertex_ai_endpoint_encryption_enabled
       type  = "donut"
       width = 3
 
@@ -90,7 +90,7 @@ dashboard "vertex_ai_endpoint_dashboard" {
 
     chart {
       title = "Traffic Split Configurations"
-      query = query.gcp_vertex_ai_endpoint_traffic_split_status
+      query = query.vertex_ai_endpoint_traffic_split_status
       type  = "donut"
       width = 3
 
@@ -112,28 +112,35 @@ dashboard "vertex_ai_endpoint_dashboard" {
 
     chart {
       title = "Endpoints by Project"
-      query = query.gcp_vertex_ai_endpoint_by_project
+      query = query.vertex_ai_endpoint_by_project
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Endpoints by Location"
-      query = query.gcp_vertex_ai_endpoint_by_location
+      query = query.vertex_ai_endpoint_by_location
+      type  = "column"
+      width = 4
+    }
+
+    chart {
+      title = "Endpoints deployed with Models"
+      query = query.vertex_ai_endpoint_with_models_deployed
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Endpoints by Creation Date"
-      query = query.gcp_vertex_ai_endpoint_by_creation_date
+      query = query.vertex_ai_endpoint_by_creation_date
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Endpoints by Update Date"
-      query = query.gcp_vertex_ai_endpoint_by_update_date
+      query = query.vertex_ai_endpoint_by_update_date
       type  = "column"
       width = 4
     }
@@ -144,31 +151,32 @@ dashboard "vertex_ai_endpoint_dashboard" {
 
 # Card Queries
 
-query "gcp_vertex_ai_endpoint_count" {
+query "vertex_ai_endpoint_count" {
   sql = <<-EOQ
     select count(*) as "Endpoints" from gcp_vertex_ai_endpoint;
   EOQ
 }
 
-query "gcp_vertex_ai_endpoint_private_service_connect_count" {
+query "vertex_ai_endpoint_private_service_connect_count" {
   sql = <<-EOQ
     select
       count(*) as value,
       'Private Service Connect Enabled' as label,
-      case when enable_private_service_connect then 'ok' else 'alert' end as "type"
+      case when enable_private_service_connect or network != null then 'ok' else 'alert' end as "type"
     from
       gcp_vertex_ai_endpoint
     group by
-      enable_private_service_connect;
+      enable_private_service_connect,
+      network;
   EOQ
 }
 
-query "gcp_vertex_ai_endpoint_with_monitoring_count" {
+query "vertex_ai_endpoint_with_monitoring_count" {
   sql = <<-EOQ
     select
       count(*) as value,
-      'Monitoring Enabled' as label,
-      case when model_deployment_monitoring_job is not null then 'ok' else 'alert' end as "type"
+      'Monitoring' as label,
+      case when model_deployment_monitoring_job != '' then 'ok' else 'alert' end as "type"
     from
       gcp_vertex_ai_endpoint
     group by
@@ -176,11 +184,11 @@ query "gcp_vertex_ai_endpoint_with_monitoring_count" {
   EOQ
 }
 
-query "gcp_vertex_ai_endpoint_with_encryption_count" {
+query "vertex_ai_endpoint_with_encryption_count" {
   sql = <<-EOQ
     select
       count(*) as value,
-      'Unencrypted' as label,
+      'Encryption' as label,
       case when encryption_spec is not null then 'ok' else 'alert' end as "type"
     from
       gcp_vertex_ai_endpoint
@@ -189,7 +197,7 @@ query "gcp_vertex_ai_endpoint_with_encryption_count" {
   EOQ
 }
 
-query "gcp_vertex_ai_endpoint_traffic_split_count" {
+query "vertex_ai_endpoint_traffic_split_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -204,10 +212,10 @@ query "gcp_vertex_ai_endpoint_traffic_split_count" {
 
 # Assessment Queries
 
-query "gcp_vertex_ai_endpoint_private_service_connect_status" {
+query "vertex_ai_endpoint_private_service_connection_enabled" {
   sql = <<-EOQ
     select
-      case when enable_private_service_connect then 'enabled' else 'disabled' end as "status",
+      case when enable_private_service_connect or network != '' then 'enabled' else 'disabled' end as "status",
       count(*) as "count"
     from
       gcp_vertex_ai_endpoint
@@ -216,10 +224,10 @@ query "gcp_vertex_ai_endpoint_private_service_connect_status" {
   EOQ
 }
 
-query "gcp_vertex_ai_endpoint_monitoring_status" {
+query "vertex_ai_endpoint_monitoring_enabled" {
   sql = <<-EOQ
     select
-      case when model_deployment_monitoring_job is not null then 'enabled' else 'disabled' end as "status",
+      case when model_deployment_monitoring_job != '' then 'enabled' else 'disabled' end as "status",
       count(*) as "count"
     from
       gcp_vertex_ai_endpoint
@@ -228,7 +236,7 @@ query "gcp_vertex_ai_endpoint_monitoring_status" {
   EOQ
 }
 
-query "gcp_vertex_ai_endpoint_encryption_status" {
+query "vertex_ai_endpoint_encryption_enabled" {
   sql = <<-EOQ
     select
       case when encryption_spec is not null then 'enabled' else 'disabled' end as "status",
@@ -240,7 +248,7 @@ query "gcp_vertex_ai_endpoint_encryption_status" {
   EOQ
 }
 
-query "gcp_vertex_ai_endpoint_traffic_split_status" {
+query "vertex_ai_endpoint_traffic_split_status" {
   sql = <<-EOQ
     select
       case when traffic_split is not null then 'configured' else 'not configured' end as "status",
@@ -254,7 +262,22 @@ query "gcp_vertex_ai_endpoint_traffic_split_status" {
 
 # Analysis Queries
 
-query "gcp_vertex_ai_endpoint_by_project" {
+query "vertex_ai_endpoint_with_models_deployed" {
+  sql = <<-EOQ
+    select
+      e.name as "Endpoint Name",
+      count(dm) as "Model Count"
+    from
+      gcp_vertex_ai_endpoint e,
+      jsonb_array_elements(e.deployed_models) as dm
+    group by
+      e.name
+    order by
+      "Model Count" desc;
+  EOQ
+}
+
+query "vertex_ai_endpoint_by_project" {
   sql = <<-EOQ
     select
       project as "Project",
@@ -267,7 +290,7 @@ query "gcp_vertex_ai_endpoint_by_project" {
   EOQ
 }
 
-query "gcp_vertex_ai_endpoint_by_location" {
+query "vertex_ai_endpoint_by_location" {
   sql = <<-EOQ
     select
       location as "Location",
@@ -279,7 +302,7 @@ query "gcp_vertex_ai_endpoint_by_location" {
   EOQ
 }
 
-query "gcp_vertex_ai_endpoint_by_creation_date" {
+query "vertex_ai_endpoint_by_creation_date" {
   sql = <<-EOQ
     select
       date_trunc('month', create_time) as "Creation Month",
@@ -293,7 +316,7 @@ query "gcp_vertex_ai_endpoint_by_creation_date" {
   EOQ
 }
 
-query "gcp_vertex_ai_endpoint_by_update_date" {
+query "vertex_ai_endpoint_by_update_date" {
   sql = <<-EOQ
     select
       date_trunc('month', update_time) as "Update Month",

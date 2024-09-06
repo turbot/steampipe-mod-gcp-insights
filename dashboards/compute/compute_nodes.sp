@@ -358,7 +358,7 @@ node "compute_resource_policy" {
   category = category.compute_resource_policy
 
   sql = <<-EOQ
-   select
+    select
       r.id::text,
       r.title,
       jsonb_build_object(
@@ -392,7 +392,7 @@ node "compute_router" {
       ) as properties
     from
       gcp_compute_router r
-   where
+    where
       r.id = any($1);
   EOQ
 
