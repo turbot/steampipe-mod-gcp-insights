@@ -150,18 +150,6 @@ query "dataplex_task_by_status" {
   EOQ
 }
 
-query "dataplex_task_execution_spec" {
-  sql = <<-EOQ
-    select
-      execution_spec ->> 'type' as "Execution Type",
-      count(*) as "Total"
-    from
-      gcp_dataplex_task
-    group by
-      execution_spec ->> 'type';
-  EOQ
-}
-
 query "dataplex_task_lake_count" {
   sql = <<-EOQ
     select
