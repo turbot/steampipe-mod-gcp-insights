@@ -3,7 +3,7 @@ dashboard "composer_environment_detail" {
   title         = "GCP Composer Environment Detail"
   documentation = file("./dashboards/composer/docs/composer_environment_detail.md")
 
-  tags = merge(local.cloudfunction_common_tags, {
+  tags = merge(local.composer_common_tags, {
     type = "Detail"
   })
 
