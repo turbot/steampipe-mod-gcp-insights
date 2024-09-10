@@ -181,9 +181,9 @@ edge "compute_image_to_compute_disk" {
     from
       gcp_compute_disk d,
       gcp_compute_image i
+      join unnest($1::text[]) as u on i.id = (split_part(u, '/', 1))::bigint and i.project = split_part(u, '/', 2)
     where
-      i.id = any($1)
-      and d.source_image <> ''
+      d.source_image <> ''
       and d.source_image = i.self_link;
   EOQ
 
