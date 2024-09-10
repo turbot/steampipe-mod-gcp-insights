@@ -15,3 +15,9 @@ category "dataplex_lake" {
   color = local.database_color
   icon  = "box"
 }
+
+category "dataplex_zone" {
+  title = "Dataplex Zone"
+  color = local.database_color
+  icon  = "box"
+}
