@@ -16,20 +16,26 @@ dashboard "dataplex_lake_detail" {
   container {
 
     card {
-      width = 2
+      width = 3
       query = query.dataplex_lake_state
       args  = [self.input.lake_self_link.value]
     }
 
     card {
-      width = 2
+      width = 3
       query = query.dataplex_lake_metastore_state
       args  = [self.input.lake_self_link.value]
     }
 
     card {
-      width = 2
+      width = 3
       query = query.dataplex_lake_zone_count
+      args  = [self.input.lake_self_link.value]
+    }
+
+    card {
+      width = 3
+      query = query.dataplex_lake_task_count
       args  = [self.input.lake_self_link.value]
     }
 
@@ -40,6 +46,20 @@ dashboard "dataplex_lake_detail" {
     args  = [self.input.lake_self_link.value]
   }
 
+  with "dataproc_metastore_service_for_dataplex_lake" {
+    query = query.dataproc_metastore_service_for_dataplex_lake
+    args  = [self.input.lake_self_link.value]
+  }
+
+  with "compute_networks_for_dataplex_lake" {
+    query = query.compute_networks_for_dataplex_lake
+    args  = [self.input.lake_self_link.value]
+  }
+
+  with "dataplex_task_for_dataplex_lake" {
+    query = query.dataplex_task_for_dataplex_lake
+    args  = [self.input.lake_self_link.value]
+  }
 
   container {
 
@@ -61,12 +81,55 @@ dashboard "dataplex_lake_detail" {
         }
       }
 
+      node {
+        base = node.compute_network
+        args = {
+          compute_network_ids = with.compute_networks_for_dataplex_lake.rows[*].network_id
+        }
+      }
+
+      node {
+        base = node.dataproc_metastore_service
+        args = {
+          dataproc_metastore_service_self_links = with.dataproc_metastore_service_for_dataplex_lake.rows[*].self_link
+        }
+      }
+
+      node {
+        base = node.dataplex_task
+        args = {
+          dataplex_task_ids = with.dataplex_task_for_dataplex_lake.rows[*].self_link
+        }
+      }
+
       edge {
         base = edge.dataplex_lake_to_dataplex_zone
         args = {
           dataplex_lake_self_links = [self.input.lake_self_link.value]
         }
       }
+
+      edge {
+        base = edge.dataplex_lake_to_dataproc_metastore_service
+        args = {
+          dataplex_lake_self_links = [self.input.lake_self_link.value]
+        }
+      }
+
+      edge {
+        base = edge.dataplex_lake_to_compute_network
+        args = {
+          dataplex_lake_self_links = [self.input.lake_self_link.value]
+        }
+      }
+
+      edge {
+        base = edge.dataplex_lake_to_dataplex_task
+        args = {
+          dataplex_lake_self_links = [self.input.lake_self_link.value]
+        }
+      }
+
 
     }
   }
@@ -101,20 +164,17 @@ dashboard "dataplex_lake_detail" {
         args  = [self.input.lake_self_link.value]
       }
 
-      # table {
-      #   title = "Encryption Details"
+      table {
+        title = "Zone Details"
+        query = query.dataplex_lake_zone_details
+        args  = [self.input.lake_self_link.value]
+      }
 
-      #   column "Self Link" {
-      #     display = "none"
-      #   }
-
-      #   column "Key Name" {
-      #     href = "${dashboard.kms_key_detail.url_path}?input.key_self_link={{.'Self Link' | @uri}}"
-      #   }
-
-      #   query = query.dataplex_lake_encryption_detail
-      #   args  = [self.input.bucket_id.value]
-      # }
+      table {
+        title = "Task Details"
+        query = query.dataplex_lake_task_details
+        args  = [self.input.lake_self_link.value]
+      }
     }
 
   }
@@ -178,6 +238,18 @@ query "dataplex_lake_zone_count" {
   EOQ
 }
 
+query "dataplex_lake_task_count" {
+  sql = <<-EOQ
+    select
+     'Task' as label,
+      count(*) as value
+    from
+      gcp_dataplex_task
+    where
+      lake_name =  split_part( $1, 'v1/', 2)
+  EOQ
+}
+
 query "dataplex_lake_metastore_service_details" {
   sql = <<-EOQ
     select
@@ -192,36 +264,37 @@ query "dataplex_lake_metastore_service_details" {
   EOQ
 }
 
-# With queries
+query "dataplex_lake_zone_details" {
+  sql = <<-EOQ
+    select
+      z.name as "Name",
+      z.resource_spec ->> 'locationType'  as "Location Type",
+      z.state  as "State"
+    from
+      gcp_dataplex_zone as z,
+      gcp_dataplex_lake as l
+    where
+      l.self_link = $1
+      and l.project = split_part( $1, '/', 6)
+      and l.name = z.lake_name;
+  EOQ
+}
 
-# query "compute_backend_buckets_for_storage_bucket" {
-
-#   sql = <<-EOQ
-#     with compute_backend_bucket as (
-#       select
-#         id,
-#         bucket_name
-#       from
-#         gcp_compute_backend_bucket
-#     ), storage_bucket as (
-#       select
-#         id,
-#         name
-#       from
-#         gcp_storage_bucket
-#       where
-#         id = split_part($1, '/', 1)
-#         and project = split_part($1, '/', 2)
-#     )
-#     select
-#       c.id::text as bucket_id
-#     from
-#       storage_bucket b,
-#       compute_backend_bucket c
-#     where
-#       b.name = c.bucket_name;
-#   EOQ
-# }
+query "dataplex_lake_task_details" {
+  sql = <<-EOQ
+    select
+      t.display_name as "Name",
+      t.location  as "Location",
+      t.state  as "State"
+    from
+      gcp_dataplex_task as t,
+      gcp_dataplex_lake as l
+    where
+      l.self_link = $1
+      and l.project = split_part($1, '/', 6)
+      and l.name = t.lake_name;
+  EOQ
+}
 
 # Other queries
 
@@ -266,6 +339,8 @@ query "dataplex_lake_tags_detail" {
   EOQ
 }
 
+# With queries
+
 query "dataplex_zone_for_dataplex_lake" {
   sql = <<-EOQ
     select
@@ -279,3 +354,48 @@ query "dataplex_zone_for_dataplex_lake" {
       and l.name = t.lake_name;
   EOQ
 }
+
+query "dataproc_metastore_service_for_dataplex_lake" {
+  sql = <<-EOQ
+    select
+      t.self_link as self_link
+    from
+      gcp_dataproc_metastore_service as t,
+      gcp_dataplex_lake as l
+    where
+      l.self_link = $1
+      and t.project = split_part( $1, '/', 6)
+      and l.metastore ->> 'service' = t.name;
+  EOQ
+}
+
+query "compute_networks_for_dataplex_lake" {
+  sql = <<-EOQ
+    select
+        n.id::text || '/' || n.project as network_id
+      from
+        gcp_dataproc_metastore_service as t,
+        gcp_dataplex_lake as l,
+        gcp_compute_network as n
+      where
+        l.self_link = $1
+        and t.project = split_part( $1, '/', 6)
+        and l.metastore ->> 'service' = t.name
+        and split_part(t.network,'networks/', 2) = n.name
+  EOQ
+}
+
+query "dataplex_task_for_dataplex_lake" {
+  sql = <<-EOQ
+    select
+      t.self_link as self_link
+    from
+      gcp_dataplex_task as t,
+      gcp_dataplex_lake as l
+    where
+      l.self_link = $1
+      and l.project = split_part($1, '/', 6)
+      and l.name = t.lake_name;
+  EOQ
+}
+
