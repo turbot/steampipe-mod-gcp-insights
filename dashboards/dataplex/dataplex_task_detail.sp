@@ -135,7 +135,7 @@ query "dataplex_task_input" {
   sql = <<-EOQ
     select
       display_name as label,
-      uid::text || '/' || project as value,
+      self_link as value,
       json_build_object(
         'project', project,
         'uid', uid::text
@@ -157,8 +157,8 @@ query "dataplex_task_name" {
     from
       gcp_dataplex_task
     where
-      uid = split_part($1, '/', 1)
-      and project = split_part($1, '/', 2);
+      self_link = $1
+      and project = split_part($1, '/', 6);
   EOQ
 }
 
@@ -171,8 +171,8 @@ query "dataplex_task_state" {
     from
       gcp_dataplex_task
     where
-      uid = split_part($1, '/', 1)
-      and project = split_part($1, '/', 2);
+      self_link = $1
+      and project = split_part($1, '/', 6);
   EOQ
 }
 
@@ -184,8 +184,8 @@ query "dataplex_task_trigger_type" {
     from
       gcp_dataplex_task
     where
-      uid = split_part($1, '/', 1)
-      and project = split_part($1, '/', 2);
+      self_link = $1
+      and project = split_part($1, '/', 6);
   EOQ
 }
 
@@ -197,8 +197,8 @@ query "dataplex_task_execution_service" {
     from
       gcp_dataplex_task
     where
-      uid = split_part($1, '/', 1)
-      and project = split_part($1, '/', 2);
+      self_link = $1
+      and project = split_part($1, '/', 6);
   EOQ
 }
 
@@ -210,8 +210,8 @@ query "dataplex_task_execution_status" {
     from
       gcp_dataplex_task
     where
-      uid = split_part($1, '/', 1)
-      and project = split_part($1, '/', 2);
+      self_link = $1
+      and project = split_part($1, '/', 6);
   EOQ
 }
 
@@ -231,8 +231,8 @@ query "dataplex_task_overview" {
     from
       gcp_dataplex_task
     where
-      uid = split_part($1, '/', 1)
-      and project = split_part($1, '/', 2);
+      self_link = $1
+      and project = split_part($1, '/', 6);
   EOQ
 }
 
@@ -244,8 +244,8 @@ query "dataplex_task_tags" {
       from
         gcp_dataplex_task
       where
-        uid = split_part($1, '/', 1)
-        and project = split_part($1, '/', 2)
+        self_link = $1
+      and project = split_part($1, '/', 6)
     )
     select
       key as "Key",
@@ -267,8 +267,8 @@ query "dataplex_task_trigger_details" {
     from
       gcp_dataplex_task
     where
-      uid = split_part($1, '/', 1)
-      and project = split_part($1, '/', 2);  
+      self_link = $1
+      and project = split_part($1, '/', 6);  
   EOQ
 }
 
@@ -285,8 +285,8 @@ query "dataplex_task_execution_status_details" {
     from
       gcp_dataplex_task
     where
-      uid = split_part($1, '/', 1)
-      and project = split_part($1, '/', 2);
+      self_link = $1
+      and project = split_part($1, '/', 6);
   EOQ
 }
 
@@ -303,8 +303,8 @@ query "dataplex_task_related_lakes" {
       gcp_dataplex_task as t,
       gcp_dataplex_lake as l
     where
-      t.uid = split_part($1, '/', 1)
-      and t.project = split_part($1, '/', 2)
+      t.self_link = $1
+      and t.project = split_part($1, '/', 6)
       and l.name = t.lake_name;
   EOQ
 }
@@ -317,8 +317,8 @@ query "dataplex_lake_for_dataplex_task" {
       gcp_dataplex_task as t,
       gcp_dataplex_lake as l
     where
-      t.uid = split_part($1, '/', 1)
-      and t.project = split_part($1, '/', 2)
+      t.self_link = $1
+      and t.project = split_part($1, '/', 6)
       and l.name = t.lake_name;
   EOQ
 }
