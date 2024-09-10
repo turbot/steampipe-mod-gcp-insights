@@ -221,8 +221,7 @@ node "compute_image" {
       ) as properties
     from
       gcp_compute_image i
-    where
-      i.id = any($1);
+      join unnest($1::text[]) as u on id = (split_part(u, '/', 1))::bigint and project = split_part(u, '/', 2);
   EOQ
 
   param "compute_image_ids" {}
