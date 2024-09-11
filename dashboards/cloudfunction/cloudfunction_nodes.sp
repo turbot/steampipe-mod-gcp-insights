@@ -3,13 +3,12 @@ node "cloudfunctions_function" {
 
   sql = <<-EOQ
     select
-      name as id,
+      self_link as id,
       title,
       jsonb_build_object(
         'Status', status,
         'Runtime', runtime,
         'Update Time', update_time,
-        'Timeout', timeout,
         'Build Environment ID', build_id,
         'Region', location,
         'Project', project
@@ -17,8 +16,8 @@ node "cloudfunctions_function" {
     from
       gcp_cloudfunctions_function
     where
-      name = any($1);
+      self_link = any($1);
   EOQ
 
-  param "cloudfunctions_function_ids" {}
+  param "cloudfunctions_function_self_link" {}
 }

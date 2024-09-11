@@ -58,7 +58,7 @@ edge "iam_service_account_to_cloudfunction_function" {
   sql = <<-EOQ
     select
       s.name as from_id,
-      f.name as to_id
+      f.self_link as to_id
     from
       gcp_cloudfunctions_function as f,
       gcp_service_account as s

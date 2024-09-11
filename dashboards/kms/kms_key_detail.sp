@@ -517,7 +517,7 @@ query "sql_database_instances_for_kms_key" {
 query "storage_buckets_for_kms_key" {
   sql = <<-EOQ
     select
-      b.id as bucket_id
+      (b.id || '/' || b.project) as bucket_id
     from
       gcp_storage_bucket b
     where
