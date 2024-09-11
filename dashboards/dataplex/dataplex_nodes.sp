@@ -7,6 +7,7 @@ node "dataplex_task" {
       title,
       jsonb_build_object(
         'Name', display_name,
+        'Self Link', self_link,
         'Project', project,
         'UID', uid,
         'Location', location
@@ -29,6 +30,7 @@ node "dataplex_lake" {
       jsonb_build_object(
         'Name', name,
         'UID', uid,
+        'Self Link', self_link,
         'Created Time', create_time,
         'State', state,
         'Location', location,
@@ -52,6 +54,7 @@ node "dataplex_zone" {
       jsonb_build_object(
         'Name', name,
         'UID', uid,
+        'Self Link', self_link,
         'Created Time', create_time,
         'State', state,
         'Location', location,
@@ -75,6 +78,7 @@ node "dataplex_assets" {
       jsonb_build_object(
         'Name', name,
         'UID', uid,
+        'Self Link', self_link,
         'Created Time', create_time,
         'State', state,
         'Location', location,
@@ -98,6 +102,7 @@ node "dataplex_asset" {
       jsonb_build_object(
         'Name', name,
         'UID', uid,
+        'Self Link', self_link,
         'Created Time', create_time,
         'State', state,
         'Location', location,
