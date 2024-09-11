@@ -535,7 +535,7 @@ query "iam_service_accounts_for_cloudfunctions_function" {
 query "storage_buckets_for_cloudfunctions_function" {
   sql = <<-EOQ
     select
-      s.id as bucket_id
+      (s.id || '/' || s.project) as bucket_id
     from
       gcp_cloudfunctions_function as i,
       gcp_storage_bucket as s

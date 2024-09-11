@@ -58,7 +58,7 @@ edge "cloudfunctions_function_to_storage_bucket" {
   sql = <<-EOQ
     select
       i.self_link as from_id,
-      s.id as to_id
+      (s.id || '/' || s.project) as to_id
     from
       gcp_cloudfunctions_function as i
       join unnest($1::text[]) as a on i.self_link = a and i.project = split_part(a, '/', 6),

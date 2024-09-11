@@ -615,7 +615,7 @@ query "compute_subnetworks_for_composer_environment" {
 query "storage_buckets_for_composer_environment" {
   sql = <<-EOQ
     select
-      s.id as bucket_id
+       s.id || '/' || s.project) as bucket_id
     from
       gcp_composer_environment as i,
       gcp_storage_bucket as s

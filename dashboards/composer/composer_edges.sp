@@ -78,7 +78,7 @@ edge "composer_environment_to_storage_bucket" {
   sql = <<-EOQ
     select
       i.name as from_id,
-      s.id as to_id
+      (s.id || '/' || s.project) as to_id
     from
       gcp_composer_environment as i
       join unnest($1::text[]) as a on i.name = a and i.project = split_part(a, '/', 2),

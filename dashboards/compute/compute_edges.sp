@@ -6,7 +6,7 @@ edge "compute_backend_bucket_to_storage_bucket" {
   sql = <<-EOQ
     select
       c.id::text as from_id,
-      b.id::text as to_id
+      (b.id || '/' || b.project)::text as to_id
     from
       gcp_storage_bucket b,
       gcp_compute_backend_bucket c
