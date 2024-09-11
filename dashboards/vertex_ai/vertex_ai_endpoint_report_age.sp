@@ -56,12 +56,12 @@ dashboard "vertex_ai_endpoint_age_report" {
       display = "none"
     }
 
-    column "id" {
+    column "ID" {
       display = "none"
     }
 
-    column "ID" {
-      href = "${dashboard.vertex_ai_endpoint_detail.url_path}?input.endpoint_id={{.id | @uri}}"
+    column "Name" {
+      href = "${dashboard.vertex_ai_endpoint_detail.url_path}?input.model_id={{.ID | @uri}}"
     }
 
     query = query.vertex_ai_endpoint_age_table
@@ -148,12 +148,12 @@ query "vertex_ai_endpoint_1_year_count" {
 query "vertex_ai_endpoint_age_table" {
   sql = <<-EOQ
     select
-      e.name as "ID",
-      e.display_name as "Name",
+      e.name as "Name",
+      e.display_name as "Display Name",
       now()::date - e.create_time::date as "Age in Days",
       e.create_time as "Create Time",
       p.name as "Project",
-      e.name || '/' || project as "id",
+      e.name || '/' || project as "ID",
       p.project_id as "Project ID",
       e.location as "Location"
     from

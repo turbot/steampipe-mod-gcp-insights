@@ -141,6 +141,7 @@ query "vertex_ai_model_age_table" {
   sql = <<-EOQ
     select
       m.name as "Name",
+      m.display_name as "Display Name",
       now()::date - m.create_time::date as "Age in Days",
       m.create_time as "Create Time",
       p.name as "Project",
