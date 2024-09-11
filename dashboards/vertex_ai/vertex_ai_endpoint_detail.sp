@@ -338,7 +338,7 @@ query "vertex_ai_endpoint_encryption" {
 query "vertex_ai_models_for_vertex_ai_endpoint" {
   sql = <<-EOQ
     select
-      split_part(jsonb_array_elements(deployed_models) ->> 'model', '/models/', 2) as name
+      split_part(jsonb_array_elements(deployed_models) ->> 'model', '/models/', 2) || '/' || project as name
     from
       gcp_vertex_ai_endpoint
     where

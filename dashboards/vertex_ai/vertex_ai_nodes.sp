@@ -33,8 +33,7 @@ node "vertex_ai_model" {
       ) as properties
     from
       gcp_vertex_ai_model
-    where
-      name = any($1);
+      join unnest($1::text[]) as u on name = split_part(u, '/', 1) and project = split_part(u, '/', 2);
   EOQ
 
   param "vertex_ai_model_ids" {}
