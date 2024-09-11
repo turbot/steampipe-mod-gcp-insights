@@ -89,3 +89,22 @@ edge "dataplex_lake_to_dataplex_task" {
 
   param "dataplex_lake_self_links" {}
 }
+
+edge "dataplex_zone_to_dataplex_asset" {
+  title = "asset"
+
+  sql = <<-EOQ
+    select
+      z.self_link as from_id,
+      s.self_link as to_id
+    from
+      gcp_dataplex_zone as z
+      join unnest($1::text[]) as u on z.self_link = u and z.project = split_part(u, '/', 6),
+      gcp_dataplex_asset as s
+    where
+      s.zone_name = z.name;
+  EOQ
+
+  param "dataplex_zone_self_links" {}
+}
+

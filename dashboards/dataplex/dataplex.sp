@@ -21,3 +21,9 @@ category "dataplex_zone" {
   color = local.database_color
   icon  = "box"
 }
+
+category "dataplex_asset" {
+  title = "Dataplex Asset"
+  color = local.database_color
+  icon  = "box"
+}

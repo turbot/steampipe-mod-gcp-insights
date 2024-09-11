@@ -64,3 +64,26 @@ node "dataplex_zone" {
 
   param "dataplex_zone_self_links" {}
 }
+
+node "dataplex_asset" {
+  category = category.dataplex_asset
+
+  sql = <<-EOQ
+    select
+      self_link as id,
+      title,
+      jsonb_build_object(
+        'Name', name,
+        'uid', uid,
+        'Created Time', create_time,
+        'State', state,
+        'Location', location,
+        'Project', project
+      ) as properties
+    from
+      gcp_dataplex_asset
+      join unnest($1::text[]) as u on zone_name = u;
+  EOQ
+
+  param "dataplex_zone_names" {}
+}
