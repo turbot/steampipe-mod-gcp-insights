@@ -28,7 +28,7 @@ node "dataplex_lake" {
       title,
       jsonb_build_object(
         'Name', name,
-        'uid', uid,
+        'UID', uid,
         'Created Time', create_time,
         'State', state,
         'Location', location,
@@ -43,7 +43,7 @@ node "dataplex_lake" {
 }
 
 node "dataplex_zone" {
-  category = category.dataplex_lake
+  category = category.dataplex_zone
 
   sql = <<-EOQ
     select
@@ -51,7 +51,7 @@ node "dataplex_zone" {
       title,
       jsonb_build_object(
         'Name', name,
-        'uid', uid,
+        'UID', uid,
         'Created Time', create_time,
         'State', state,
         'Location', location,
@@ -65,7 +65,7 @@ node "dataplex_zone" {
   param "dataplex_zone_self_links" {}
 }
 
-node "dataplex_asset" {
+node "dataplex_assets" {
   category = category.dataplex_asset
 
   sql = <<-EOQ
@@ -74,7 +74,7 @@ node "dataplex_asset" {
       title,
       jsonb_build_object(
         'Name', name,
-        'uid', uid,
+        'UID', uid,
         'Created Time', create_time,
         'State', state,
         'Location', location,
@@ -87,3 +87,29 @@ node "dataplex_asset" {
 
   param "dataplex_zone_names" {}
 }
+
+node "dataplex_asset" {
+  category = category.dataplex_asset
+
+  sql = <<-EOQ
+    select
+      self_link as id,
+      title,
+      jsonb_build_object(
+        'Name', name,
+        'UID', uid,
+        'Created Time', create_time,
+        'State', state,
+        'Location', location,
+        'Project', project
+      ) as properties
+    from
+      gcp_dataplex_asset
+      join unnest($1::text[]) as u on zone_name = u
+      join unnest($2::text[]) as a on self_link = a;
+  EOQ
+
+  param "dataplex_zone_names" {}
+  param "dataplex_asset_self_links" {}
+}
+

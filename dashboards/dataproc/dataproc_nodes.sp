@@ -1,5 +1,5 @@
 node "dataproc_metastore_service" {
-  category = category.dataplex_lake
+  category = category.dataproc_metastore_service
 
   sql = <<-EOQ
     select
@@ -7,7 +7,7 @@ node "dataproc_metastore_service" {
       title,
       jsonb_build_object(
         'Name', name,
-        'uid', uid,
+        'UID', uid,
         'Created Time', create_time,
         'State', state,
         'Location', location,

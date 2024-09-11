@@ -76,7 +76,7 @@ dashboard "dataplex_zone_detail" {
       }
 
       node {
-        base = node.dataplex_asset
+        base = node.dataplex_assets
         args = {
           dataplex_zone_names = with.dataplex_zone_name.rows[*].zone_name
         }
@@ -222,7 +222,7 @@ query "dataplex_zone_asset_count" {
 query "dataplex_zone_overview" {
   sql = <<-EOQ
     select
-      uid as "uid",
+      uid as "UID",
       name as "Zone Name",
       location as "Location",
       description as "Description",

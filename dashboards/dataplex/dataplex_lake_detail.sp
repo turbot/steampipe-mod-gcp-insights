@@ -302,7 +302,7 @@ query "dataplex_lake_overview" {
   sql = <<-EOQ
     select
       name as "Name",
-      uid as "uid",
+      uid as "UID",
       state as "State",
       description as "Description",
       create_time as "Create Time",

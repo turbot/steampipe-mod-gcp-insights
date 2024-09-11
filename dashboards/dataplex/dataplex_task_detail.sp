@@ -89,7 +89,7 @@ dashboard "dataplex_task_detail" {
     container {
 
       table {
-        title = "Task Overview"
+        title = "Overview"
         width = 4
         type  = "line"
         query = query.dataplex_task_overview
@@ -97,14 +97,14 @@ dashboard "dataplex_task_detail" {
       }
 
       table {
-        title = "Task Tags"
+        title = "Tags"
         width = 4
         query = query.dataplex_task_tags
         args  = [self.input.task_id.value]
       }
 
       table {
-        title = "Task Trigger Details"
+        title = "Trigger Details"
         width = 4
         query = query.dataplex_task_trigger_details
         args  = [self.input.task_id.value]
@@ -220,7 +220,7 @@ query "dataplex_task_execution_status" {
 query "dataplex_task_overview" {
   sql = <<-EOQ
     select
-      uid as "ID",
+      uid as "UID",
       display_name as "Task Name",
       location as "Location",
       project as "Project ID",
@@ -268,7 +268,7 @@ query "dataplex_task_trigger_details" {
       gcp_dataplex_task
     where
       self_link = $1
-      and project = split_part($1, '/', 6);  
+      and project = split_part($1, '/', 6);
   EOQ
 }
 
