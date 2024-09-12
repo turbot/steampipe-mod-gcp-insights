@@ -115,9 +115,9 @@ dashboard "bigquery_table_detail" {
       }
 
       table {
-        title = "Schema"
+        title = "Tags"
         width = 6
-        query = query.bigquery_table_schema
+        query = query.bigquery_table_tags
         args  = [self.input.table_id.value]
       }
     }
@@ -125,15 +125,23 @@ dashboard "bigquery_table_detail" {
     container {
       width = 6
 
+      # table {
+      #   title = "Labels"
+      #   query = query.bigquery_table_labels
+      #   args  = [self.input.table_id.value]
+      # }
+
       table {
-        title = "Labels"
-        query = query.bigquery_table_labels
+        title = "Clustering"
+        width = 6
+        query = query.bigquery_table_partitioning_clustering
         args  = [self.input.table_id.value]
       }
 
       table {
-        title = "Partitioning & Clustering"
-        query = query.bigquery_table_partitioning_clustering
+        title = "Time Partitioning"
+        width = 6
+        query = query.bigquery_table_time_partitioning
         args  = [self.input.table_id.value]
       }
     }
@@ -142,9 +150,9 @@ dashboard "bigquery_table_detail" {
   container {
 
     table {
-      title = "External Data Configuration"
+      title = "Schema Details"
       width = 12
-      query = query.bigquery_table_external_data_configuration
+      query = query.bigquery_table_schema
       args  = [self.input.table_id.value]
     }
 
@@ -157,7 +165,7 @@ dashboard "bigquery_table_detail" {
 query "bigquery_table_input" {
   sql = <<-EOQ
     select
-      name as label,
+      title as label,
       id::text || '/' || project as value,
       json_build_object(
         'location', location,
@@ -167,7 +175,7 @@ query "bigquery_table_input" {
     from
       gcp_bigquery_table
     order by
-      name;
+      title;
   EOQ
 }
 
@@ -276,17 +284,39 @@ query "kms_keys_for_bigquery_table" {
 query "bigquery_table_overview" {
   sql = <<-EOQ
     select
-      name as "Name",
       id::text as "ID",
       creation_time as "Creation Time",
       description as "Description",
       location as "Location",
+      title as "Title",
       project as "Project"
     from
       gcp_bigquery_table
     where
       id = (split_part($1, '/', 1))::text
       and project = split_part($1, '/', 2);
+  EOQ
+}
+
+query "bigquery_table_tags" {
+  sql = <<-EOQ
+    with jsondata as (
+      select
+        tags::json as tags
+      from
+        gcp_bigquery_table
+      where
+        id = (split_part($1, '/', 1))::text
+      and project = split_part($1, '/', 2)
+    )
+    select
+      key as "Key",
+      value as "Value"
+    from
+      jsondata,
+      json_each_text(tags)
+    order by
+      key;
   EOQ
 }
 
@@ -308,34 +338,10 @@ query "bigquery_table_schema" {
   EOQ
 }
 
-query "bigquery_table_labels" {
-  sql = <<-EOQ
-    with jsondata as (
-      select
-        labels::json as labels
-      from
-        gcp_bigquery_table
-      where
-        id = (split_part($1, '/', 1))::text
-        and project = split_part($1, '/', 2)
-    )
-    select
-      key as "Key",
-      value as "Value"
-    from
-      jsondata,
-      json_each_text(labels)
-    order by
-      key;
-  EOQ
-}
-
 query "bigquery_table_partitioning_clustering" {
   sql = <<-EOQ
     select
-      clustering_fields::text as "Clustering Fields",
-      time_partitioning::text as "Time Partitioning",
-      range_partitioning::text as "Range Partitioning"
+      jsonb_array_elements_text(clustering_fields) as "Fields"
     from
       gcp_bigquery_table
     where
@@ -350,6 +356,20 @@ query "bigquery_table_external_data_configuration" {
       external_data_configuration::text as "External Data Configuration"
     from
       gcp_bigquery_table
+    where
+      id = (split_part($1, '/', 1))::text
+      and project = split_part($1, '/', 2);
+  EOQ
+}
+
+query "bigquery_table_time_partitioning" {
+  sql = <<-EOQ
+    select
+     key,
+     value
+    from
+      gcp_bigquery_table,
+      jsonb_each_text(time_partitioning)
     where
       id = (split_part($1, '/', 1))::text
       and project = split_part($1, '/', 2);

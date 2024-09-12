@@ -56,6 +56,15 @@ dashboard "bigquery_table_age_report" {
       display = "none"
     }
 
+    column "id" {
+      display = "none"
+    }
+
+
+    column "ID" {
+      href = "${dashboard.bigquery_table_detail.url_path}?input.table_id={{.id | @uri}}"
+    }
+
     query = query.bigquery_table_age_table
   }
 
@@ -134,11 +143,11 @@ query "bigquery_table_age_table" {
       t.location as "Location",
       t.project as "Project",
       t.project as "Project ID",
-      t.self_link as "Self-Link"
+      t.self_link as "Self-Link",
+      t.id::text || '/' || project  as "id"
     from
       gcp_bigquery_table as t
     order by
-      t.creation_time,
-      t.name;
+      t.creation_time;
   EOQ
 }

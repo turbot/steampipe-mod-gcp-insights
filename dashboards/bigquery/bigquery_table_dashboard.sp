@@ -66,7 +66,7 @@ dashboard "bigquery_table_dashboard" {
         point "expired" {
           color = "alert"
         }
-        point "active" {
+        point "not_expired" {
           color = "ok"
         }
       }
@@ -102,7 +102,7 @@ dashboard "bigquery_table_dashboard" {
       type  = "column"
       width = 4
     }
-  
+
     chart {
       title = "Tables by Age"
       query = query.bigquery_table_by_creation_month
@@ -233,14 +233,12 @@ query "bigquery_table_expired_count" {
   sql = <<-EOQ
     select
       count(*) as value,
-      'Not Expired' as label,
-      case 
-        when sum(case when expiration_time < current_timestamp then 1 else 0 end) > 0 
-        then 'alert' 
-        else 'ok' 
-      end as "type"
+      'Expired' as label,
+      case when count(*) > 0 then 'alert' else 'ok' end as "type"
     from
-      gcp_bigquery_table;
+      gcp_bigquery_table
+    where
+      expiration_time < current_timestamp;
   EOQ
 }
 
@@ -248,12 +246,12 @@ query "bigquery_table_encryption_disabled_count" {
   sql = <<-EOQ
     select
       count(*) as value,
-      'Encrypted' as label,
-      case count(*) when 0 then 'alert' else 'ok' end as "type"
+      'Unencrypted' as label,
+      case count(*) when 0 then 'ok' else 'alert' end as "type"
     from
       gcp_bigquery_table
     where
-      kms_key_name != '';
+      kms_key_name is null;
   EOQ
 }
 
@@ -274,7 +272,7 @@ query "bigquery_table_encryption_status" {
 query "bigquery_table_expiration_status" {
   sql = <<-EOQ
     select
-      case when expiration_time < current_timestamp then 'expired' else 'active' end as expiration_status,
+      case when expiration_time < current_timestamp then 'expired' else 'not_expired' end as expiration_status,
       count(*)
     from
       gcp_bigquery_table
