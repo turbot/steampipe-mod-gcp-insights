@@ -5,7 +5,7 @@ locals {
 }
 
 category "composer_environment" {
-  title = "Compute Environment"
-  color = local.containers_color
+  title = "Composer Environment"
+  color = local.application_integration_color
   icon  = "add_a_photo"
 }
