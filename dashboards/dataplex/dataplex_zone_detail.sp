@@ -18,7 +18,6 @@ dashboard "dataplex_zone_detail" {
     card {
       width = 3
       query = query.dataplex_zone_type
-      type  = "info"
       args  = [self.input.zone_self_link.value]
     }
 
@@ -31,14 +30,12 @@ dashboard "dataplex_zone_detail" {
     card {
       width = 3
       query = query.dataplex_zone_location_type
-      type  = "info"
       args  = [self.input.zone_self_link.value]
     }
 
     card {
       width = 3
       query = query.dataplex_zone_asset_count
-      type  = "info"
       args  = [self.input.zone_self_link.value]
     }
 

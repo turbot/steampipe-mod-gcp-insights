@@ -124,7 +124,7 @@ query "cloudfunctions_function_encryption_count" {
   sql = <<-EOQ
     select
       count(*) as value,
-      'Function Unencrypted' as label,
+      'Unencrypted' as label,
       case count(*) when 0 then 'ok' else 'alert' end as "type"
     from
       gcp_cloudfunctions_function

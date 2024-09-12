@@ -18,14 +18,12 @@ dashboard "vertex_ai_model_detail" {
     card {
       query = query.vertex_ai_model_version
       width = 3
-      type  = "info"
       args  = [self.input.model_id.value]
     }
 
     card {
       query = query.vertex_ai_model_source
       width = 3
-      type  = "info"
       args  = [self.input.model_id.value]
     }
 
@@ -104,8 +102,15 @@ dashboard "vertex_ai_model_detail" {
       table {
         title = "Overview"
         type  = "line"
-        width = 6
+        width = 3
         query = query.vertex_ai_model_overview
+        args  = [self.input.model_id.value]
+      }
+
+      table {
+        title = "Tags"
+        width = 3
+        query = query.vertex_ai_model_labels
         args  = [self.input.model_id.value]
       }
 
@@ -122,15 +127,7 @@ dashboard "vertex_ai_model_detail" {
 
       table {
         title = "Model Endpoints Details"
-        width = 6
         query = query.vertex_ai_model_deployed_endpoints
-        args  = [self.input.model_id.value]
-      }
-
-      table {
-        title = "Labels"
-        width = 6
-        query = query.vertex_ai_model_labels
         args  = [self.input.model_id.value]
       }
     }
@@ -191,7 +188,7 @@ query "vertex_ai_model_source" {
 query "vertex_ai_model_encryption_enabled" {
   sql = <<-EOQ
     select
-      case when encryption_spec is not null then 'Encrypted' else 'Not Encrypted' end as value,
+      case when encryption_spec is not null then 'Enabled' else 'Disabled' end as value,
       'Encryption' as label,
       case when encryption_spec is not null then 'ok' else 'alert' end as "type"
     from
@@ -259,8 +256,8 @@ query "vertex_ai_model_deployed_endpoints" {
       e.create_time as "Endpoint Create Time",
       e.location as "Endpoint Location",
       e.project as "Endpoint Project ID"
-    from 
-      gcp_vertex_ai_endpoint e, 
+    from
+      gcp_vertex_ai_endpoint e,
       model_endpoints me
     where
       e.name = me.ename;
@@ -339,8 +336,8 @@ query "vertex_ai_endpoints_for_vertex_ai_model" {
     )
     select
       e.name || '/' || e.project as endpoint_id
-    from 
-      gcp_vertex_ai_endpoint e, 
+    from
+      gcp_vertex_ai_endpoint e,
       model_endpoints me
     where
       e.name = me.ename;

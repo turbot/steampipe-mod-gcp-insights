@@ -121,18 +121,24 @@ dashboard "vertex_ai_endpoint_detail" {
       table {
         title = "Overview"
         type  = "line"
-        width = 4
+        width = 3
         query = query.vertex_ai_endpoint_overview
         args  = [self.input.endpoint_id.value]
       }
 
       table {
-        title = "Encryption Details"
-        width = 8
-        query = query.vertex_ai_endpoint_encryption
+        title = "Tags"
+        width = 3
+        query = query.vertex_ai_endpoint_labels
         args  = [self.input.endpoint_id.value]
       }
 
+      table {
+        title = "Encryption Details"
+        width = 6
+        query = query.vertex_ai_endpoint_encryption
+        args  = [self.input.endpoint_id.value]
+      }
 
     }
 
@@ -148,15 +154,8 @@ dashboard "vertex_ai_endpoint_detail" {
 
       table {
         title = "Traffic Split"
-        width = 6
+        width = 12
         query = query.vertex_ai_endpoint_traffic_split
-        args  = [self.input.endpoint_id.value]
-      }
-
-      table {
-        title = "Labels"
-        width = 6
-        query = query.vertex_ai_endpoint_labels
         args  = [self.input.endpoint_id.value]
       }
     }
@@ -213,7 +212,7 @@ query "vertex_ai_endpoint_monitoring_status" {
 query "vertex_ai_endpoint_encryption_status" {
   sql = <<-EOQ
     select
-      case when encryption_spec is not null then 'Encrypted' else 'Not Encrypted' end as value,
+      case when encryption_spec is not null then 'Enabled' else 'Disabled' end as value,
       'Encryption' as label,
       case when encryption_spec is not null then 'ok' else 'alert' end as "type"
     from

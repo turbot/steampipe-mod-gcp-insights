@@ -36,7 +36,7 @@ dashboard "composer_environment_dashboard" {
     title = "Assessments"
 
     chart {
-      title = "Environment Status"
+      title = "Status"
       query = query.composer_environment_status
       type  = "donut"
       width = 3
@@ -52,7 +52,7 @@ dashboard "composer_environment_dashboard" {
     }
 
     chart {
-      title = "Environment Encryption Status"
+      title = "Encryption Status"
       query = query.composer_environment_encryption_status
       type  = "donut"
       width = 3
@@ -131,7 +131,7 @@ query "composer_environment_encryption_count" {
   sql = <<-EOQ
     select
       count(*) as value,
-      'Environment Unencrypted' as label,
+      'Unencrypted' as label,
       case count(*) when 0 then 'ok' else 'alert' end as "type"
     from
       gcp_composer_environment
@@ -157,7 +157,7 @@ query "composer_environment_web_server_public_access_count" {
   sql = <<-EOQ
     select
       count(*) as value,
-      'Public Access Enabled' as label,
+      'Web Server Public Access Enabled' as label,
       case count(*) when 0 then 'ok' else 'alert' end as "type"
     from
       gcp_composer_environment

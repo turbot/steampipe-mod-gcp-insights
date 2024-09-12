@@ -9,6 +9,7 @@ node "vertex_ai_endpoint" {
         'Project', project,
         'Location', location,
         'Create Time', create_time,
+        'ID', name || '/' || project,
         'Update Time', update_time
       ) as properties
     from
@@ -29,7 +30,8 @@ node "vertex_ai_model" {
         'Project', project,
         'Location', location,
         'Create Time', create_time,
-        'Update Time', update_time
+        'Update Time', update_time,
+        'ID', name || '/' || project
       ) as properties
     from
       gcp_vertex_ai_model

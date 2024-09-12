@@ -60,6 +60,10 @@ dashboard "vertex_ai_model_age_report" {
       display = "none"
     }
 
+    column "Name" {
+      href = "${dashboard.vertex_ai_model_detail.url_path}?input.model_id={{.ID | @uri}}"
+    }
+
     query = query.vertex_ai_model_age_table
   }
 
@@ -141,6 +145,7 @@ query "vertex_ai_model_age_table" {
   sql = <<-EOQ
     select
       m.name as "Name",
+      m.name || '/' || m.project as "ID",
       m.display_name as "Display Name",
       now()::date - m.create_time::date as "Age in Days",
       m.create_time as "Create Time",

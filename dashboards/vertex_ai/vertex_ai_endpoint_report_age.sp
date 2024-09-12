@@ -61,7 +61,7 @@ dashboard "vertex_ai_endpoint_age_report" {
     }
 
     column "Name" {
-      href = "${dashboard.vertex_ai_endpoint_detail.url_path}?input.model_id={{.ID | @uri}}"
+      href = "${dashboard.vertex_ai_endpoint_detail.url_path}?input.endpoint_id={{.ID | @uri}}"
     }
 
     query = query.vertex_ai_endpoint_age_table
