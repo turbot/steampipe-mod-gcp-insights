@@ -306,7 +306,7 @@ node "compute_network" {
       n.id::text as id,
       n.title,
       jsonb_build_object(
-        'ID', n.id::text,
+        'ID', concat(n.id::text, '/' , n.project),
         'Name', n.name,
         'Created Time', n.creation_timestamp,
         'Project', project
@@ -358,7 +358,7 @@ node "compute_resource_policy" {
   category = category.compute_resource_policy
 
   sql = <<-EOQ
-   select
+    select
       r.id::text,
       r.title,
       jsonb_build_object(
@@ -392,7 +392,7 @@ node "compute_router" {
       ) as properties
     from
       gcp_compute_router r
-   where
+    where
       r.id = any($1);
   EOQ
 
@@ -430,7 +430,7 @@ node "compute_subnetwork" {
       s.id::text,
       s.title,
       jsonb_build_object(
-        'ID', s.id::text,
+        'ID', concat(s.id::text, '/' , s.project),
         'Name', s.name,
         'Created Time', s.creation_timestamp,
         'Location', s.location,

@@ -404,7 +404,7 @@ query "bigquery_datasets_for_kms_key" {
 query "bigquery_tables_for_kms_key" {
   sql = <<-EOQ
     select
-      t.id as table_id
+      id::text || '/' || project as table_id
     from
       gcp_bigquery_table t
     where
@@ -517,7 +517,7 @@ query "sql_database_instances_for_kms_key" {
 query "storage_buckets_for_kms_key" {
   sql = <<-EOQ
     select
-      b.id as bucket_id
+      (b.id || '/' || b.project) as bucket_id
     from
       gcp_storage_bucket b
     where

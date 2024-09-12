@@ -133,7 +133,7 @@ query "storage_bucket_age_table" {
   sql = <<-EOQ
     select
       b.name as "Name",
-      b.id as "ID",
+      (b.id || '/' || b.project) as "ID",
       now()::date - b.time_created::date as "Age in Days",
       b.time_created as "Create Time",
       p.name as "Project",
