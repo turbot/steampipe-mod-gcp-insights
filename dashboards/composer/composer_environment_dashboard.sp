@@ -162,7 +162,8 @@ query "composer_environment_web_server_public_access_count" {
     from
       gcp_composer_environment
     where
-      private_environment_config -> 'privateClusterConfig' = '{}';
+      web_server_network_access_control->'allowedIpRanges' @> '[{"value": "0.0.0.0/0"}]'::jsonb
+      and web_server_network_access_control->'allowedIpRanges' @> '[{"value": "::0/0"}]'::jsonb;
   EOQ
 }
 
