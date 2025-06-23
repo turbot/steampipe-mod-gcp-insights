@@ -12,6 +12,7 @@ dashboard "sql_database_instance_dashboard" {
     card {
       query = query.sql_database_instance_count
       width = 2
+      href = dashboard.sql_database_instance_inventory_report.url_path
     }
 
     card {

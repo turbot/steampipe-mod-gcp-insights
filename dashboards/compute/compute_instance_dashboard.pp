@@ -13,6 +13,7 @@ dashboard "compute_instance_dashboard" {
     card {
       query = query.compute_instance_count
       width = 2
+      href = dashboard.compute_instance_inventory_report.url_path
     }
 
     # Assessments
