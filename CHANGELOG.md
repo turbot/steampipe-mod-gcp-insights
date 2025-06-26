@@ -1,3 +1,16 @@
+## v1.1.0 [2025-06-26]
+
+_What's new?_
+
+- New dashboards added: ([#94](https://github.com/turbot/steampipe-mod-gcp-insights/pull/94))
+  - [GCP Compute Disk Inventory Report](https://hub.steampipe.io/mods/turbot/gcp_insights/dashboards/dashboard.compute_disk_report_inventory)
+  - [GCP Compute Instance Inventory Report](https://hub.steampipe.io/mods/turbot/gcp_insights/dashboards/dashboard.compute_instance_report_inventory)
+  - [GCP IAM Service Account Inventory Report](https://hub.steampipe.io/mods/turbot/gcp_insights/dashboards/dashboard.iam_service_account_report_inventory)
+  - [GCP KMS Key Inventory Report](https://hub.steampipe.io/mods/turbot/gcp_insights/dashboards/dashboard.kms_key_report_inventory)
+  - [GCP Kubernetes Cluster Inventory Report](https://hub.steampipe.io/mods/turbot/gcp_insights/dashboards/dashboard.kubernetes_cluster_report_inventory)
+  - [GCP SQL Database Instance Report Inventory](https://hub.steampipe.io/mods/turbot/gcp_insights/dashboards/dashboard.sql_database_instance_report_inventory)
+  - [GCP Storage Bucket Report Inventory](https://hub.steampipe.io/mods/turbot/gcp_insights/dashboards/dashboard.storage_bucket_report_inventory)
+
 ## v1.0.0 [2024-10-22]
 
 This mod now requires [Powerpipe](https://powerpipe.io). [Steampipe](https://steampipe.io) users should check the [migration guide](https://powerpipe.io/blog/migrating-from-steampipe).

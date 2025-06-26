@@ -13,6 +13,7 @@ dashboard "storage_bucket_dashboard" {
     card {
       query = query.storage_bucket_count
       width = 2
+      href  = dashboard.storage_bucket_inventory_report.url_path
     }
 
     card {
