@@ -19,7 +19,7 @@ dashboard "kubernetes_cluster_inventory_report" {
 
   table {
     column "Name" {
-      href = "${dashboard.kubernetes_cluster_detail.url_path}?input.cluster_id={{.ID}}/{{.Project}}"
+      href = "${dashboard.kubernetes_cluster_detail.url_path}?input.cluster_id={{.ID | @uri}}/{{.Project | @uri}}"
     }
 
     query = query.kubernetes_cluster_inventory_table

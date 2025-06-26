@@ -19,7 +19,7 @@ dashboard "compute_instance_inventory_report" {
 
   table {
     column "Name" {
-      href = "${dashboard.compute_instance_detail.url_path}?input.instance_id={{.ID}}/{{.Project}}"
+      href = "${dashboard.compute_instance_detail.url_path}?input.instance_id={{.ID | @uri}}/{{.Project | @uri}}"
     }
 
     query = query.compute_instance_inventory_table

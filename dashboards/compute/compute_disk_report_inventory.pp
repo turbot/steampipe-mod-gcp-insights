@@ -19,7 +19,7 @@ dashboard "compute_disk_inventory_report" {
 
   table {
     column "Name" {
-      href = "${dashboard.compute_disk_detail.url_path}?input.disk_id={{.ID}}/{{.Project}}"
+      href = "${dashboard.compute_disk_detail.url_path}?input.disk_id={{.ID | @uri}}/{{.Project | @uri}}"
     }
 
     query = query.compute_disk_inventory_table

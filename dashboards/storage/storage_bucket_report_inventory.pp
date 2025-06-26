@@ -19,7 +19,7 @@ dashboard "storage_bucket_inventory_report" {
 
   table {
     column "Name" {
-      href = "${dashboard.storage_bucket_detail.url_path}?input.bucket_id={{.ID}}/{{.Project}}"
+      href = "${dashboard.storage_bucket_detail.url_path}?input.bucket_id={{.ID | @uri}}/{{.Project | @uri}}"
     }
 
     query = query.storage_bucket_inventory_table

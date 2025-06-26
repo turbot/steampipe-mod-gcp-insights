@@ -19,7 +19,7 @@ dashboard "iam_service_account_inventory_report" {
 
   table {
     column "Name" {
-      href = "${dashboard.iam_service_account_detail.url_path}?input.service_account_name={{.Name}}/{{.Project}}"
+      href = "${dashboard.iam_service_account_detail.url_path}?input.service_account_name={{.Name | @uri}}/{{.Project | @uri}}"
     }
 
     query = query.iam_service_account_inventory_table

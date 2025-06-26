@@ -19,7 +19,7 @@ dashboard "kms_key_inventory_report" {
 
   table {
     column "Name" {
-      href = "${dashboard.kms_key_detail.url_path}?input.key_name={{.Name}}"
+      href = "${dashboard.kms_key_detail.url_path}?input.key_name={{.Name | @uri}}"
     }
 
     query = query.kms_key_inventory_table
