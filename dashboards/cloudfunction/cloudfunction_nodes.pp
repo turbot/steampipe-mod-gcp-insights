@@ -9,7 +9,6 @@ node "cloudfunctions_function" {
         'Status', status,
         'Runtime', runtime,
         'Update Time', update_time,
-        'Timeout', timeout,
         'Build Environment ID', build_id,
         'Region', location,
         'Project', project
